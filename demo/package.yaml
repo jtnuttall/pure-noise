@@ -1,0 +1,54 @@
+name: pure-noise-demo
+version: 0.1.0.0
+github: "jtnuttall/pure-noise"
+license: BSD-3-Clause
+author: "Jeremy Nuttall"
+maintainer: "jeremy@jeremy-nuttall.com"
+copyright: "2024 Jeremy Nuttall"
+
+description: Please see the README on GitHub at <https://github.com/jtnuttall/pure-noise#readme>
+
+language: GHC2021
+
+source-dirs: src
+
+dependencies:
+  - base >= 4.7 && < 5
+  - pure-noise
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wmissing-home-modules
+  - -Wpartial-fields
+  - -Wredundant-constraints
+
+executables:
+  demo:
+    main: Main.hs
+    default-extensions:
+      - NoImplicitPrelude
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N +RTS -A32m --nonmoving-gc -RTS
+      - -O2
+      - -optc-O3
+      - -fllvm
+    dependencies:
+      - dear-imgui
+      - lens
+      - linear
+      - massiv
+      - OpenGLRaw
+      - raw-strings-qq
+      - relude
+      - resourcet
+      - sdl2
+      - StateVar
+      - unliftio
+      - vector

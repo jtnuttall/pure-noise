@@ -1,0 +1,72 @@
+name: pure-noise
+version: 0.1.0.0
+github: "jtnuttall/pure-noise"
+license: BSD-3-Clause
+author: "Jeremy Nuttall"
+maintainer: "jeremy@jeremy-nuttall.com"
+copyright: "2024 Jeremy Nuttall"
+
+extra-source-files:
+  - README.md
+  - CHANGELOG.md
+
+synopsis: Performant, modern noise generation for Haskell with minimal dependencies. Based on FastNoiseLite.
+category: Math, Numeric, Noise
+
+description: Please see the README on GitHub at <https://github.com/jtnuttall/pure-noise#readme>
+
+language: GHC2021
+
+dependencies:
+  - base >= 4.7 && < 5
+  - vector
+
+ghc-options:
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wmissing-home-modules
+  - -Wpartial-fields
+  - -Wredundant-constraints
+
+library:
+  source-dirs: src
+
+tests:
+  pure-noise-test:
+    main: Driver.hs
+    source-dirs: test
+    ghc-options:
+      - -Wno-missing-export-lists
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+    dependencies:
+      - pure-noise
+      - tasty
+      - tasty-discover
+      - tasty-hunit
+      - tasty-quickcheck
+
+benchmarks:
+  pure-noise-bench:
+    main: Bench.hs
+    source-dirs: bench
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N +RTS -A32m --nonmoving-gc -T -RTS
+      - -O2
+      - -optc-O3
+      - -fproc-alignment=64
+      - -fsimpl-tick-factor=1000
+    dependencies:
+      - pure-noise
+      - deepseq
+      - mwc-random
+      - tasty
+      - tasty-bench
+      - vector

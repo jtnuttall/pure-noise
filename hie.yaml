@@ -1,0 +1,10 @@
+cradle:
+  cabal:
+    - path: "src"
+      component: "lib:pure-noise"
+
+    - path: "test"
+      component: "pure-noise:test:pure-noise-test"
+
+    - path: "bench/Bench.hs"
+      component: "pure-noise:bench:pure-noise-bench"
