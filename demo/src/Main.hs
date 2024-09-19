@@ -14,9 +14,11 @@ import Control.Monad.Trans.Resource
 import Data.Massiv.Array qualified as MA
 import Data.Massiv.Array.Unsafe qualified as MAU
 import Data.StateVar qualified as StateVar
+import Data.Text qualified as T
 import Data.Vector qualified as V
 import DearImGui qualified as ImGui
 import DearImGui.OpenGL3 qualified as ImGui
+import DearImGui.Raw qualified as ImGuiRaw
 import DearImGui.SDL qualified as ImGui
 import DearImGui.SDL.OpenGL qualified as ImGui
 import GHC.Clock (getMonotonicTimeNSec)
@@ -26,7 +28,8 @@ import Numeric.Noise qualified as Noise
 import Relude
 import SDL qualified
 import Text.RawString.QQ
-import UnliftIO (withRunInIO)
+import Text.Show qualified
+import UnliftIO (bracket, bracket_, withRunInIO)
 import UnliftIO.Foreign
 
 type NoiseImg = MA.Array MA.S MA.Ix2 Float
@@ -95,16 +98,34 @@ data FractalType
   | Ridged
   | Billow
   | PingPong
-  deriving (Show, Eq, Ord, Enum, Bounded)
+  deriving (Eq, Ord, Enum, Bounded)
+
+instance Show FractalType where
+  show = \case
+    FBM -> "fBm"
+    Ridged -> "Ridged"
+    Billow -> "Billow"
+    PingPong -> "Ping Pong"
 
 data NoiseType
   = Perlin
   | OpenSimplex2
-  | OpenSimplex2s
+  | SuperSimplex
   | Cellular
   | Value
   | ValueCubic
-  deriving (Show, Eq, Ord, Enum, Bounded)
+  | PerlinPlusSuperSimplex
+  deriving (Eq, Ord, Enum, Bounded)
+
+instance Show NoiseType where
+  show = \case
+    Perlin -> "Perlin"
+    OpenSimplex2 -> "OpenSimplex2"
+    SuperSimplex -> "SuperSimplex (OpenSimplex2S)"
+    Cellular -> "Cellular (Worley)"
+    Value -> "Value"
+    ValueCubic -> "Value Cubic"
+    PerlinPlusSuperSimplex -> "Perlin + SuperSimplex (see README)"
 
 data DeltaTime = DeltaTime
   { previousMono :: !Double
@@ -232,10 +253,11 @@ noiseFrom config = fractal noise
   noise = case config ^. noiseType of
     Perlin -> Noise.perlin2
     OpenSimplex2 -> Noise.openSimplex2
-    OpenSimplex2s -> Noise.superSimplex2
+    SuperSimplex -> Noise.superSimplex2
     Cellular -> Noise.cellular2 (config ^. cellularConfig)
     Value -> Noise.value2
     ValueCubic -> Noise.valueCubic2
+    PerlinPlusSuperSimplex -> (Noise.superSimplex2 + Noise.perlin2) / 2
   fractal
     | config ^. fractalEnabled =
         let conf = config ^. fractalConfig
@@ -313,8 +335,7 @@ noiseDash = dashWin do
         "%u"
         ImGui.ImGuiSliderFlags_WrapAround
 
-    scaleSV <- mkSVFor frequency
-    _ <- ImGui.dragFloat "frequency" scaleSV 0.001 (-0.5) 0.5
+    _ <- dragFloat "frequency" frequency 0.001 (-0.5) 0.5 "%.5f"
 
     _ <- combo "noise function" noiseType
 
@@ -324,8 +345,7 @@ noiseDash = dashWin do
     noiseFn <- use noiseType
     case noiseFn of
       Cellular -> do
-        jitterSV <- mkSVFor cellularJitter
-        _ <- ImGui.dragFloat "cellular jitter" jitterSV 0.005 (-1) 1
+        _ <- dragFloat "cellular jitter" cellularJitter 0.005 (-1) 1 "%.4f"
         _ <- combo "distance fn" cellularDistanceFn
         _ <- combo "cellular result" cellularResult
         pure ()
@@ -338,20 +358,13 @@ noiseDash = dashWin do
 
       octavesSV <- mkSVFor fractalOctaves
       _ <- ImGui.dragInt "octaves" octavesSV 0.05 1 24
-
-      weightedStrengthSV <- mkSVFor fractalWeightedStrength
-      _ <- ImGui.dragFloat "weighted strength" weightedStrengthSV 0.001 (-5) 5
-
-      lacunaritySV <- mkSVFor fractalLacunarity
-      _ <- ImGui.dragFloat "lacunarity" lacunaritySV 0.001 0 7
-
-      gainSV <- mkSVFor fractalGain
-      _ <- ImGui.dragFloat "gain" gainSV 0.0001 (-1.5) 1.5
+      _ <- dragFloat "weighted strength" fractalWeightedStrength 0.001 (-5) 5 "%.4f"
+      _ <- dragFloat "lacunarity" fractalLacunarity 0.001 0 7 "%.4f"
+      _ <- dragFloat "gain" fractalGain 0.0001 (-1.5) 1.5 "%.5f"
 
       ty <- use fractalType
       withDisabledPure (ty /= PingPong) do
-        pingPongStrengthSV <- mkSVFor (pingPongStrength . coerced)
-        _ <- ImGui.dragFloat "ping pong strength" pingPongStrengthSV 0.001 (-5) 5
+        _ <- dragFloat "ping pong strength" (pingPongStrength . coerced) 0.001 (-5) 5 "%.5f"
         pure ()
 
 v2tuple :: Iso' (V2 a) (a, a)
@@ -362,6 +375,20 @@ withEnabled sv = ImGui.withDisabled (not <$> StateVar.get @ref @Bool @IO sv)
 
 withDisabledPure :: (MonadUnliftIO m) => Bool -> m a -> m a
 withDisabledPure p = ImGui.withDisabled (pure @IO p)
+
+-- | So we can change the format precision
+dragFloat
+  :: (MonadState s m, MonadUnliftIO m) => Text -> Lens' s Float -> Float -> Float -> Float -> Text -> m Bool
+dragFloat d l speed minV maxV fmt = do
+  v <- CFloat <$> use l
+  with v \vPtr -> do
+    changed <- withCString (T.unpack d) \dPtr ->
+      withCString (T.unpack fmt) $
+        ImGuiRaw.dragFloat dPtr vPtr (CFloat speed) (CFloat minV) (CFloat maxV)
+    when changed do
+      (CFloat v') <- liftIO (peek vPtr)
+      l .= v'
+    pure changed
 
 mkSVFor :: (MonadUnliftIO m, HasNoiseConfig s, MonadState s m) => Lens' s b -> m (StateVar.StateVar b)
 mkSVFor l = withRunInIO \run ->
