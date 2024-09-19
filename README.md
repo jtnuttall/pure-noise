@@ -2,7 +2,27 @@
 
 Performant, modern noise generation for Haskell with a minimal dependency footprint.
 
-This library is intended to maintain feature parity with FastNoiseLite.
+The algorithms used in this library are ported from [FastNoiseLite](https://github.com/Auburn/FastNoiseLite). The library structure has been retuned to fit better with Haskell semantics.
+
+The public interface for this library is unlikely to change much, although the implementations (`noiseBaseN` functions and anything in `Numeric.Noise.Internal`) are subject to change and may change between minor versions.
+
+## Usage
+
+The library exports newtypes for N-dimensional noise. Currently, these are just functions that accept a seed and a point in N-dimensional space. They can be arbitrarily unwrapped by with the `noiseAtN` family of functions. Since they abstract over the given seed and parameters, they can be composed with `Num` or `Fractional` methods at will with little-to-no performance cost.
+
+Be aware that noise values are generally clamped to `[-1, 1]`, although some noise functions may occasionally produce values slightly outside this range.
+
+```haskell
+import Numeric.Noise qualified as Noise
+
+myNoise2 :: (RealFrac a) => Seed -> a -> a -> a
+myNoise2 =
+  let fractalConfig = Noise.defaultFractalConfig
+  in Noise.noiseAt2 $
+      Noise.fractal2 fractalConfig ((perlin2 + superSimplex2) / 2)
+```
+
+More examples can be found in `bench` and `demo`.
 
 ## Performance notes
 
