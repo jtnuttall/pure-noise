@@ -21,9 +21,6 @@ import Numeric.Noise.Internal.Math as Math (
   quinticInterp,
  )
 
-newtype Frequency a = Frequency
-  {getFrequency :: a}
-
 newtype Noise2 a = Noise2
   {unNoise2 :: Seed -> a -> a -> a}
 
