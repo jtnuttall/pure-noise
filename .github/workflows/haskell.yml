@@ -25,6 +25,7 @@ jobs:
       - id: stack
         uses: freckle/stack-action@v5
         with:
+          test: false
           stack-build-arguments: "--ghc-options -fllvm"
           cache-prefix: ${{ env.CACHE_BUST_VERSION }}
 
