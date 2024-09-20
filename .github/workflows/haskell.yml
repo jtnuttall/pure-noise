@@ -10,7 +10,6 @@ permissions:
   contents: read
 
 env:
-  GHC_VERSION: 9.6.6
   CACHE_BUST_VERSION: v0
 
 jobs:
@@ -26,24 +25,11 @@ jobs:
       - id: stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: ""
+          stack-build-arguments: "--ghc-options -fllvm"
           cache-prefix: ${{ env.CACHE_BUST_VERSION }}
 
-      # - uses: haskell-actions/setup@v2
-      #   if: steps.ghcup.outputs.cache-hit != 'true'
-      #   with:
-      #     ghc-version: ${{ env.GHC_VERSION }}
-      #     enable-stack: true
-      #     stack-version: latest
+      - name: test
+        run: stack test --ghc-options -fllvm
 
-      # - name: Build
-      #   run: |
-      #     stack build --ghc-options -fllvm
-
-      # - name: Test
-      #   run: |
-      #     stack test --ghc-options -fllvm
-
-      # - name: Bench
-      #   run: |
-      #     stack bench --ghc-options -fllvm --ba='+RTS -T -RTS'
+      - name: bench
+        run: stack bench --ghc-options -fllvm --ba='+RTS -T -RTS'
