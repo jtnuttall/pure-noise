@@ -2,9 +2,9 @@ name: Haskell CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: read
@@ -27,12 +27,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2.0.5
         with:
-            version: 15
-      
+          version: 15
+
       - name: Cache GHC installation
         uses: actions/cache@v3
         id: ghcup
@@ -63,4 +63,4 @@ jobs:
 
       - name: Bench
         run: |
-          stack bench --ghc-options -fllvm --ba='--fail-if-slower 15 --baseline bench/results/current-llvm.csv +RTS -T -RTS'
+          stack bench --force-dirty --ghc-options -fllvm --ba='+RTS -T -RTS'

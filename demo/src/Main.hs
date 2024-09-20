@@ -29,7 +29,7 @@ import Relude
 import SDL qualified
 import Text.RawString.QQ
 import Text.Show qualified
-import UnliftIO (bracket, bracket_, withRunInIO)
+import UnliftIO (withRunInIO)
 import UnliftIO.Foreign
 
 type NoiseImg = MA.Array MA.S MA.Ix2 Float
