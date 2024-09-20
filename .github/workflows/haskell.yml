@@ -9,17 +9,9 @@ on:
 permissions:
   contents: read
 
-# https://github.com/commercialhaskell/stack/issues/5754#issuecomment-1696156869
 env:
   GHC_VERSION: 9.6.6
-  #-- increment this if you think cache of GHC installation needs cold rebuild
-  MANUAL_CACHE_RESET_COMPILER: v0
-  #-- increment this if you think cache of .stack-work needs cold rebuild
-  MANUAL_CACHE_RESET_PRODUCTS: v0
-  #-- increment this to force-rebuild the cache of dependency packages
-  MANUAL_CACHE_RESET_TESTDEPS: v0
-  #-- should never be needed, as stackage snapshots are immutable
-  # MANUAL_CACHE_RESET_SNAPSHOT: v0
+  CACHE_BUST_VERSION: v0
 
 jobs:
   build:
@@ -27,40 +19,31 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@v2.0.5
         with:
           version: 15
-
-      - name: Cache GHC installation
-        uses: actions/cache@v3
-        id: ghcup
-        env:
-          MANUAL_RESET: ${{ env.MANUAL_CACHE_RESET_COMPILER }}
+      - id: stack
+        uses: freckle/stack-action@v5
         with:
-          path: |
-            ~/.ghcup/bin/*
-            ~/.ghcup/cache/*
-            ~/.ghcup/config.yaml
-            ~/.ghcup/ghc/${{ env.GHC_VERSION }}
-          key: CI-ghcup-${{ env.MANUAL_RESET }}--${{ env.GHC_VERSION }}
+          stack-build-arguments: ""
+          cache-prefix: ${{ env.CACHE_BUST_VERSION }}
 
-      - uses: haskell-actions/setup@v2
-        if: steps.ghcup.outputs.cache-hit != 'true'
-        with:
-          ghc-version: ${{ env.GHC_VERSION }}
-          enable-stack: true
-          stack-version: latest
+      # - uses: haskell-actions/setup@v2
+      #   if: steps.ghcup.outputs.cache-hit != 'true'
+      #   with:
+      #     ghc-version: ${{ env.GHC_VERSION }}
+      #     enable-stack: true
+      #     stack-version: latest
 
-      - name: Build
-        run: |
-          stack build --ghc-options -fllvm
+      # - name: Build
+      #   run: |
+      #     stack build --ghc-options -fllvm
 
-      - name: Test
-        run: |
-          stack test --ghc-options -fllvm
+      # - name: Test
+      #   run: |
+      #     stack test --ghc-options -fllvm
 
-      - name: Bench
-        run: |
-          stack bench --ghc-options -fllvm --ba='+RTS -T -RTS'
+      # - name: Bench
+      #   run: |
+      #     stack bench --ghc-options -fllvm --ba='+RTS -T -RTS'
