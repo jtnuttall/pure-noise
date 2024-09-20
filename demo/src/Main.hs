@@ -40,7 +40,6 @@ data AppState = AppState
   , _fullscreenShaderProgram :: GLuint
   , _fullscreenTexture :: Maybe GLuint
   , _noiseTextureLocation :: GLint
-  , _fullscreenImage :: NoiseImg
   , asInputState :: UiState
   , asNoiseConfig :: NoiseConfig
   }
@@ -239,13 +238,8 @@ createNoiseImage config =
    in MA.makeArray MA.Par (MA.Sz2 h w) \(i MA.:. j) ->
         let x = fromIntegral i - fromIntegral h / 2
             y = fromIntegral j - fromIntegral w / 2
-            noise =
-              Noise.noise2At
-                noiseF
-                s
-                (x * xScale + offX)
-                (y * yScale + offY)
-         in (noise + 1) / 2
+            noise = Noise.noise2At noiseF s (x * xScale + offX) (y * yScale + offY)
+         in (Noise.clamp (-1) 1 noise + 1) / 2
 
 noiseFrom :: (HasNoiseConfig c, HasUiFractalConfig c) => c -> Noise.Noise2 Float
 noiseFrom config = fractal noise
@@ -268,43 +262,46 @@ noiseFrom config = fractal noise
               PingPong -> Noise.pingPong2 conf (config ^. pingPongStrength)
     | otherwise = id
 
-renderNoise
-  :: ( MonadUnliftIO m
-     , HasAppState s
-     , HasUiFractalConfig s
-     , HasNoiseConfig s
-     , MonadState s m
-     )
-  => m ()
+renderNoise :: (MonadUnliftIO m) => AppT m ()
 renderNoise = do
   glUseProgram =<< use fullscreenShaderProgram
-  isDirty <- use dirty
-  noiseImg <-
-    use fullscreenImage >>= \case
-      img
-        | isDirty -> do
-            newImage <- createNoiseImage <$> get
-            fullscreenImage .= newImage
-            dirty .= False
-            pure newImage
-        | otherwise -> pure img
-
-  writeNoise noiseImg
+  writeNoise
   emptyVAO <- liftIO . alloca $ \emptyVAOPtr -> do
     glGenVertexArrays 1 emptyVAOPtr
     peek emptyVAOPtr
   glBindVertexArray emptyVAO
   glDrawArrays GL_TRIANGLES 0 3
   glBindTexture GL_TEXTURE_2D 0
+ where
+  writeNoise = do
+    V2 w h <- fmap fromIntegral <$> use windowSize
+    mNoiseTex <- use fullscreenTexture
+    case mNoiseTex of
+      Just noiseTex -> do
+        glBindTexture GL_TEXTURE_2D noiseTex
+      Nothing -> do
+        noiseTex <- alloca \ptr -> do
+          glGenTextures 1 ptr
+          liftIO $ peek ptr
+        glBindTexture GL_TEXTURE_2D noiseTex
+        glTexParameterf GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER (fromIntegral GL_LINEAR)
+        glDisable GL_DEPTH
+        fullscreenTexture .= Just noiseTex
+
+    mImage <- bool (pure Nothing) (Just . createNoiseImage <$> get) =<< use dirty
+    case mImage of
+      Just image -> do
+        MAU.unsafeWithPtr image $
+          glTexImage2D GL_TEXTURE_2D 0 (fromIntegral GL_LUMINANCE) w h 0 GL_LUMINANCE GL_FLOAT
+        glActiveTexture GL_TEXTURE0
+        noiseLoc <- use noiseTextureLocation
+        glUniform1i noiseLoc 0
+        dirty .= False
+      Nothing ->
+        pure ()
 
 noiseDash
-  :: ( MonadUnliftIO m
-     , HasAppState s
-     , HasNoiseConfig s
-     , HasUiFractalConfig s
-     , MonadState s m
-     )
-  => m ()
+  :: (MonadUnliftIO m) => AppT m ()
 noiseDash = dashWin do
   fps <- getFPS
   ImGui.labelText "FPS" (show $ round @Double @Int fps)
@@ -378,7 +375,14 @@ withDisabledPure p = ImGui.withDisabled (pure @IO p)
 
 -- | So we can change the format precision
 dragFloat
-  :: (MonadState s m, MonadUnliftIO m) => Text -> Lens' s Float -> Float -> Float -> Float -> Text -> m Bool
+  :: (MonadState s m, HasNoiseConfig s, MonadUnliftIO m)
+  => Text
+  -> Lens' s Float
+  -> Float
+  -> Float
+  -> Float
+  -> Text
+  -> m Bool
 dragFloat d l speed minV maxV fmt = do
   v <- CFloat <$> use l
   with v \vPtr -> do
@@ -388,6 +392,7 @@ dragFloat d l speed minV maxV fmt = do
     when changed do
       (CFloat v') <- liftIO (peek vPtr)
       l .= v'
+      dirty .= True
     pure changed
 
 mkSVFor :: (MonadUnliftIO m, HasNoiseConfig s, MonadState s m) => Lens' s b -> m (StateVar.StateVar b)
@@ -410,17 +415,7 @@ combo lbl l = do
   sv <- mkSVFor (l . asEnum)
   ImGui.combo lbl sv (show <$> toList vs)
 
-mainLoop
-  :: ( MonadResource m
-     , MonadUnliftIO m
-     , HasAppState s
-     , HasUiState s
-     , HasNoiseConfig s
-     , HasUiFractalConfig s
-     , MonadState s m
-     )
-  => SDL.Window
-  -> m ()
+mainLoop :: (MonadResource m, MonadUnliftIO m) => SDL.Window -> AppT m ()
 mainLoop window = processEventsUntilQuit do
   tick
   ImGui.openGL3NewFrame
@@ -463,12 +458,10 @@ mainLoop window = processEventsUntilQuit do
               leftMBDown .= (mouseButtonEventMotion == SDL.Pressed)
             _ -> pure ()
         SDL.MouseMotionEvent (SDL.MouseMotionEventData{..}) -> do
-          config <- use appState
           active <- use leftMBDown
           when active do
             let V2 rx ry = fromIntegral <$> mouseMotionEventRelMotion
-            noiseOffset += V2 (-rx) ry * scale config
-            dirty .= True
+            moveImage (V2 (-rx) ry)
         SDL.MouseWheelEvent (SDL.MouseWheelEventData{..}) -> do
           freq <- use frequency
           let frequencyScale = 0.05 * freq
@@ -477,6 +470,11 @@ mainLoop window = processEventsUntilQuit do
           dirty .= True
         _ -> pure ()
 
+  moveImage by = do
+    config <- use appState
+    noiseOffset += by * scale config
+    dirty .= True
+
   unlessCaptured act = do
     capM <- ImGui.wantCaptureMouse
     capKB <- ImGui.wantCaptureKeyboard
@@ -484,28 +482,6 @@ mainLoop window = processEventsUntilQuit do
 
   whenCurrentWindow Nothing _ = pure ()
   whenCurrentWindow (Just evtWindow) act = when (evtWindow == window) act
-
-writeNoise :: (MonadUnliftIO m, HasAppState s, MonadState s m) => NoiseImg -> m ()
-writeNoise image = do
-  V2 w h <- fmap fromIntegral <$> use windowSize
-  mNoiseTex <- use fullscreenTexture
-  case mNoiseTex of
-    Just noiseTex -> do
-      glBindTexture GL_TEXTURE_2D noiseTex
-    Nothing -> do
-      noiseTex <- alloca \ptr -> do
-        glGenTextures 1 ptr
-        liftIO $ peek ptr
-      glBindTexture GL_TEXTURE_2D noiseTex
-      glTexParameterf GL_TEXTURE_2D GL_TEXTURE_MIN_FILTER (fromIntegral GL_LINEAR)
-      glDisable GL_DEPTH
-      fullscreenTexture .= Just noiseTex
-
-  MAU.unsafeWithPtr image $
-    glTexImage2D GL_TEXTURE_2D 0 (fromIntegral GL_LUMINANCE) w h 0 GL_LUMINANCE GL_FLOAT
-  glActiveTexture GL_TEXTURE0
-  noiseLoc <- use noiseTextureLocation
-  glUniform1i noiseLoc 0
 
 initShaderProgram :: (MonadIO m) => m GLuint
 initShaderProgram = do
@@ -610,7 +586,6 @@ main = runResourceT do
       , _deltaTime
       , _fullscreenShaderProgram
       , _fullscreenTexture = Nothing
-      , _fullscreenImage = MA.replicate MA.Par (MA.Sz2 wHeight wWidth) 1
       , _noiseTextureLocation
       , asInputState = initInputState
       , asNoiseConfig = defaultNoiseConfig
