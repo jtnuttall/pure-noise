@@ -63,4 +63,4 @@ jobs:
 
       - name: Bench
         run: |
-          stack bench --force-dirty --ghc-options -fllvm --ba='+RTS -T -RTS'
+          stack bench --ghc-options -fllvm --ba='+RTS -T -RTS'
