@@ -8,9 +8,9 @@ The public interface for this library is unlikely to change much, although the i
 
 ## Usage
 
-The library exports newtypes for N-dimensional noise. Currently, these are just functions that accept a seed and a point in N-dimensional space. They can be arbitrarily unwrapped by with the `noiseAtN` family of functions. Since they abstract over the given seed and parameters, they can be composed with `Num` or `Fractional` methods at will with little-to-no performance cost.
+The library exports newtypes for N-dimensional noise. Currently, these are just functions that accept a seed and a point in N-dimensional space. They can be arbitrarily unwrapped by with the `noiseNAt` family of functions. Since they abstract over the given seed and parameters, they can be composed with `Num` or `Fractional` methods at will with little-to-no performance cost.
 
-Be aware that noise values are generally clamped to `[-1, 1]`, although some noise functions may occasionally produce values slightly outside this range.
+Noise values are generally clamped to `[-1, 1]`, although some noise functions may occasionally produce values slightly outside this range.
 
 ```haskell
 import Numeric.Noise qualified as Noise
@@ -18,7 +18,7 @@ import Numeric.Noise qualified as Noise
 myNoise2 :: (RealFrac a) => Seed -> a -> a -> a
 myNoise2 =
   let fractalConfig = Noise.defaultFractalConfig
-  in Noise.noiseAt2 $
+  in Noise.noise2At $
       Noise.fractal2 fractalConfig ((perlin2 + superSimplex2) / 2)
 ```
 

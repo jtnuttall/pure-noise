@@ -214,8 +214,8 @@ instance (MonadIO m) => MonadState AppState (AppT m) where
     ref <- ask
     writeIORef ref conf
 
-runNoiseDemoT :: (MonadIO m) => AppT m a -> AppState -> m a
-runNoiseDemoT (AppT act) conf = do
+runAppT :: (MonadIO m) => AppT m a -> AppState -> m a
+runAppT (AppT act) conf = do
   ref <- newIORef conf
   runReaderT act ref
 
@@ -579,7 +579,7 @@ main = runResourceT do
   _noiseTextureLocation <- withCString "noiseText" (glGetUniformLocation _fullscreenShaderProgram)
   _deltaTime <- initDT
 
-  runNoiseDemoT
+  runAppT
     (mainLoop window)
     AppState
       { _windowSize = initialSize

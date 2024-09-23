@@ -180,16 +180,6 @@ pingPongNoiseMod (PingPongStrength s) n =
   let n' = (n + 1) * s
       t = n' - fromIntegral @Int (truncate (n' * 0.5) * 2)
    in if t < 1 then t else 2 - t
- where
-
--- pingPong =
---  where
--- \| t < 1 = t
--- \| otherwise = 2 - t
-
--- t =
---   let n' = (n + 1) * s
---    in n' - fromIntegral @Int (truncate (n' * 0.5) * 2)
 {-# INLINE pingPongNoiseMod #-}
 
 pingPongAmpMod :: (Num a) => FractalConfig a -> a -> a

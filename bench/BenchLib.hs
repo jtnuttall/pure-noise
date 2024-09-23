@@ -10,6 +10,3 @@ module BenchLib (
 ) where
 
 import Test.Tasty.Bench
-
--- import Criterion
--- import Criterion.Main
