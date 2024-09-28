@@ -150,7 +150,7 @@ maxHash = realToFrac (maxBound @Hash)
 {-# INLINE maxHash #-}
 
 {- ORMOLU_DISABLE -}
--- >>> Data.Vector.Primitive.length grad2d == 256
+-- >>> U.length grad2d == 256
 -- True
 grad2d :: U.Vector Float
 grad2d =
@@ -188,7 +188,7 @@ grad2d =
    -0.38268343236509 , -0.923879532511287, -0.923879532511287, -0.38268343236509 , -0.923879532511287,  0.38268343236509 , -0.38268343236509 ,  0.923879532511287
   ]
 
--- >>> Data.Vector.Primitive.length grad3d == 256
+-- >>> U.length grad3d == 256
 -- True
 grad3d :: U.Vector Int
 grad3d =

@@ -129,7 +129,7 @@ noise2BaseWith !jitter !dist !seed !x !y =
      in (h, d)
 {-# INLINE noise2BaseWith #-}
 
--- >>> Data.Vector.Primitive.length randVecs2d == 512
+-- >>> U.length randVecs2d == 512
 -- True
 {- ORMOLU_DISABLE -}
 randVecs2d :: U.Vector Float
