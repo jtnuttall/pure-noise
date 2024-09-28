@@ -30,6 +30,7 @@ import SDL qualified
 import Text.RawString.QQ
 import Text.Show qualified
 import UnliftIO (withRunInIO)
+import UnliftIO.Exception (throwString)
 import UnliftIO.Foreign
 
 type NoiseImg = MA.Array MA.S MA.Ix2 Float
@@ -483,7 +484,7 @@ mainLoop window = processEventsUntilQuit do
   whenCurrentWindow Nothing _ = pure ()
   whenCurrentWindow (Just evtWindow) act = when (evtWindow == window) act
 
-initShaderProgram :: (MonadIO m) => m GLuint
+initShaderProgram :: (MonadUnliftIO m) => m GLuint
 initShaderProgram = do
   vertShader <- glCreateShader GL_VERTEX_SHADER
   compShader "vertex" vertShader vertShaderSrc
@@ -498,7 +499,6 @@ initShaderProgram = do
     glGetProgramiv shaderProgramId GL_LINK_STATUS ptr
     fromIntegral <$> peek ptr
   when (linkSuccess == GL_FALSE) do
-    putStrLn "Failed to link shader program:"
     let len = 512
     log <- liftIO $
       alloca \resultPtr ->
@@ -506,23 +506,22 @@ initShaderProgram = do
           glGetProgramInfoLog shaderProgramId len resultPtr logPtr
           resLen <- fromIntegral <$> peek resultPtr
           map (toEnum @Char . fromEnum) <$> peekArray resLen logPtr
-    putStrLn log
+    throwString $ "Failed to link shader program: " <> log
 
   glDeleteShader vertShader
   glDeleteShader fragShader
   pure shaderProgramId
  where
-  compShader st sid srcS = liftIO $
-    withCAStringLen srcS \(src, len) ->
-      withArray [src] \linesPtr ->
-        withArray [fromIntegral len] \lengthsPtr -> do
+  compShader st sid srcS =
+    withCStringLen srcS \(src, len) ->
+      with src \linesPtr ->
+        with (fromIntegral len) \lengthsPtr -> do
           glShaderSource sid 1 linesPtr lengthsPtr
           glCompileShader sid
-          success <- alloca \ptr -> do
+          success <- liftIO $ alloca \ptr -> do
             glGetShaderiv sid GL_COMPILE_STATUS ptr
             fromIntegral <$> peek ptr
           when (success == GL_FALSE) do
-            putStrLn $ "Failed to compile " <> st <> " shader:"
             let eLen = 512
             log <- liftIO $
               alloca \resultPtr ->
@@ -530,7 +529,7 @@ initShaderProgram = do
                   glGetShaderInfoLog sid eLen resultPtr logPtr
                   resLen <- fromIntegral <$> peek resultPtr
                   map (toEnum @Char . fromEnum) <$> peekArray resLen logPtr
-            putStrLn log
+            throwString $ "Failed to compile " <> st <> " shader: " <> log
 
   vertShaderSrc =
     [r|
