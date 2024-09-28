@@ -266,7 +266,7 @@ renderNoise :: (MonadUnliftIO m) => AppT m ()
 renderNoise = do
   glUseProgram =<< use fullscreenShaderProgram
   writeNoise
-  emptyVAO <- liftIO . alloca $ \emptyVAOPtr -> do
+  emptyVAO <- liftIO $ alloca \emptyVAOPtr -> do
     glGenVertexArrays 1 emptyVAOPtr
     peek emptyVAOPtr
   glBindVertexArray emptyVAO
@@ -512,25 +512,25 @@ initShaderProgram = do
   glDeleteShader fragShader
   pure shaderProgramId
  where
-  compShader st sid srcS = liftIO do
-    (src, len) <- newCAStringLen srcS
-    linesPtr <- newArray [src]
-    lengthsPtr <- newArray [fromIntegral len]
-    glShaderSource sid 1 linesPtr lengthsPtr
-    glCompileShader sid
-    success <- alloca \ptr -> do
-      glGetShaderiv sid GL_COMPILE_STATUS ptr
-      fromIntegral <$> peek ptr
-    when (success == GL_FALSE) do
-      putStrLn $ "Failed to compile " <> st <> " shader:"
-      let eLen = 512
-      log <- liftIO $
-        alloca \resultPtr ->
-          allocaArray eLen \logPtr -> do
-            glGetShaderInfoLog sid eLen resultPtr logPtr
-            resLen <- fromIntegral <$> peek resultPtr
-            map (toEnum @Char . fromEnum) <$> peekArray resLen logPtr
-      putStrLn log
+  compShader st sid srcS = liftIO $
+    withCAStringLen srcS \(src, len) ->
+      withArray [src] \linesPtr ->
+        withArray [fromIntegral len] \lengthsPtr -> do
+          glShaderSource sid 1 linesPtr lengthsPtr
+          glCompileShader sid
+          success <- alloca \ptr -> do
+            glGetShaderiv sid GL_COMPILE_STATUS ptr
+            fromIntegral <$> peek ptr
+          when (success == GL_FALSE) do
+            putStrLn $ "Failed to compile " <> st <> " shader:"
+            let eLen = 512
+            log <- liftIO $
+              alloca \resultPtr ->
+                allocaArray eLen \logPtr -> do
+                  glGetShaderInfoLog sid eLen resultPtr logPtr
+                  resLen <- fromIntegral <$> peek resultPtr
+                  map (toEnum @Char . fromEnum) <$> peekArray resLen logPtr
+            putStrLn log
 
   vertShaderSrc =
     [r|
