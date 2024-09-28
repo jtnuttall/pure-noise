@@ -57,6 +57,7 @@ initInputState =
 
 data NoiseConfig = NoiseConfig
   { _dirty :: Bool
+  , _clamped :: Bool
   , _seed :: Noise.Seed
   , _noiseType :: NoiseType
   , _noiseOffset :: V2 Float
@@ -69,6 +70,7 @@ defaultNoiseConfig :: NoiseConfig
 defaultNoiseConfig =
   NoiseConfig
     { _dirty = True
+    , _clamped = True
     , _seed = 1337
     , _noiseType = Perlin
     , _noiseOffset = V2 0.7 0.7
@@ -240,11 +242,15 @@ createNoiseImage config =
         let x = fromIntegral i - fromIntegral h / 2
             y = fromIntegral j - fromIntegral w / 2
             noise = Noise.noise2At noiseF s (x * xScale + offX) (y * yScale + offY)
-         in (Noise.clamp (-1) 1 noise + 1) / 2
+         in (noise + 1) / 2
 
 noiseFrom :: (HasNoiseConfig c, HasUiFractalConfig c) => c -> Noise.Noise2 Float
-noiseFrom config = fractal noise
+noiseFrom config = clamp (fractal noise)
  where
+  clamp
+    | config ^. clamped = Noise.clamp2 (-1) 1
+    | otherwise = id
+
   noise = case config ^. noiseType of
     Perlin -> Noise.perlin2
     OpenSimplex2 -> Noise.openSimplex2
@@ -253,6 +259,7 @@ noiseFrom config = fractal noise
     Value -> Noise.value2
     ValueCubic -> Noise.valueCubic2
     PerlinPlusSuperSimplex -> (Noise.superSimplex2 + Noise.perlin2) / 2
+
   fractal
     | config ^. fractalEnabled =
         let conf = config ^. fractalConfig
@@ -320,6 +327,9 @@ noiseDash = dashWin do
     when shouldReset do
       noiseConfig .= defaultNoiseConfig
       dirty .= True
+
+    clampedSV <- mkSVFor clamped
+    _ <- ImGui.checkbox "clamp" clampedSV
 
     seedSV <- mkSVFor seed
     _ <-

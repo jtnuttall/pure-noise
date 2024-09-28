@@ -52,6 +52,8 @@ import Numeric.Noise.Internal as NoiseTypes (
  )
 import Numeric.Noise.Internal as NoiseUtility (
   clamp,
+  clamp2,
+  clamp3,
   cubicInterp,
   hermiteInterp,
   lerp,

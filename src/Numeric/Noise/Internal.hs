@@ -5,9 +5,11 @@ module Numeric.Noise.Internal (
   module Math,
   Noise2 (..),
   map2,
+  clamp2,
   const2,
   Noise3 (..),
   map3,
+  clamp3,
   const3,
 ) where
 
@@ -27,6 +29,10 @@ newtype Noise2 a = Noise2
 map2 :: (a -> a) -> Noise2 a -> Noise2 a
 map2 f (Noise2 g) = Noise2 (\s x y -> f (g s x y))
 {-# INLINE map2 #-}
+
+clamp2 :: (Ord a) => a -> a -> Noise2 a -> Noise2 a
+clamp2 l u (Noise2 f) = Noise2 $ \s x y -> clamp l u (f s x y)
+{-# INLINE clamp2 #-}
 
 const2 :: a -> Noise2 a
 const2 a = Noise2 (\_ _ _ -> a)
@@ -92,6 +98,10 @@ map3 f (Noise3 g) = Noise3 (\s x y z -> f (g s x y z))
 const3 :: a -> Noise3 a
 const3 a = Noise3 (\_ _ _ _ -> a)
 {-# INLINE const3 #-}
+
+clamp3 :: (Ord a) => a -> a -> Noise3 a -> Noise3 a
+clamp3 l u (Noise3 f) = Noise3 $ \s x y z -> clamp l u (f s x y z)
+{-# INLINE clamp3 #-}
 
 instance (Num a) => Num (Noise3 a) where
   Noise3 f + Noise3 g = Noise3 $ \s x y z -> f s x y z + g s x y z
