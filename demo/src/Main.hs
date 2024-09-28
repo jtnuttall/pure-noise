@@ -128,8 +128,8 @@ instance Show NoiseType where
     PerlinPlusSuperSimplex -> "Perlin + SuperSimplex (see README)"
 
 data DeltaTime = DeltaTime
-  { previousMono :: !Double
-  , currentMono :: !Double
+  { previousMono :: Double
+  , currentMono :: Double
   }
   deriving (Show)
 
@@ -451,25 +451,24 @@ mainLoop window = processEventsUntilQuit do
         evt -> handleInput evt
       go es
 
-    handleInput evt = unlessCaptured do
-      case evt of
-        SDL.MouseButtonEvent (SDL.MouseButtonEventData{..}) -> whenCurrentWindow mouseButtonEventWindow do
-          case mouseButtonEventButton of
-            SDL.ButtonLeft ->
-              leftMBDown .= (mouseButtonEventMotion == SDL.Pressed)
-            _ -> pure ()
-        SDL.MouseMotionEvent (SDL.MouseMotionEventData{..}) -> do
-          active <- use leftMBDown
-          when active do
-            let V2 rx ry = fromIntegral <$> mouseMotionEventRelMotion
-            moveImage (V2 (-rx) ry)
-        SDL.MouseWheelEvent (SDL.MouseWheelEventData{..}) -> do
-          freq <- use frequency
-          let frequencyScale = 0.05 * freq
-              V2 _ zoomY = fromIntegral <$> mouseWheelEventPos
-          frequency -= (frequencyScale * zoomY)
-          dirty .= True
-        _ -> pure ()
+    handleInput evt = unlessCaptured case evt of
+      SDL.MouseButtonEvent (SDL.MouseButtonEventData{..}) -> whenCurrentWindow mouseButtonEventWindow do
+        case mouseButtonEventButton of
+          SDL.ButtonLeft ->
+            leftMBDown .= (mouseButtonEventMotion == SDL.Pressed)
+          _ -> pure ()
+      SDL.MouseMotionEvent (SDL.MouseMotionEventData{..}) -> do
+        active <- use leftMBDown
+        when active do
+          let V2 rx ry = fromIntegral <$> mouseMotionEventRelMotion
+          moveImage (V2 (-rx) ry)
+      SDL.MouseWheelEvent (SDL.MouseWheelEventData{..}) -> do
+        freq <- use frequency
+        let frequencyScale = 0.05 * freq
+            V2 _ zoomY = fromIntegral <$> mouseWheelEventPos
+        frequency -= (frequencyScale * zoomY)
+        dirty .= True
+      _ -> pure ()
 
   moveImage by = do
     config <- use appState
@@ -494,19 +493,13 @@ initShaderProgram = do
   shaderProgramId <- glCreateProgram
   glAttachShader shaderProgramId vertShader
   glAttachShader shaderProgramId fragShader
-  glLinkProgram shaderProgramId
-  linkSuccess <- liftIO $ alloca \ptr -> do
-    glGetProgramiv shaderProgramId GL_LINK_STATUS ptr
-    fromIntegral <$> peek ptr
-  when (linkSuccess == GL_FALSE) do
-    let len = 512
-    log <- liftIO $
-      alloca \resultPtr ->
-        allocaArray len \logPtr -> do
-          glGetProgramInfoLog shaderProgramId len resultPtr logPtr
-          resLen <- fromIntegral <$> peek resultPtr
-          map (toEnum @Char . fromEnum) <$> peekArray resLen logPtr
-    throwString $ "Failed to link shader program: " <> log
+
+  let linkMsg = "Failed to link shader program"
+  throwOnGlFalse (glGetShaderInfoLog shaderProgramId) linkMsg do
+    glLinkProgram shaderProgramId
+    alloca \ptr -> do
+      glGetProgramiv shaderProgramId GL_LINK_STATUS ptr
+      fromIntegral <$> liftIO (peek ptr)
 
   glDeleteShader vertShader
   glDeleteShader fragShader
@@ -516,20 +509,13 @@ initShaderProgram = do
     withCStringLen srcS \(src, len) ->
       with src \linesPtr ->
         with (fromIntegral len) \lengthsPtr -> do
-          glShaderSource sid 1 linesPtr lengthsPtr
-          glCompileShader sid
-          success <- liftIO $ alloca \ptr -> do
-            glGetShaderiv sid GL_COMPILE_STATUS ptr
-            fromIntegral <$> peek ptr
-          when (success == GL_FALSE) do
-            let eLen = 512
-            log <- liftIO $
-              alloca \resultPtr ->
-                allocaArray eLen \logPtr -> do
-                  glGetShaderInfoLog sid eLen resultPtr logPtr
-                  resLen <- fromIntegral <$> peek resultPtr
-                  map (toEnum @Char . fromEnum) <$> peekArray resLen logPtr
-            throwString $ "Failed to compile " <> st <> " shader: " <> log
+          let msg = "Failed to compile " <> st <> " shader"
+          throwOnGlFalse (glGetShaderInfoLog sid) msg do
+            glShaderSource sid 1 linesPtr lengthsPtr
+            glCompileShader sid
+            alloca \ptr -> do
+              glGetShaderiv sid GL_COMPILE_STATUS ptr
+              fromIntegral <$> liftIO (peek ptr)
 
   vertShaderSrc =
     [r|
@@ -552,6 +538,24 @@ initShaderProgram = do
         color = texture(noiseTex, texcoords);
       }
     |]
+
+throwOnGlFalse
+  :: (MonadUnliftIO m)
+  => (GLsizei -> Ptr GLsizei -> Ptr GLchar -> m ())
+  -> String
+  -> m GLboolean
+  -> m ()
+throwOnGlFalse getInfoLog msg act = do
+  success <- act
+  when (success == GL_FALSE) do
+    let len = 512
+    log <-
+      alloca \resultPtr ->
+        allocaArray len \logPtr -> do
+          getInfoLog len resultPtr logPtr
+          resLen <- fromIntegral <$> liftIO (peek resultPtr)
+          map (toEnum @Char . fromEnum) <$> peekArray resLen logPtr
+    throwString $ msg <> ": " <> log
 
 main :: IO ()
 main = runResourceT do
