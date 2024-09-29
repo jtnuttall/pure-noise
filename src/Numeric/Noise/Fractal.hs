@@ -14,13 +14,13 @@ module Numeric.Noise.Fractal (
   -- * 2D Noise
   fractal2,
   billow2,
-  ridgedMulti2,
+  ridged2,
   pingPong2,
 
   -- * 3D Noise
   fractal3,
   billow3,
-  ridgedMulti3,
+  ridged3,
   pingPong3,
 
   -- * Utility
@@ -62,9 +62,9 @@ billow2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
 billow2 config = Noise2 . fractal2With billowNoiseMod (billowAmpMod config) config . unNoise2
 {-# INLINE billow2 #-}
 
-ridgedMulti2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
-ridgedMulti2 config = Noise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) config . unNoise2
-{-# INLINE ridgedMulti2 #-}
+ridged2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
+ridged2 config = Noise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) config . unNoise2
+{-# INLINE ridged2 #-}
 
 pingPong2 :: (RealFrac a) => FractalConfig a -> PingPongStrength a -> Noise2 a -> Noise2 a
 pingPong2 config strength =
@@ -104,9 +104,9 @@ billow3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
 billow3 config = Noise3 . fractal3With billowNoiseMod (billowAmpMod config) config . unNoise3
 {-# INLINE billow3 #-}
 
-ridgedMulti3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
-ridgedMulti3 config = Noise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) config . unNoise3
-{-# INLINE ridgedMulti3 #-}
+ridged3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
+ridged3 config = Noise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) config . unNoise3
+{-# INLINE ridged3 #-}
 
 pingPong3 :: (RealFrac a) => FractalConfig a -> PingPongStrength a -> Noise3 a -> Noise3 a
 pingPong3 config strength =

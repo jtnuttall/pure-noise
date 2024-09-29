@@ -265,7 +265,7 @@ noiseFrom config = clamp (fractal noise)
         let conf = config ^. fractalConfig
          in case config ^. fractalType of
               FBM -> Noise.fractal2 conf
-              Ridged -> Noise.ridgedMulti2 conf
+              Ridged -> Noise.ridged2 conf
               Billow -> Noise.billow2 conf
               PingPong -> Noise.pingPong2 conf (config ^. pingPongStrength)
     | otherwise = id
