@@ -57,6 +57,8 @@ import Numeric.Noise.Internal as NoiseUtility (
   cubicInterp,
   hermiteInterp,
   lerp,
+  next2,
+  next3,
   quinticInterp,
  )
 import Numeric.Noise.OpenSimplex qualified as OpenSimplex

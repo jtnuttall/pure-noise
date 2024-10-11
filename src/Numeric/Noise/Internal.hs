@@ -4,10 +4,12 @@
 module Numeric.Noise.Internal (
   module Math,
   Noise2 (..),
+  next2,
   map2,
   clamp2,
   const2,
   Noise3 (..),
+  next3,
   map3,
   clamp3,
   const3,
@@ -25,6 +27,10 @@ import Numeric.Noise.Internal.Math as Math (
 
 newtype Noise2 a = Noise2
   {unNoise2 :: Seed -> a -> a -> a}
+
+next2 :: Noise2 a -> Noise2 a
+next2 (Noise2 f) = Noise2 (\s x y -> f (s + 1) x y)
+{-# INLINE next2 #-}
 
 map2 :: (a -> a) -> Noise2 a -> Noise2 a
 map2 f (Noise2 g) = Noise2 (\s x y -> f (g s x y))
@@ -90,6 +96,10 @@ instance (Floating a) => Floating (Noise2 a) where
 
 newtype Noise3 a = Noise3
   {unNoise3 :: Seed -> a -> a -> a -> a}
+
+next3 :: Noise3 a -> Noise3 a
+next3 (Noise3 f) = Noise3 (\s x y z -> f (s + 1) x y z)
+{-# INLINE next3 #-}
 
 map3 :: (a -> a) -> Noise3 a -> Noise3 a
 map3 f (Noise3 g) = Noise3 (\s x y z -> f (g s x y z))
