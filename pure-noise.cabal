@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           pure-noise
-version:        0.1.0.0
+version:        0.1.0.1
 synopsis:       Performant, modern noise generation for Haskell with minimal dependencies. Based on FastNoiseLite.
 description:    Please see the README on GitHub at <https://github.com/jtnuttall/pure-noise#readme>
 category:       Math, Numeric, Noise
@@ -46,7 +46,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
-    , vector
+    , vector <=0.14
   default-language: GHC2021
 
 test-suite pure-noise-test
@@ -69,7 +69,7 @@ test-suite pure-noise-test
     , tasty-discover
     , tasty-hunit
     , tasty-quickcheck
-    , vector
+    , vector <=0.14
   default-language: GHC2021
 
 benchmark pure-noise-bench
@@ -90,5 +90,5 @@ benchmark pure-noise-bench
     , pure-noise
     , tasty
     , tasty-bench
-    , vector
+    , vector <=0.14
   default-language: GHC2021

@@ -1,5 +1,5 @@
 name: pure-noise
-version: 0.1.0.0
+version: 0.1.0.1
 github: "jtnuttall/pure-noise"
 license: BSD-3-Clause
 author: "Jeremy Nuttall"
@@ -19,7 +19,7 @@ language: GHC2021
 
 dependencies:
   - base >= 4.7 && < 5
-  - vector
+  - vector <= 0.14
 
 ghc-options:
   - -Wall
@@ -69,4 +69,4 @@ benchmarks:
       - mwc-random
       - tasty
       - tasty-bench
-      - vector
+      - vector <= 0.14

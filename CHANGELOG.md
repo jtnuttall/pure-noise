@@ -8,6 +8,11 @@ and this project adheres to the
 
 ## Unreleased
 
-## 0.1.0.0 - 2024-09-24
+## 0.1.0.1 - 2024-10-15
 
-- Initial public commit
+- Add bounds for vector
+- Add `next` combinator
+
+## 0.1.0.0 - 2024-10-15
+
+- Initial release
