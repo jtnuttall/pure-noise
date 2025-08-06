@@ -132,6 +132,8 @@ instance (Fractional a) => Fractional (Noise3 a) where
   {-# INLINE fromRational #-}
   recip (Noise3 f) = Noise3 $ \s x y z -> recip (f s x y z)
   {-# INLINE recip #-}
+  Noise3 f / Noise3 g = Noise3 $ \s x y z -> f s x y z / g s x y z
+  {-# INLINE (/) #-}
 
 instance (Floating a) => Floating (Noise3 a) where
   pi = const3 pi
