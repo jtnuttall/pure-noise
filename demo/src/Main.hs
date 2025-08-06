@@ -117,6 +117,7 @@ data NoiseType
   | Value
   | ValueCubic
   | PerlinPlusSuperSimplex
+  | ValuePlusOpenSimplex2
   deriving (Eq, Ord, Enum, Bounded)
 
 instance Show NoiseType where
@@ -128,6 +129,7 @@ instance Show NoiseType where
     Value -> "Value"
     ValueCubic -> "Value Cubic"
     PerlinPlusSuperSimplex -> "Perlin + SuperSimplex (see README)"
+    ValuePlusOpenSimplex2 -> "Value + OpenSimplex2"
 
 data DeltaTime = DeltaTime
   { previousMono :: Double
@@ -259,6 +261,7 @@ noiseFrom config = clamp (fractal noise)
     Value -> Noise.value2
     ValueCubic -> Noise.valueCubic2
     PerlinPlusSuperSimplex -> (Noise.superSimplex2 + Noise.perlin2) / 2
+    ValuePlusOpenSimplex2 -> (Noise.value2 + Noise.openSimplex2) / 2
 
   fractal
     | config ^. fractalEnabled =
