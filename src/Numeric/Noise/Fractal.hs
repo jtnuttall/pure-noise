@@ -128,10 +128,10 @@ fractal3With
   -> a
 fractal3With modNoise modAmps FractalConfig{..} noise3 seed x y z
   | octaves < 1 = error "octaves must be a positive integer"
-  | otherwise =
-      let bounding = fractalBounding FractalConfig{..}
-       in go octaves 0 seed 1 bounding
+  | otherwise = go octaves 0 seed 1 bounding
  where
+  bounding = fractalBounding FractalConfig{..}
+
   go 0 acc _ _ _ = acc
   go o acc s freq amp =
     let noise = amp * modNoise (noise3 s (freq * x) (freq * y) (freq * z))
@@ -140,14 +140,14 @@ fractal3With modNoise modAmps FractalConfig{..} noise3 seed x y z
 {-# INLINE fractal3With #-}
 
 fractalBounding :: (RealFrac a) => FractalConfig a -> a
-fractalBounding FractalConfig{..} =
-  let amps = take octaves $ iterate (* gain) gain
-   in 1 / (sum amps + 1)
+fractalBounding FractalConfig{..} = recip (sum amps + 1)
+  where ~amps = take octaves $ iterate (* gain) gain
 {-# INLINE fractalBounding #-}
 
 fractalNoiseMod :: a -> a
 fractalNoiseMod = id
 {-# INLINE fractalNoiseMod #-}
+
 fractalAmpMod :: (Num a) => FractalConfig a -> a -> a
 fractalAmpMod FractalConfig{..} n = lerp 1 n weightedStrength
 {-# INLINE fractalAmpMod #-}
