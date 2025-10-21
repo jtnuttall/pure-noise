@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.37.0.
+-- This file has been generated from package.yaml by hpack version 0.38.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -46,6 +46,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.7 && <5
+    , primitive
     , vector <=0.14
   default-language: GHC2021
 
@@ -64,6 +65,7 @@ test-suite pure-noise-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , primitive
     , pure-noise
     , tasty
     , tasty-discover
@@ -82,11 +84,12 @@ benchmark pure-noise-bench
       Paths_pure_noise
   hs-source-dirs:
       bench
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N +RTS -A32m --nonmoving-gc -T -RTS -O2 -optc-O3 -fproc-alignment=64 -fsimpl-tick-factor=1000
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N +RTS -A32m --nonmoving-gc -T -RTS -O2 -optc-O3 -fsimpl-tick-factor=1000
   build-depends:
       base >=4.7 && <5
     , deepseq
     , mwc-random
+    , primitive
     , pure-noise
     , tasty
     , tasty-bench

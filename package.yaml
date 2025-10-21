@@ -20,6 +20,7 @@ language: GHC2021
 dependencies:
   - base >= 4.7 && < 5
   - vector <= 0.14
+  - primitive
 
 ghc-options:
   - -Wall
@@ -61,7 +62,6 @@ benchmarks:
       - -with-rtsopts=-N +RTS -A32m --nonmoving-gc -T -RTS
       - -O2
       - -optc-O3
-      - -fproc-alignment=64
       - -fsimpl-tick-factor=1000
     dependencies:
       - pure-noise

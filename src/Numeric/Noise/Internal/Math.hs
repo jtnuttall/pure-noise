@@ -29,7 +29,7 @@ module Numeric.Noise.Internal.Math (
 
 import Data.Bits
 import Data.Int
-import Data.Vector.Unboxed qualified as U
+import Data.Primitive.PrimArray
 import Data.Word
 
 type Seed = Word64
@@ -130,8 +130,8 @@ gradCoord2 :: (RealFrac a) => Seed -> Hash -> Hash -> a -> a -> a
 gradCoord2 seed xPrimed yPrimed xd yd =
   let !hash = hash2 seed xPrimed yPrimed
       !ix = (hash `xor` (hash `shiftR` 15)) .&. 0xFE
-      !xg = grad2d `U.unsafeIndex` fromIntegral ix
-      !yg = grad2d `U.unsafeIndex` fromIntegral (ix .|. 1)
+      !xg = grad2d `indexPrimArray` fromIntegral ix
+      !yg = grad2d `indexPrimArray` fromIntegral (ix .|. 1)
    in xd * realToFrac xg + yd * realToFrac yg
 {-# INLINE gradCoord2 #-}
 
@@ -139,9 +139,9 @@ gradCoord3 :: (RealFrac a) => Seed -> Hash -> Hash -> Hash -> a -> a -> a -> a
 gradCoord3 seed xPrimed yPrimed zPrimed xd yd zd =
   let !hash = hash3 seed xPrimed yPrimed zPrimed
       !ix = (hash `xor` (hash `shiftR` 15)) .&. 0xFC
-      !xg = grad3d `U.unsafeIndex` fromIntegral ix
-      !yg = grad3d `U.unsafeIndex` fromIntegral (ix .|. 1)
-      !zg = grad3d `U.unsafeIndex` fromIntegral (ix .|. 2)
+      !xg = grad3d `indexPrimArray` fromIntegral ix
+      !yg = grad3d `indexPrimArray` fromIntegral (ix .|. 1)
+      !zg = grad3d `indexPrimArray` fromIntegral (ix .|. 2)
    in xd * fromIntegral xg + yd * fromIntegral yg + zd * fromIntegral zg
 {-# INLINE gradCoord3 #-}
 
@@ -150,9 +150,9 @@ maxHash = realToFrac (maxBound @Hash)
 {-# INLINE maxHash #-}
 
 {- ORMOLU_DISABLE -}
--- >>> U.length grad2d == 256
+-- >>> sizeofPrimArray grad2d == 256
 -- True
-grad2d :: U.Vector Float
+grad2d :: PrimArray Float
 grad2d =
   [ 0.130526192220052,  0.99144486137381 ,  0.38268343236509 ,  0.923879532511287,  0.608761429008721,  0.793353340291235,  0.793353340291235,  0.608761429008721,
     0.923879532511287,  0.38268343236509 ,  0.99144486137381 ,  0.130526192220051,  0.99144486137381 , -0.130526192220051,  0.923879532511287, -0.38268343236509,
@@ -187,10 +187,11 @@ grad2d =
     0.38268343236509 ,  0.923879532511287,  0.923879532511287,  0.38268343236509 ,  0.923879532511287, -0.38268343236509 ,  0.38268343236509 , -0.923879532511287,
    -0.38268343236509 , -0.923879532511287, -0.923879532511287, -0.38268343236509 , -0.923879532511287,  0.38268343236509 , -0.38268343236509 ,  0.923879532511287
   ]
+{-# INLINABLE grad2d #-}
 
--- >>> U.length grad3d == 256
+-- >>> sizeofPrimArray grad3d == 256
 -- True
-grad3d :: U.Vector Int
+grad3d :: PrimArray Int
 grad3d =
   [ 0, 1, 1, 0, 0, -1, 1, 0, 0, 1, -1, 0, 0, -1, -1, 0
   , 1, 0, 1, 0, -1, 0, 1, 0, 1, 0, -1, 0, -1, 0, -1, 0
@@ -209,3 +210,4 @@ grad3d =
   , 1, 1, 0, 0, -1, 1, 0, 0, 1, -1, 0, 0, -1, -1, 0, 0
   , 1, 1, 0, 0, 0, -1, 1, 0, -1, 1, 0, 0, 0, -1, -1, 0
   ]
+{-# INLINABLE grad3d #-}

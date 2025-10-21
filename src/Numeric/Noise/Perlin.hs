@@ -1,5 +1,3 @@
-{-# LANGUAGE Strict #-}
-
 -- |
 -- Maintainer: Jeremy Nuttall <jeremy@jeremy-nuttall.com>
 -- Stability : experimental
