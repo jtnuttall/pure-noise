@@ -3,11 +3,53 @@
 -- |
 -- Maintainer: Jeremy Nuttall <jeremy@jeremy-nuttall.com>
 -- Stability : experimental
+--
+-- Performant noise generation with composable noise functions.
+--
+-- Noise functions are wrapped in 'Noise2' and 'Noise3' newtypes that abstract over
+-- the seed and coordinate parameters. These can be composed using 'Num' or 'Fractional'
+-- methods with minimal performance overhead.
+--
+-- Noise values are generally clamped to @[-1, 1]@, though some functions may
+-- occasionally produce values slightly outside this range.
+--
+-- == Basic Usage
+--
+-- Generate 2D Perlin noise:
+--
+-- @
+-- import Numeric.Noise qualified as Noise
+--
+-- myNoise :: Noise.Seed -> Float -> Float -> Float
+-- myNoise = Noise.noise2At Noise.perlin2
+-- @
+--
+-- Compose multiple noise functions:
+--
+-- @
+-- combined :: (RealFrac a) => Noise.Noise2 a
+-- combined = (Noise.perlin2 + Noise.superSimplex2) / 2
+--
+-- myNoise2 :: Noise.Seed -> Float -> Float -> Float
+-- myNoise2 = Noise.noise2At combined
+-- @
+--
+-- Apply fractal Brownian motion:
+--
+-- @
+-- fbm :: (RealFrac a) => Noise.Noise2 a
+-- fbm = Noise.fractal2 Noise.defaultFractalConfig Noise.perlin2
+-- @
 module Numeric.Noise (
-  -- * Noise functions
-
-  -- ** Noise functions
+  -- * Core Types
+  --
+  -- | 'Noise2' and 'Noise3' are newtypes wrapping noise functions. They can be
+  -- unwrapped with 'noise2At' and 'noise3At' respectively.
+  --
+  -- 'Seed' is a 'Word64' value used for deterministic noise generation.
   module NoiseTypes,
+
+  -- * Noise evaluation
   noise2At,
   noise3At,
 
@@ -67,46 +109,78 @@ import Numeric.Noise.SuperSimplex qualified as SuperSimplex
 import Numeric.Noise.Value qualified as Value
 import Numeric.Noise.ValueCubic qualified as ValueCubic
 
-noise2At :: Noise2 a -> Seed -> a -> a -> a
+-- | Evaluate a 2D noise function at the given coordinates with the given seed.
+noise2At
+  :: Noise2 a
+  -> Seed
+  -- ^ deterministic seed
+  -> a
+  -- ^ x coordinate
+  -> a
+  -- ^ y coordinate
+  -> a
 noise2At = unNoise2
 {-# INLINE noise2At #-}
 
+-- | 2D Cellular (Worley) noise. Configure with 'CellularConfig' to control
+-- distance functions and return values.
 cellular2 :: (RealFrac a, Floating a) => CellularConfig a -> Noise2 a
 cellular2 = Cellular.noise2
 {-# INLINE cellular2 #-}
 
+-- | 2D OpenSimplex noise. Smooth gradient noise similar to Perlin but without
+-- directional artifacts.
 openSimplex2 :: (RealFrac a) => Noise2 a
 openSimplex2 = OpenSimplex.noise2
 {-# INLINE openSimplex2 #-}
 
+-- | 2D SuperSimplex noise. Improved OpenSimplex variant with better visual
+-- characteristics.
 superSimplex2 :: (RealFrac a) => Noise2 a
 superSimplex2 = SuperSimplex.noise2
 {-# INLINE superSimplex2 #-}
 
+-- | 2D Perlin noise. Classic gradient noise algorithm.
 perlin2 :: (RealFrac a) => Noise2 a
 perlin2 = Perlin.noise2
 {-# INLINE perlin2 #-}
 
-noise3At :: Noise3 a -> Seed -> a -> a -> a -> a
+-- | Evaluate a 3D noise function at the given coordinates with the given seed.
+noise3At
+  :: Noise3 a
+  -> Seed
+  -- ^ deterministic seed
+  -> a
+  -- ^ x coordinate
+  -> a
+  -- ^ y coordinate
+  -> a
+  -- ^ z coordinate
+  -> a
 noise3At = unNoise3
 {-# INLINE noise3At #-}
 
+-- | 3D Perlin noise. Classic gradient noise algorithm.
 perlin3 :: (RealFrac a) => Noise3 a
 perlin3 = Perlin.noise3
 {-# INLINE perlin3 #-}
 
+-- | 2D Value noise. Simple noise based on interpolated random values at grid points.
 value2 :: (RealFrac a) => Noise2 a
 value2 = Value.noise2
 {-# INLINE value2 #-}
 
+-- | 3D Value noise. Simple noise based on interpolated random values at grid points.
 value3 :: (RealFrac a) => Noise3 a
 value3 = Value.noise3
 {-# INLINE value3 #-}
 
+-- | 2D Value noise with cubic interpolation for smoother results.
 valueCubic2 :: (RealFrac a) => Noise2 a
 valueCubic2 = ValueCubic.noise2
 {-# INLINE valueCubic2 #-}
 
+-- | 3D Value noise with cubic interpolation for smoother results.
 valueCubic3 :: (RealFrac a) => Noise3 a
 valueCubic3 = ValueCubic.noise3
 {-# INLINE valueCubic3 #-}
