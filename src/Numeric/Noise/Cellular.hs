@@ -19,7 +19,7 @@ module Numeric.Noise.Cellular (
 
 import Data.Bits
 import Data.Foldable
-import Data.Vector.Unboxed qualified as U
+import Data.Primitive.PrimArray
 import GHC.Generics (Generic)
 import Numeric.Noise.Internal
 import Numeric.Noise.Internal.Math
@@ -123,16 +123,16 @@ noise2BaseWith !jitter !dist !seed !x !y =
         !py = fromIntegral yi - y
         !h = hash2 seed (primeX * xi) (primeY * yi)
         !i = h .&. 510
-        !rvx = randVecs2d `U.unsafeIndex` fromIntegral i
-        !rvy = randVecs2d `U.unsafeIndex` (fromIntegral i .|. 1)
+        !rvx = randVecs2d `indexPrimArray` fromIntegral i
+        !rvy = randVecs2d `indexPrimArray` (fromIntegral i .|. 1)
         !d = dist (px + realToFrac rvx * jitter) (py + realToFrac rvy * jitter)
      in (h, d)
 {-# INLINE noise2BaseWith #-}
 
--- >>> U.length randVecs2d == 512
+-- >>> sizeofPrimArray randVecs2d == 512
 -- True
 {- ORMOLU_DISABLE -}
-randVecs2d :: U.Vector Float
+randVecs2d :: PrimArray Float
 randVecs2d =
   [-0.2700222198,-0.9628540911,0.3863092627,-0.9223693152,0.04444859006,-0.999011673,-0.5992523158,-0.8005602176
   ,-0.7819280288,0.6233687174,0.9464672271,0.3227999196,-0.6514146797,-0.7587218957,0.9378472289,0.347048376

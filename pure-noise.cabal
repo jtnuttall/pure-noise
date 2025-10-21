@@ -47,7 +47,6 @@ library
   build-depends:
       base >=4.7 && <5
     , primitive
-    , vector <=0.14
   default-language: GHC2021
 
 test-suite pure-noise-test
@@ -71,7 +70,6 @@ test-suite pure-noise-test
     , tasty-discover
     , tasty-hunit
     , tasty-quickcheck
-    , vector <=0.14
   default-language: GHC2021
 
 benchmark pure-noise-bench

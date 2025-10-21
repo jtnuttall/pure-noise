@@ -19,7 +19,6 @@ language: GHC2021
 
 dependencies:
   - base >= 4.7 && < 5
-  - vector <= 0.14
   - primitive
 
 ghc-options:
