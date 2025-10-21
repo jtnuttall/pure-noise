@@ -8,6 +8,20 @@ and this project adheres to the
 
 ## Unreleased
 
+## 0.2.0.0 - 2025-10-21
+
+### Added
+- Comprehensive haddock documentation for main `Numeric.Noise` module with usage examples
+
+### Changed
+- Migrated internal implementation from `vector` to `primitive` (PrimArray)
+- Removed `vector` dependency from library (still used in benchmarks)
+- Require GHC 9.2+ (base >= 4.16)
+
+### Fixed
+- Fixed intermediate list allocation in fractal functions on GHC 9.6+
+- Improved division performance for `Noise3` instances
+
 ## 0.1.0.1 - 2024-10-15
 
 - Add bounds for vector
