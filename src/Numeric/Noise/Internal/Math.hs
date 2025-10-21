@@ -32,10 +32,19 @@ import Data.Int
 import Data.Primitive.PrimArray
 import Data.Word
 
+-- | Seed value for deterministic noise generation.
+--
+-- Using the same 'Seed' value will produce the same noise pattern,
+-- allowing for reproducible results. Different seed values produce
+-- different, independent noise patterns.
 type Seed = Word64
+
+-- | Internal hash value type used in noise calculations.
 type Hash = Int32
 
--- | monotonic lerp
+-- | Linear interpolation between two values.
+--
+-- Monotonic lerp
 lerp
   :: (Num a)
   => a
@@ -65,6 +74,10 @@ quinticInterp :: (Num a) => a -> a
 quinticInterp t = t * t * t * (t * (t * 6 - 15) + 10)
 {-# INLINE quinticInterp #-}
 
+-- | Clamp a value to a specified range.
+--
+-- Returns the value if it's within bounds, otherwise returns
+-- the nearest boundary.
 clamp
   :: (Ord a)
   => a

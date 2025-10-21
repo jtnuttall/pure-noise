@@ -25,9 +25,32 @@ import Numeric.Noise.Internal.Math as Math (
   quinticInterp,
  )
 
+-- | A 2D noise function parameterized by a seed and two coordinates.
+--
+-- 'Noise2' wraps a function @Seed -> a -> a -> a@ that takes a seed value
+-- and x, y coordinates to produce a noise value.
+--
+-- This type supports 'Num', 'Fractional', and 'Floating' instances, allowing
+-- noise functions to be combined algebraically:
+--
+-- @
+-- combined :: Noise2 Float
+-- combined = (perlin2 + superSimplex2) / 2
+-- @
+--
+-- To evaluate a 'Noise2', use 'noise2At' from "Numeric.Noise".
 newtype Noise2 a = Noise2
   {unNoise2 :: Seed -> a -> a -> a}
 
+-- | Increment the seed for a 2D noise function.
+--
+-- This is useful for generating independent noise layers:
+--
+-- @
+-- layer1 = perlin2
+-- layer2 = next2 perlin2
+-- layer3 = next2 (next2 perlin2)
+-- @
 next2 :: Noise2 a -> Noise2 a
 next2 (Noise2 f) = Noise2 (\s x y -> f (s + 1) x y)
 {-# INLINE next2 #-}
@@ -36,6 +59,12 @@ map2 :: (a -> a) -> Noise2 a -> Noise2 a
 map2 f (Noise2 g) = Noise2 (\s x y -> f (g s x y))
 {-# INLINE map2 #-}
 
+-- | Clamp the output of a 2D noise function to the range @[lower, upper]@.
+--
+-- @
+-- clamped :: Noise2 Float
+-- clamped = clamp2 0 1 perlin2  -- clamp to [0, 1]
+-- @
 clamp2 :: (Ord a) => a -> a -> Noise2 a -> Noise2 a
 clamp2 l u (Noise2 f) = Noise2 $ \s x y -> clamp l u (f s x y)
 {-# INLINE clamp2 #-}
@@ -44,6 +73,10 @@ const2 :: a -> Noise2 a
 const2 a = Noise2 (\_ _ _ -> a)
 {-# INLINE const2 #-}
 
+-- | Arithmetic operations on 'Noise2' are performed point-wise.
+--
+-- For example, @n1 + n2@ creates a new noise function that adds the
+-- results of @n1@ and @n2@ at each coordinate.
 instance (Num a) => Num (Noise2 a) where
   Noise2 f + Noise2 g = Noise2 $ \s x y -> f s x y + g s x y
   {-# INLINE (+) #-}
@@ -94,9 +127,21 @@ instance (Floating a) => Floating (Noise2 a) where
   atanh (Noise2 f) = Noise2 $ \s x y -> atanh (f s x y)
   {-# INLINE atanh #-}
 
+-- | A 3D noise function parameterized by a seed and three coordinates.
+--
+-- 'Noise3' wraps a function @Seed -> a -> a -> a -> a@ that takes a seed value
+-- and x, y, z coordinates to produce a noise value.
+--
+-- Like 'Noise2', this type supports 'Num', 'Fractional', and 'Floating' instances
+-- for algebraic composition.
+--
+-- To evaluate a 'Noise3', use 'noise3At' from "Numeric.Noise".
 newtype Noise3 a = Noise3
   {unNoise3 :: Seed -> a -> a -> a -> a}
 
+-- | Increment the seed for a 3D noise function.
+--
+-- Analogous to 'next2', this is useful for generating independent 3D noise layers.
 next3 :: Noise3 a -> Noise3 a
 next3 (Noise3 f) = Noise3 (\s x y z -> f (s + 1) x y z)
 {-# INLINE next3 #-}
@@ -109,10 +154,20 @@ const3 :: a -> Noise3 a
 const3 a = Noise3 (\_ _ _ _ -> a)
 {-# INLINE const3 #-}
 
+-- | Clamp the output of a 3D noise function to the range @[lower, upper]@.
+--
+-- @
+-- clamped :: Noise3 Float
+-- clamped = clamp3 (-0.5) 0.5 perlin3  -- clamp to [-0.5, 0.5]
+-- @
 clamp3 :: (Ord a) => a -> a -> Noise3 a -> Noise3 a
 clamp3 l u (Noise3 f) = Noise3 $ \s x y z -> clamp l u (f s x y z)
 {-# INLINE clamp3 #-}
 
+-- | Arithmetic operations on 'Noise3' are performed point-wise.
+--
+-- For example, @n1 * n2@ creates a new noise function that multiplies the
+-- results of @n1@ and @n2@ at each coordinate.
 instance (Num a) => Num (Noise3 a) where
   Noise3 f + Noise3 g = Noise3 $ \s x y z -> f s x y z + g s x y z
   {-# INLINE (+) #-}

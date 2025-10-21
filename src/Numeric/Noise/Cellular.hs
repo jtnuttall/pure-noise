@@ -24,13 +24,23 @@ import GHC.Generics (Generic)
 import Numeric.Noise.Internal
 import Numeric.Noise.Internal.Math
 
+-- | Configuration for cellular (Worley) noise generation.
+--
+-- Cellular noise is based on distances to randomly distributed cell points,
+-- creating a distinctive cellular or organic pattern.
 data CellularConfig a = CellularConfig
   { cellularDistanceFn :: !CellularDistanceFn
+  -- ^ Distance metric to use when computing distance to cell points.
   , cellularJitter :: !a
+  -- ^ Amount of randomness in cell point positions.
+  -- 0 creates a regular grid, 1 creates fully random positions.
+  -- Values outside [0, 1] are valid but may produce unusual results.
   , cellularResult :: !CellularResult
+  -- ^ What value to return from the noise function.
   }
   deriving (Generic, Show)
 
+-- | Default configuration for cellular noise generation.
 defaultCellularConfig :: (RealFrac a) => CellularConfig a
 defaultCellularConfig =
   CellularConfig
@@ -39,21 +49,51 @@ defaultCellularConfig =
     , cellularResult = CellValue
     }
 
+-- | Distance function for cellular noise calculations.
+--
+-- Different distance metrics produce different visual characteristics
+-- in the cellular pattern.
 data CellularDistanceFn
-  = DistEuclidean
-  | DistEuclideanSq
-  | DistManhattan
-  | DistHybrid
+  = -- | Standard Euclidean distance (sqrt(dx² + dy²)).
+    -- Creates circular cells with smooth edges.
+    DistEuclidean
+  | -- | Squared Euclidean distance (dx² + dy²), no square root.
+    -- Faster than 'DistEuclidean' with similar appearance.
+    DistEuclideanSq
+  | -- | Manhattan/taxicab distance (|dx| + |dy|).
+    -- Creates diamond-shaped cells with sharp edges.
+    DistManhattan
+  | -- | Hybrid of Euclidean and Manhattan distances.
+    -- Combines characteristics of both metrics.
+    DistHybrid
   deriving (Generic, Read, Show, Eq, Ord, Enum, Bounded)
 
+-- | What value to return from cellular noise evaluation.
+--
+-- These options allow for different visual effects by returning different
+-- properties of the cell structure.
 data CellularResult
-  = CellValue
-  | Distance
-  | Distance2
-  | Distance2Add
-  | Distance2Sub
-  | Distance2Mul
-  | Distance2Div
+  = -- | Return the hash value of the nearest cell point.
+    -- Creates discrete regions with constant values.
+    CellValue
+  | -- | Return the distance to the nearest cell point.
+    -- Creates a classic Worley noise pattern with cell boundaries.
+    Distance
+  | -- | Return the distance to the second-nearest cell point.
+    -- Creates larger, more organic-looking cells.
+    Distance2
+  | -- | Return the sum of distances to the two nearest cell points.
+    -- Creates smooth, rounded cells.
+    Distance2Add
+  | -- | Return the difference between distances to the two nearest cell points.
+    -- Emphasizes cell boundaries and creates sharp edges.
+    Distance2Sub
+  | -- | Return the product of distances to the two nearest cell points.
+    -- Creates cells with varying contrast.
+    Distance2Mul
+  | -- | Return the ratio of nearest to second-nearest distance.
+    -- Creates normalized cell patterns.
+    Distance2Div
   deriving (Generic, Read, Show, Eq, Ord, Enum, Bounded)
 
 distance :: (RealFrac a) => CellularDistanceFn -> a -> a -> a

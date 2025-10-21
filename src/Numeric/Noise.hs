@@ -42,7 +42,9 @@
 -- @
 module Numeric.Noise (
   -- * Core Types
+
   --
+
   -- | 'Noise2' and 'Noise3' are newtypes wrapping noise functions. They can be
   -- unwrapped with 'noise2At' and 'noise3At' respectively.
   --
@@ -71,21 +73,51 @@ module Numeric.Noise (
   -- ** Math utility functions
   module NoiseUtility,
 
-  -- ** Fractal Brownian Motion
-  module Fractal,
+  -- ** Fractal noise composition
+
+  --
+
+  -- | Fractal noise combines multiple octaves at different frequencies and
+  -- amplitudes to create natural-looking, multi-scale patterns.
+  --
+  -- For custom fractal implementations using modifier functions, see
+  -- "Numeric.Noise.Fractal".
+
+  -- *** Configuration
+  FractalConfig (..),
+  defaultFractalConfig,
+  PingPongStrength (..),
+  defaultPingPongStrength,
+
+  -- *** Fractal Brownian Motion (FBM)
+  fractal2,
+  fractal3,
+
+  -- *** Fractal variants
+  billow2,
+  billow3,
+  ridged2,
+  ridged3,
+  pingPong2,
+  pingPong3,
 
   -- ** Cellular noise configuration
-  module Cellular,
-) where
 
-import Numeric.Noise.Cellular as Cellular (
+  --
+
+  -- | Cellular (Worley) noise creates patterns based on distances to
+  -- randomly distributed cell points.
+
+  -- *** Configuration
   CellularConfig (..),
+  defaultCellularConfig,
   CellularDistanceFn (..),
   CellularResult (..),
-  defaultCellularConfig,
- )
+) where
+
+import Numeric.Noise.Cellular (CellularConfig, CellularDistanceFn (..), CellularResult (..), defaultCellularConfig)
 import Numeric.Noise.Cellular qualified as Cellular
-import Numeric.Noise.Fractal as Fractal
+import Numeric.Noise.Fractal
 import Numeric.Noise.Internal
 import Numeric.Noise.Internal as NoiseTypes (
   Noise2,
