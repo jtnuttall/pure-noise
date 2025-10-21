@@ -8,18 +8,25 @@ copyright: "2024 Jeremy Nuttall"
 
 extra-source-files:
   - README.md
+
+extra-doc-files:
   - CHANGELOG.md
 
-synopsis: Performant, modern noise generation for Haskell with minimal dependencies. Based on FastNoiseLite.
+synopsis: High-performance composable noise generation (Perlin, Simplex, Cellular)
 category: Math, Numeric, Noise
 
-description: Please see the README on GitHub at <https://github.com/jtnuttall/pure-noise#readme>
+description: |
+  A high-performance noise generation library ported from FastNoiseLite.
+  Provides N-dimensional noise functions (Perlin, OpenSimplex, SuperSimplex,
+  Value, Cellular) that can be composed using Num or Fractional methods with
+  minimal performance overhead. Noise values are generally clamped to [-1, 1].
+  Benefits significantly from LLVM backend compilation (~50-80% performance improvement).
 
 language: GHC2021
 
 dependencies:
   - base >= 4.16 && < 5
-  - primitive
+  - primitive >= 0.8 && < 0.10
 
 ghc-options:
   - -Wall

@@ -6,8 +6,12 @@ cabal-version: 2.2
 
 name:           pure-noise
 version:        0.2.0.0
-synopsis:       Performant, modern noise generation for Haskell with minimal dependencies. Based on FastNoiseLite.
-description:    Please see the README on GitHub at <https://github.com/jtnuttall/pure-noise#readme>
+synopsis:       High-performance composable noise generation (Perlin, Simplex, Cellular)
+description:    A high-performance noise generation library ported from FastNoiseLite.
+                Provides N-dimensional noise functions (Perlin, OpenSimplex, SuperSimplex,
+                Value, Cellular) that can be composed using Num or Fractional methods with
+                minimal performance overhead. Noise values are generally clamped to [-1, 1].
+                Benefits significantly from LLVM backend compilation (~50-80% performance improvement).
 category:       Math, Numeric, Noise
 homepage:       https://github.com/jtnuttall/pure-noise#readme
 bug-reports:    https://github.com/jtnuttall/pure-noise/issues
@@ -19,6 +23,7 @@ license-file:   LICENSE
 build-type:     Simple
 extra-source-files:
     README.md
+extra-doc-files:
     CHANGELOG.md
 
 source-repository head
@@ -46,7 +51,7 @@ library
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
       base >=4.16 && <5
-    , primitive
+    , primitive >=0.8 && <0.10
   default-language: GHC2021
 
 test-suite pure-noise-test
@@ -64,7 +69,7 @@ test-suite pure-noise-test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.16 && <5
-    , primitive
+    , primitive >=0.8 && <0.10
     , pure-noise
     , tasty
     , tasty-discover
@@ -87,7 +92,7 @@ benchmark pure-noise-bench
       base >=4.16 && <5
     , deepseq
     , mwc-random
-    , primitive
+    , primitive >=0.8 && <0.10
     , pure-noise
     , tasty
     , tasty-bench
