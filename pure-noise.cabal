@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           pure-noise
-version:        0.1.0.1
+version:        0.2.0.0
 synopsis:       Performant, modern noise generation for Haskell with minimal dependencies. Based on FastNoiseLite.
 description:    Please see the README on GitHub at <https://github.com/jtnuttall/pure-noise#readme>
 category:       Math, Numeric, Noise
@@ -45,7 +45,7 @@ library
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints
   build-depends:
-      base >=4.7 && <5
+      base >=4.16 && <5
     , primitive
   default-language: GHC2021
 
@@ -63,7 +63,7 @@ test-suite pure-noise-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      base >=4.16 && <5
     , primitive
     , pure-noise
     , tasty
@@ -84,7 +84,7 @@ benchmark pure-noise-bench
       bench
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N +RTS -A32m --nonmoving-gc -T -RTS -O2 -optc-O3 -fsimpl-tick-factor=1000
   build-depends:
-      base >=4.7 && <5
+      base >=4.16 && <5
     , deepseq
     , mwc-random
     , primitive

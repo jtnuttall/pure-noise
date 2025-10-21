@@ -1,5 +1,5 @@
 name: pure-noise
-version: 0.1.0.1
+version: 0.2.0.0
 github: "jtnuttall/pure-noise"
 license: BSD-3-Clause
 author: "Jeremy Nuttall"
@@ -18,7 +18,7 @@ description: Please see the README on GitHub at <https://github.com/jtnuttall/pu
 language: GHC2021
 
 dependencies:
-  - base >= 4.7 && < 5
+  - base >= 4.16 && < 5
   - primitive
 
 ghc-options:
