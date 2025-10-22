@@ -17,6 +17,7 @@ and this project adheres to the
 - Migrated internal implementation from `vector` to `primitive` (PrimArray)
 - Removed `vector` dependency from library (still used in benchmarks)
 - Require GHC 9.2+ (base >= 4.16)
+- Hide internal modules from public API (`Numeric.Noise.Internal`, `Numeric.Noise.Internal.Math`)
 
 ### Fixed
 - Fixed intermediate list allocation in fractal functions on GHC 9.6+

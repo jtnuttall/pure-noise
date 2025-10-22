@@ -41,6 +41,15 @@ ghc-options:
 
 library:
   source-dirs: src
+  exposed-modules:
+    - Numeric.Noise
+    - Numeric.Noise.Cellular
+    - Numeric.Noise.Fractal
+    - Numeric.Noise.OpenSimplex
+    - Numeric.Noise.Perlin
+    - Numeric.Noise.SuperSimplex
+    - Numeric.Noise.Value
+    - Numeric.Noise.ValueCubic
 
 tests:
   pure-noise-test:

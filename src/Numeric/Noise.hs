@@ -56,6 +56,7 @@ module Numeric.Noise (
   noise3At,
 
   -- ** 2D Noise
+  const2,
   cellular2,
   openSimplex2,
   superSimplex2,
@@ -64,6 +65,7 @@ module Numeric.Noise (
   valueCubic2,
 
   -- ** 3D Noise
+  const3,
   perlin3,
   value3,
   valueCubic3,

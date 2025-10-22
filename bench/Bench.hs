@@ -2,7 +2,6 @@ import BenchLib
 import Data.Typeable
 import Data.Vector.Unboxed qualified as U
 import Numeric.Noise
-import Numeric.Noise.Internal (const2, const3)
 import System.Random.MWC qualified as MWC
 
 main :: IO ()

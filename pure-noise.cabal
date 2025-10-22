@@ -35,14 +35,14 @@ library
       Numeric.Noise
       Numeric.Noise.Cellular
       Numeric.Noise.Fractal
-      Numeric.Noise.Internal
-      Numeric.Noise.Internal.Math
       Numeric.Noise.OpenSimplex
       Numeric.Noise.Perlin
       Numeric.Noise.SuperSimplex
       Numeric.Noise.Value
       Numeric.Noise.ValueCubic
   other-modules:
+      Numeric.Noise.Internal
+      Numeric.Noise.Internal.Math
       Paths_pure_noise
   autogen-modules:
       Paths_pure_noise
