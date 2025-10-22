@@ -59,18 +59,18 @@ There's inevitably some noise in the measurements because all of the results are
 
 ## Examples
 
-There's an interactive [demo app](demo/README.md) in the `demo` directory.
+There's an interactive [demo app](https://github.com/jtnuttall/pure-noise/tree/main/demo) in the `demo` directory.
 
 _OpenSimplex2_
 
-![OpenSimplex2](demo/images/opensimplex.png)
-![OpenSimplex2 ridged](demo/images/opensimplex-ridged.png)
+![OpenSimplex2](https://raw.githubusercontent.com/jtnuttall/pure-noise/main/demo/images/opensimplex.png)
+![OpenSimplex2 ridged](https://raw.githubusercontent.com/jtnuttall/pure-noise/main/demo/images/opensimplex-ridged.png)
 
 _Perlin_
 
-![Perlin fBm](demo/images/perlin-fbm.png)
+![Perlin fBm](https://raw.githubusercontent.com/jtnuttall/pure-noise/main/demo/images/perlin-fbm.png)
 
 _Cellular_
 
-![value](demo/images/cell-value.png)
-![distance2add](demo/images/cell-d2.png)
+![value](https://raw.githubusercontent.com/jtnuttall/pure-noise/main/demo/images/cell-value.png)
+![distance2add](https://raw.githubusercontent.com/jtnuttall/pure-noise/main/demo/images/cell-d2.png)
