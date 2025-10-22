@@ -14,11 +14,10 @@ module Numeric.Noise.Cellular (
 
   -- * 2D Noise
   noise2,
-  noise2BaseWith,
 ) where
 
 import Data.Bits
-import Data.Foldable
+import Data.Foldable -- redundant since GHC 9.10.1, here for compat
 import Data.Primitive.PrimArray
 import GHC.Generics (Generic)
 import Numeric.Noise.Internal
@@ -111,63 +110,75 @@ normDist = \case
 {-# INLINE normDist #-}
 
 noise2 :: (RealFrac a, Floating a) => CellularConfig a -> Noise2 a
-noise2 CellularConfig{..} =
+noise2 CellularConfig{..} = Noise2 $ \ !seed !x !y ->
   let !jitter = cellularJitter * 0.43701595
-      !dist = distance cellularDistanceFn
-      !norm = normDist cellularDistanceFn
+      !rx = round x
+      !ry = round y
+
+      dist = distance cellularDistanceFn
+      norm = normDist cellularDistanceFn
       coeff = 1 / (fromIntegral (maxBound @Hash) + 1)
-   in Noise2 $ \seed x y ->
-        let (!hash, !d0u, !d1u) = noise2BaseWith jitter dist seed x y
-            !d0 = norm d0u
-            !d1 = norm d1u
-         in case cellularResult of
-              CellValue -> fromIntegral hash * coeff
-              Distance -> d0 - 1
-              Distance2 -> d1 - 1
-              Distance2Add -> (d1 + d0) * 0.5 - 1
-              Distance2Sub -> d1 - d0 - 1
-              Distance2Mul -> d1 * d0 * 0.5 - 1
-              Distance2Div -> d0 / d1 - 1
-{-# INLINE noise2 #-}
 
--- | Calculate 2D cellular noise values at a given point using the given distance function
-noise2BaseWith
-  :: (RealFrac a)
-  => a
-  -- ^ cellular jitter
-  -> (a -> a -> a)
-  -- ^ distance function
-  -> Seed
-  -> a
-  -- ^ x
-  -> a
-  -- ^ y
-  -> (Hash, a, a)
-noise2BaseWith !jitter !dist !seed !x !y =
-  foldl' @[]
-    minmax
-    (0, infinity, infinity)
-    [pointDist (rx + xi) (ry + yi) | !xi <- [-1 .. 1], !yi <- [-1 .. 1]]
+      {-# INLINE pointDist #-}
+      pointDist !xi !yi =
+        let !px = fromIntegral xi - x
+            !py = fromIntegral yi - y
+            !h = hash2 seed (primeX * xi) (primeY * yi)
+            !i = h .&. 0x1FE
+            !rvx = randVecs2d `indexPrimArray` fromIntegral i
+            !rvy = randVecs2d `indexPrimArray` (fromIntegral i .|. 1)
+            !d = dist (px + realToFrac rvx * jitter) (py + realToFrac rvy * jitter)
+         in (h, d)
+
+      {-# INLINE points #-}
+      points = [pointDist (rx + xi) (ry + yi) | !xi <- [-1 .. 1], !yi <- [-1 .. 1]]
+
+      {-# INLINE selectMinHash #-}
+      selectMinHash =
+        let minHash (!hMin, !dMin) (!h, !d)
+              | d < dMin = (h, d)
+              | otherwise = (hMin, dMin)
+         in foldl' minHash (0, infinity) points
+
+      {-# INLINE selectMinDist #-}
+      selectMinDist =
+        let minDist !dMin (_, !d)
+              | d < dMin = d
+              | otherwise = dMin
+         in foldl' minDist infinity points
+
+      {-# INLINE selectSmallestTwo #-}
+      selectSmallestTwo =
+        let smallestTwo (!c, !d0, !d1) (!h, !d)
+              | d < d0 = (h, d, d0)
+              | d < d1 = (c, d0, d)
+              | otherwise = (c, d0, d1)
+         in foldl' smallestTwo (0, infinity, infinity) points
+   in case cellularResult of
+        CellValue ->
+          let (!hash, !_) = selectMinHash
+           in fromIntegral hash * coeff
+        Distance ->
+          let !d0 = selectMinDist
+           in norm d0 - 1
+        Distance2 ->
+          let (!_, !_, !d1) = selectSmallestTwo
+           in norm d1 - 1
+        Distance2Add ->
+          let (!_, !d0, !d1) = selectSmallestTwo
+           in (norm d1 + norm d0) * 0.5 - 1
+        Distance2Sub ->
+          let (!_, !d0, !d1) = selectSmallestTwo
+           in norm d1 - norm d0 - 1
+        Distance2Mul ->
+          let (!_, !d0, !d1) = selectSmallestTwo
+           in norm d1 * norm d0 * 0.5 - 1
+        Distance2Div ->
+          let (!_, !d0, !d1) = selectSmallestTwo
+           in norm d0 / norm d1 - 1
  where
-  !rx = round x
-  !ry = round y
 
-  minmax (!c, !d0, !d1) (!h, !d)
-    | d < d0 = (h, d, d1')
-    | otherwise = (c, d0, d1')
-   where
-    !d1' = max (min d1 d) d0
-
-  pointDist !xi !yi =
-    let !px = fromIntegral xi - x
-        !py = fromIntegral yi - y
-        !h = hash2 seed (primeX * xi) (primeY * yi)
-        !i = h .&. 510
-        !rvx = randVecs2d `indexPrimArray` fromIntegral i
-        !rvy = randVecs2d `indexPrimArray` (fromIntegral i .|. 1)
-        !d = dist (px + realToFrac rvx * jitter) (py + realToFrac rvy * jitter)
-     in (h, d)
-{-# INLINE noise2BaseWith #-}
+{-# INLINE noise2 #-}
 
 -- >>> sizeofPrimArray randVecs2d == 512
 -- True
