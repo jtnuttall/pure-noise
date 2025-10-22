@@ -42,20 +42,20 @@ There's inevitably some noise in the measurements because all of the results are
 
 | name          | values / second |
 | ------------- | --------------- |
-| value2        | 157_576_702     |
-| perlin2       | 136_905_708     |
-| superSimplex2 | 65_802_633      |
-| openSimplex2  | 64_345_073      |
-| valueCubic2   | 51_426_202      |
-| cellular2     | 16_295_718      |
+| value2        | 156_797_694     |
+| perlin2       | 138_048_921     |
+| superSimplex2 | 65_204_214      |
+| openSimplex2  | 64_483_692      |
+| valueCubic2   | 50_666_467      |
+| cellular2     | 20_819_883      |
 
 #### 3D
 
 | name        | values / second |
 | ----------- | --------------- |
-| value3      | 82_234_191      |
-| perlin3     | 60_284_413      |
-| valueCubic3 | 15_617_484      |
+| value3      | 83_034_432      |
+| perlin3     | 60_233_650      |
+| valueCubic3 | 15_220_433      |
 
 ## Examples
 
