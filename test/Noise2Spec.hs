@@ -1,7 +1,6 @@
 module Noise2Spec where
 
 import Numeric.Noise
-import Numeric.Noise.Internal
 
 seed :: Seed
 seed = 55
