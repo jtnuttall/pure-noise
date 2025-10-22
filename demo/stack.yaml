@@ -1,4 +1,4 @@
-snapshot: lts-22.33
+snapshot: lts-22.44
 extra-deps:
   - ..
   - dear-imgui-2.3.0@sha256:5ca5dbe423d884a84927aed51a282cbf1c1e355e35cea22b995055a4d2167a15,9507
