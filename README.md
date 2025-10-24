@@ -19,7 +19,7 @@ myNoise2 :: (RealFrac a) => Seed -> a -> a -> a
 myNoise2 =
   let fractalConfig = Noise.defaultFractalConfig
   in Noise.noise2At $
-      Noise.fractal2 fractalConfig ((perlin2 + superSimplex2) / 2)
+      Noise.fractal2 fractalConfig ((Noise.perlin2 + Noise.superSimplex2) / 2)
 ```
 
 More examples can be found in `bench` and `demo`.
