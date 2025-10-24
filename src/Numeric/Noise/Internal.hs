@@ -8,6 +8,10 @@ module Numeric.Noise.Internal (
   module Math,
   NoiseN (..),
   Noise (..),
+  SliceNoise (..),
+  sliceX,
+  sliceY,
+  sliceZ,
   Noise2,
   next2,
   map2,
@@ -20,6 +24,7 @@ module Numeric.Noise.Internal (
   const3,
 ) where
 
+import Data.Type.Ord (type (<))
 import GHC.TypeLits
 import Numeric.Noise.Internal.Math as Math (
   Hash,
@@ -111,6 +116,25 @@ instance (Floating a, NoiseN dim a) => Floating (Noise dim a) where
   {-# INLINE acosh #-}
   {-# INLINE atanh #-}
 
+class (NoiseN dim a, KnownNat axis) => SliceNoise dim axis a where
+  sliceNoise :: (axis < dim) => proxy axis -> a -> Noise dim a -> Noise (dim - 1) a
+
+type AxisX = 0
+type AxisY = 1
+type AxisZ = 2
+
+sliceX :: (SliceNoise dim AxisX a, AxisX < dim) => a -> Noise dim a -> Noise (dim - 1) a
+sliceX = sliceNoise (SNat @AxisX)
+{-# INLINE sliceX #-}
+
+sliceY :: (SliceNoise dim AxisY a, AxisY < dim) => a -> Noise dim a -> Noise (dim - 1) a
+sliceY = sliceNoise (SNat @AxisY)
+{-# INLINE sliceY #-}
+
+sliceZ :: (SliceNoise dim AxisZ a, AxisZ < dim) => a -> Noise dim a -> Noise (dim - 1) a
+sliceZ = sliceNoise (SNat @AxisZ)
+{-# INLINE sliceZ #-}
+
 instance NoiseN 1 a where
   newtype Noise 1 a = Noise1 (Seed -> a -> a)
   constNoise a = Noise1 (\_ _ -> a)
@@ -149,6 +173,14 @@ instance NoiseN 2 a where
 
 -- | Convenience wrapper for $Noise 2 a$
 type Noise2 a = Noise 2 a
+
+instance SliceNoise 2 AxisX a where
+  sliceNoise _ a (Noise2 f) = Noise1 (\s x -> f s a x)
+  {-# INLINE sliceNoise #-}
+
+instance SliceNoise 2 AxisY a where
+  sliceNoise _ a (Noise2 f) = Noise1 (\s x -> f s x a)
+  {-# INLINE sliceNoise #-}
 
 -- | Increment the seed for a 2D noise function.
 --
@@ -201,6 +233,18 @@ instance NoiseN 3 a where
 
 -- | Convenience wrapper for $Noise 3 a$
 type Noise3 a = Noise 3 a
+
+instance SliceNoise 3 AxisX a where
+  sliceNoise _ a (Noise3 f) = Noise2 (\s x y -> f s a x y)
+  {-# INLINE sliceNoise #-}
+
+instance SliceNoise 3 AxisY a where
+  sliceNoise _ a (Noise3 f) = Noise2 (\s x y -> f s x a y)
+  {-# INLINE sliceNoise #-}
+
+instance SliceNoise 3 AxisZ a where
+  sliceNoise _ a (Noise3 f) = Noise2 (\s x y -> f s x y a)
+  {-# INLINE sliceNoise #-}
 
 -- | Increment the seed for a 3D noise function.
 --

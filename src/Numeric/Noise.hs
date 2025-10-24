@@ -131,6 +131,7 @@ import Numeric.Noise.Internal as NoiseTypes (
 import Numeric.Noise.Internal as NoiseUtility (
   Noise (..),
   NoiseN (..),
+  SliceNoise (..),
   clamp,
   clamp2,
   clamp3,
@@ -141,6 +142,9 @@ import Numeric.Noise.Internal as NoiseUtility (
   next2,
   next3,
   quinticInterp,
+  sliceX,
+  sliceY,
+  sliceZ,
  )
 import Numeric.Noise.OpenSimplex qualified as OpenSimplex
 import Numeric.Noise.Perlin qualified as Perlin
