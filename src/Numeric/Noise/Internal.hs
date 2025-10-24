@@ -55,6 +55,7 @@ next2 :: Noise2 a -> Noise2 a
 next2 (Noise2 f) = Noise2 (\s x y -> f (s + 1) x y)
 {-# INLINE next2 #-}
 
+-- | Map an arbitrary function across a noise field
 map2 :: (a -> a) -> Noise2 a -> Noise2 a
 map2 f (Noise2 g) = Noise2 (\s x y -> f (g s x y))
 {-# INLINE map2 #-}
@@ -69,6 +70,9 @@ clamp2 :: (Ord a) => a -> a -> Noise2 a -> Noise2 a
 clamp2 l u (Noise2 f) = Noise2 $ \s x y -> clamp l u (f s x y)
 {-# INLINE clamp2 #-}
 
+-- | A noise function that produces the same value everywhere.
+--
+-- Used to provide the 'Num' instance.
 const2 :: a -> Noise2 a
 const2 a = Noise2 (\_ _ _ -> a)
 {-# INLINE const2 #-}
@@ -146,10 +150,14 @@ next3 :: Noise3 a -> Noise3 a
 next3 (Noise3 f) = Noise3 (\s x y z -> f (s + 1) x y z)
 {-# INLINE next3 #-}
 
+-- | Map an arbitrary function across a noise field
 map3 :: (a -> a) -> Noise3 a -> Noise3 a
 map3 f (Noise3 g) = Noise3 (\s x y z -> f (g s x y z))
 {-# INLINE map3 #-}
 
+-- | A noise function that produces the same value everywhere.
+--
+-- Used to provide the 'Num' instance.
 const3 :: a -> Noise3 a
 const3 a = Noise3 (\_ _ _ _ -> a)
 {-# INLINE const3 #-}
