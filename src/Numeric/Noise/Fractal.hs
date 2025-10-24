@@ -1,5 +1,5 @@
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE Strict #-}
+{-# LANGUAGE StrictData #-}
 
 -- |
 -- Maintainer: Jeremy Nuttall <jeremy@jeremy-nuttall.com>
@@ -142,13 +142,13 @@ fractal2With
 fractal2With modNoise modAmps FractalConfig{..} noise2 seed x y
   | octaves < 1 = error "octaves must be a positive integer"
   | otherwise =
-      let bounding = fractalBounding FractalConfig{..}
+      let !bounding = fractalBounding FractalConfig{..}
        in go octaves 0 seed 1 bounding
  where
-  go 0 acc _ _ _ = acc
-  go o acc s freq amp =
-    let noise = amp * modNoise (noise2 s (freq * x) (freq * y))
-        amp' = amp * gain * modAmps (min (noise + 1) 2)
+  go 0 !acc _ _ _ = acc
+  go !o !acc !s !freq !amp =
+    let !noise = amp * modNoise (noise2 s (freq * x) (freq * y))
+        !amp' = amp * gain * modAmps (min (noise + 1) 2)
      in go (o - 1) (acc + noise) (s + 1) (freq * lacunarity) amp'
 {-# INLINE fractal2With #-}
 
@@ -196,21 +196,21 @@ fractal3With
   -> a
 fractal3With modNoise modAmps FractalConfig{..} noise3 seed x y z
   | octaves < 1 = error "octaves must be a positive integer"
-  | otherwise = go octaves 0 seed 1 bounding
+  | otherwise =
+      let !bounding = fractalBounding FractalConfig{..}
+       in go octaves 0 seed 1 bounding
  where
-  bounding = fractalBounding FractalConfig{..}
-
-  go 0 acc _ _ _ = acc
-  go o acc s freq amp =
-    let noise = amp * modNoise (noise3 s (freq * x) (freq * y) (freq * z))
-        amp' = amp * gain * modAmps (min (noise + 1) 2)
+  go 0 !acc _ _ _ = acc
+  go !o !acc !s !freq !amp =
+    let !noise = amp * modNoise (noise3 s (freq * x) (freq * y) (freq * z))
+        !amp' = amp * gain * modAmps (min (noise + 1) 2)
      in go (o - 1) (acc + noise) (s + 1) (freq * lacunarity) amp'
 {-# INLINE fractal3With #-}
 
 fractalBounding :: (RealFrac a) => FractalConfig a -> a
 fractalBounding FractalConfig{..} = recip (sum amps + 1)
  where
-  ~amps = take octaves $ iterate (* gain) gain
+  amps = take octaves $ iterate (* gain) gain
 {-# INLINE fractalBounding #-}
 
 -- | Identity noise modifier for standard FBM.

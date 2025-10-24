@@ -141,10 +141,10 @@ instance NoiseN 1 a where
   mapSeed f (Noise1 g) = Noise1 (g . f)
   mapNoise f (Noise1 g) = Noise1 (\s x -> f (g s x))
   combineNoise f (Noise1 g) (Noise1 h) = Noise1 (\s x -> g s x `f` h s x)
-  {-# INLINE constNoise #-}
-  {-# INLINE mapSeed #-}
-  {-# INLINE mapNoise #-}
-  {-# INLINE combineNoise #-}
+  {-# INLINE [1] constNoise #-}
+  {-# INLINE [1] mapSeed #-}
+  {-# INLINE [1] mapNoise #-}
+  {-# INLINE [1] combineNoise #-}
 
 -- | A 2D noise function parameterized by a seed and two coordinates.
 --
@@ -166,10 +166,10 @@ instance NoiseN 2 a where
   mapSeed f (Noise2 g) = Noise2 (g . f)
   mapNoise f (Noise2 g) = Noise2 (\s x y -> f (g s x y))
   combineNoise f (Noise2 g) (Noise2 h) = Noise2 (\s x y -> g s x y `f` h s x y)
-  {-# INLINE constNoise #-}
-  {-# INLINE mapSeed #-}
-  {-# INLINE mapNoise #-}
-  {-# INLINE combineNoise #-}
+  {-# INLINE [1] constNoise #-}
+  {-# INLINE [1] mapSeed #-}
+  {-# INLINE [1] mapNoise #-}
+  {-# INLINE [1] combineNoise #-}
 
 -- | Convenience wrapper for $Noise 2 a$
 type Noise2 a = Noise 2 a
@@ -226,10 +226,10 @@ instance NoiseN 3 a where
   mapSeed f (Noise3 g) = Noise3 (g . f)
   mapNoise f (Noise3 g) = Noise3 (\s x y z -> f (g s x y z))
   combineNoise f (Noise3 g) (Noise3 h) = Noise3 (\s x y z -> g s x y z `f` h s x y z)
-  {-# INLINE constNoise #-}
-  {-# INLINE mapSeed #-}
-  {-# INLINE mapNoise #-}
-  {-# INLINE combineNoise #-}
+  {-# INLINE [1] constNoise #-}
+  {-# INLINE [1] mapSeed #-}
+  {-# INLINE [1] mapNoise #-}
+  {-# INLINE [1] combineNoise #-}
 
 -- | Convenience wrapper for $Noise 3 a$
 type Noise3 a = Noise 3 a
