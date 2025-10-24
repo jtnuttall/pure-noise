@@ -4,11 +4,13 @@
 module Numeric.Noise.Internal (
   module Math,
   Noise2 (..),
+  alterSeed2,
   next2,
   map2,
   clamp2,
   const2,
   Noise3 (..),
+  alterSeed3,
   next3,
   map3,
   clamp3,
@@ -42,17 +44,24 @@ import Numeric.Noise.Internal.Math as Math (
 newtype Noise2 a = Noise2
   {unNoise2 :: Seed -> a -> a -> a}
 
--- | Increment the seed for a 2D noise function.
+-- | Alter the seed for a 2D noise function.
 --
 -- This is useful for generating independent noise layers:
 --
 -- @
 -- layer1 = perlin2
--- layer2 = next2 perlin2
--- layer3 = next2 (next2 perlin2)
+-- layer2 = alterSeed2 (+12) perlin2
+-- layer3 = alterSeed2 (subtract 2) perlin2
 -- @
+alterSeed2 :: (Seed -> Seed) -> Noise2 a -> Noise2 a
+alterSeed2 fs (Noise2 f) = Noise2 (f . fs)
+{-# INLINE alterSeed2 #-}
+
+-- | Increment the seed for a 2D noise function.
+--
+-- Equivalent to $alterSeed2 (+1)$
 next2 :: Noise2 a -> Noise2 a
-next2 (Noise2 f) = Noise2 (\s x y -> f (s + 1) x y)
+next2 = alterSeed2 (+ 1)
 {-# INLINE next2 #-}
 
 -- | Map an arbitrary function across a noise field
@@ -143,11 +152,18 @@ instance (Floating a) => Floating (Noise2 a) where
 newtype Noise3 a = Noise3
   {unNoise3 :: Seed -> a -> a -> a -> a}
 
+-- | Alter the seed for a 3D noise function.
+--
+-- Analogous to 'alterSeed2'', this is useful for generating independent 3D noise layers.
+alterSeed3 :: (Seed -> Seed) -> Noise3 a -> Noise3 a
+alterSeed3 fs (Noise3 f) = Noise3 (f . fs)
+{-# INLINE alterSeed3 #-}
+
 -- | Increment the seed for a 3D noise function.
 --
 -- Analogous to 'next2', this is useful for generating independent 3D noise layers.
 next3 :: Noise3 a -> Noise3 a
-next3 (Noise3 f) = Noise3 (\s x y z -> f (s + 1) x y z)
+next3 = alterSeed3 (+ 1)
 {-# INLINE next3 #-}
 
 -- | Map an arbitrary function across a noise field

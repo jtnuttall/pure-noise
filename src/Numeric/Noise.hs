@@ -129,6 +129,8 @@ import Numeric.Noise.Internal as NoiseTypes (
   Seed,
  )
 import Numeric.Noise.Internal as NoiseUtility (
+  alterSeed2,
+  alterSeed3,
   clamp,
   clamp2,
   clamp3,
