@@ -136,7 +136,7 @@ sliceZ = sliceNoise (SNat @AxisZ)
 {-# INLINE sliceZ #-}
 
 instance NoiseN 1 a where
-  newtype Noise 1 a = Noise1 (Seed -> a -> a)
+  newtype Noise 1 a = Noise1 {unNoise1 :: Seed -> a -> a}
   constNoise a = Noise1 (\_ _ -> a)
   mapSeed f (Noise1 g) = Noise1 (g . f)
   mapNoise f (Noise1 g) = Noise1 (\s x -> f (g s x))

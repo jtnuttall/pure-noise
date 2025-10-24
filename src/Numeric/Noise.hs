@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE Strict #-}
 
 -- |
@@ -52,6 +53,7 @@ module Numeric.Noise (
   module NoiseTypes,
 
   -- * Noise evaluation
+  noise1At,
   noise2At,
   noise3At,
 
@@ -151,6 +153,13 @@ import Numeric.Noise.Perlin qualified as Perlin
 import Numeric.Noise.SuperSimplex qualified as SuperSimplex
 import Numeric.Noise.Value qualified as Value
 import Numeric.Noise.ValueCubic qualified as ValueCubic
+
+-- | Evaluate a 1D noise function at the given coordinates with the given seed.
+-- Currently, you must use a slicing function like 'sliceX' to reduce
+-- higher-dimensional noise into 1D noise.
+noise1At :: Noise 1 a -> Seed -> a -> a
+noise1At = unNoise1
+{-# INLINE noise1At #-}
 
 -- | Evaluate a 2D noise function at the given coordinates with the given seed.
 noise2At
