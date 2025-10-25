@@ -60,89 +60,60 @@ noise2Base seed xo yo =
             let ~x2 = x0 + (3 * g2 - 2)
                 ~y2 = y0 + (3 * g2 - 1)
                 ~a2 = (2 / 3) - x2 * x2 - y2 * y2
-             in if a2 > 0
-                  then
-                    (a2 * a2)
-                      * (a2 * a2)
-                      * gradCoord2 seed (i + (primeX `shiftL` 1)) (j + primeY) x2 y2
-                  else 0
+             in attenuate a2 seed (i + (primeX `shiftL` 1)) (j + primeY) x2 y2
         | otherwise =
             let ~x2 = x0 + g2
                 ~y2 = y0 + (g2 - 1)
                 ~a2 = (2 / 3) - x2 * x2 - y2 * y2
-             in if a2 > 0
-                  then
-                    (a2 * a2)
-                      * (a2 * a2)
-                      * gradCoord2 seed i (j + primeY) x2 y2
-                  else 0
+             in attenuate a2 seed i (j + primeY) x2 y2
+
       ~vgy
         | yi - xmyi > 1 =
             let ~x3 = x0 + (3 * g2 - 1)
                 ~y3 = y0 + (3 * g2 - 2)
                 ~a3 = (2 / 3) - x3 * x3 - y3 * y3
-             in if a3 > 0
-                  then
-                    (a3 * a3)
-                      * (a3 * a3)
-                      * gradCoord2 seed (i + primeX) (j + (primeY `shiftL` 1)) x3 y3
-                  else 0
+             in attenuate a3 seed (i + primeX) (j + (primeY `shiftL` 1)) x3 y3
         | otherwise =
             let ~x3 = x0 + (g2 - 1)
                 ~y3 = y0 + g2
                 ~a3 = (2 / 3) - x3 * x3 - y3 * y3
-             in if a3 > 0
-                  then
-                    (a3 * a3)
-                      * (a3 * a3)
-                      * gradCoord2 seed (i + primeX) j x3 y3
-                  else 0
+             in attenuate a3 seed (i + primeX) j x3 y3
 
       ~vlx
         | xi + xmyi < 0 =
             let ~x2 = x0 + (1 - g2)
                 ~y2 = y0 - g2
                 ~a2 = (2 / 3) - x2 * x2 - y2 * y2
-             in if a2 > 0
-                  then
-                    (a2 * a2)
-                      * (a2 * a2)
-                      * gradCoord2 seed (i - primeX) j x2 y2
-                  else 0
+             in attenuate a2 seed (i - primeX) j x2 y2
         | otherwise =
             let ~x2 = x0 + (g2 - 1)
                 ~y2 = y0 + g2
                 ~a2 = (2 / 3) - x2 * x2 - y2 * y2
-             in if a2 > 0
-                  then
-                    (a2 * a2)
-                      * (a2 * a2)
-                      * gradCoord2 seed (i + primeX) j x2 y2
-                  else 0
+             in attenuate a2 seed (i + primeX) j x2 y2
       ~vly
         | yi < xmyi =
             let ~x2 = x0 - g2
                 ~y2 = y0 - (g2 - 1)
                 ~a2 = (2 / 3) - x2 * x2 - y2 * y2
-             in if a2 > 0
-                  then
-                    (a2 * a2)
-                      * (a2 * a2)
-                      * gradCoord2 seed i (j - primeY) x2 y2
-                  else 0
+             in attenuate a2 seed i (j - primeY) x2 y2
         | otherwise =
             let ~x2 = x0 + g2
                 ~y2 = y0 + (g2 - 1)
                 ~a2 = (2 / 3) - x2 * x2 - y2 * y2
-             in if a2 > 0
-                  then
-                    (a2 * a2)
-                      * (a2 * a2)
-                      * gradCoord2 seed i (j + primeY) x2 y2
-                  else 0
+             in attenuate a2 seed i (j + primeY) x2 y2
 
       v2
         | t > g2 = vgx + vgy
         | otherwise = vlx + vly
-   in (v0 + v1 + v2) * 18.24196194486065
+   in normalize $ v0 + v1 + v2
 {-# INLINE noise2Base #-}
+
+attenuate :: (RealFrac a) => a -> Seed -> Hash -> Hash -> a -> a -> a
+attenuate !vi !seed !i !j !x !y =
+  let !v = max 0 vi
+   in (v * v) * (v * v) * gradCoord2 seed i j x y
+{-# INLINE attenuate #-}
+
+normalize :: (RealFrac a) => a -> a
+normalize = (18.24196194486065 *)
+{-# INLINE normalize #-}
