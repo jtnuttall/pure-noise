@@ -143,10 +143,10 @@ gradCoord2 :: (RealFrac a) => Seed -> Hash -> Hash -> a -> a -> a
 gradCoord2 seed xPrimed yPrimed xd yd =
   let !hash = hash2 seed xPrimed yPrimed
       !ix = (hash `xor` (hash `shiftR` 15)) .&. 0xFE
-      !xg = grad2d `indexPrimArray` fromIntegral ix
-      !yg = grad2d `indexPrimArray` fromIntegral (ix .|. 1)
-   in xd * realToFrac xg + yd * realToFrac yg
-{-# INLINE gradCoord2 #-}
+      !xg = lookupGrad2 ix
+      !yg = lookupGrad2 (ix .|. 1)
+   in xd * xg + yd * yg
+{-# INLINE [2] gradCoord2 #-}
 
 gradCoord3 :: (RealFrac a) => Seed -> Hash -> Hash -> Hash -> a -> a -> a -> a
 gradCoord3 seed xPrimed yPrimed zPrimed xd yd zd =
@@ -161,6 +161,22 @@ gradCoord3 seed xPrimed yPrimed zPrimed xd yd zd =
 maxHash :: (RealFrac a) => a
 maxHash = realToFrac (maxBound @Hash)
 {-# INLINE maxHash #-}
+
+lookupGrad2 :: (RealFrac a) => Hash -> a
+lookupGrad2 = realToFrac . (grad2d `indexPrimArray`) . fromIntegral
+{-# INLINE [0] lookupGrad2 #-}
+
+{-# RULES
+"lookupGrad2/Float" forall (i :: Hash).
+  lookupGrad2 i =
+    indexPrimArray grad2d (fromIntegral i)
+"lookupGrad2/Double" forall (i :: Hash).
+  lookupGrad2 i =
+    indexPrimArray grad2dd (fromIntegral i)
+  #-}
+
+grad2dd :: PrimArray Double
+grad2dd = mapPrimArray realToFrac grad2d
 
 {- ORMOLU_DISABLE -}
 -- >>> sizeofPrimArray grad2d == 256
@@ -200,7 +216,6 @@ grad2d =
     0.38268343236509 ,  0.923879532511287,  0.923879532511287,  0.38268343236509 ,  0.923879532511287, -0.38268343236509 ,  0.38268343236509 , -0.923879532511287,
    -0.38268343236509 , -0.923879532511287, -0.923879532511287, -0.38268343236509 , -0.923879532511287,  0.38268343236509 , -0.38268343236509 ,  0.923879532511287
   ]
-{-# INLINABLE grad2d #-}
 
 -- >>> sizeofPrimArray grad3d == 256
 -- True
@@ -223,4 +238,3 @@ grad3d =
   , 1, 1, 0, 0, -1, 1, 0, 0, 1, -1, 0, 0, -1, -1, 0, 0
   , 1, 1, 0, 0, 0, -1, 1, 0, -1, 1, 0, 0, 0, -1, -1, 0
   ]
-{-# INLINABLE grad3d #-}
