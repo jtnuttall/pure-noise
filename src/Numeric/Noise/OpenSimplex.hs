@@ -17,7 +17,7 @@ noise2 = Noise2 noise2Base
 {-# INLINE noise2 #-}
 
 noise2Base :: (RealFrac a) => Seed -> a -> a -> a
-noise2Base seed xo yo =
+noise2Base !seed !xo !yo =
   let !f2 = 0.5 * (sqrt3 - 1)
       !to = (xo + yo) * f2
       !x = xo + to
@@ -31,13 +31,14 @@ noise2Base seed xo yo =
       !t = (xi + yi) * g2
       !x0 = xi - t
       !y0 = yi - t
-      i = fx * primeX
-      j = fy * primeY
+      !i = fx * primeX
+      !j = fy * primeY
 
       !a = 0.5 - x0 * x0 - y0 * y0
-      !n0 = attenuate a i j x0 y0
+      n0 = attenuate a i j x0 y0
 
-      !n1
+      {-# INLINE n1 #-}
+      n1
         | y0 > x0 =
             let x1 = x0 + g2
                 y1 = y0 + (g2 - 1)
@@ -60,10 +61,9 @@ noise2Base seed xo yo =
    in normalize $ n0 + n1 + n2
  where
   attenuate :: (RealFrac a) => a -> Hash -> Hash -> a -> a -> a
-  attenuate v i j x y
+  attenuate !v i j x y
     | v <= 0 = 0
     | otherwise = (v * v) * (v * v) * gradCoord2 seed i j x y
-  {-# INLINE attenuate #-}
 {-# INLINE noise2Base #-}
 
 normalize :: (RealFrac a) => a -> a
