@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -ddump-rule-firings #-}
+{-# OPTIONS_GHC -ddump-simpl -dsuppress-all -ddump-types #-}
 
 import BenchLib
 import Data.Typeable
@@ -189,20 +189,40 @@ benchCellular2 :: Int -> Int -> [Benchmark]
 benchCellular2 _ sz =
   [ bgroup
       "cellular2"
-      ( benches @Float Proxy
-          <> benches @Double Proxy
-      )
+      [ benchMany2 @Float
+          "DistEuclidean CellValue"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = CellValue})
+      , benchMany2 @Float
+          "DistEuclidean Distance2Add"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance2Add})
+      , benchMany2 @Float
+          "DistManhattan CellValue"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistManhattan, cellularResult = CellValue})
+      , benchMany2 @Float
+          "DistManhattan Distance2Add"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistManhattan, cellularResult = Distance2Add})
+      , benchMany2 @Double
+          "DistEuclidean CellValue"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = CellValue})
+      , benchMany2 @Double
+          "DistEuclidean Distance2Add"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance2Add})
+      , benchMany2 @Double
+          "DistManhattan CellValue"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistManhattan, cellularResult = CellValue})
+      , benchMany2 @Double
+          "DistManhattan Distance2Add"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistManhattan, cellularResult = Distance2Add})
+      ]
   ]
- where
-  benches
-    :: forall a. (Typeable a, MWC.UniformRange a, U.Unbox a, RealFrac a, Floating a) => Proxy a -> [Benchmark]
-  benches _ =
-    [ benchMany2 @a (show d <> " " <> show r) sz (cellular2 config)
-    | d <- [DistEuclidean]
-    , r <- [CellValue, Distance2Add]
-    , let config = defaultCellularConfig{cellularDistanceFn = d, cellularResult = r}
-    ]
-  {-# INLINE benches #-}
 {-# INLINE benchCellular2 #-}
 
 createEnv3 :: (U.Unbox a, Num a) => Int -> IO (Seed, U.Vector (a, a, a))
