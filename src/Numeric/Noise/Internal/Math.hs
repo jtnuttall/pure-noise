@@ -54,7 +54,7 @@ lerp
   -> a
   -- ^ parameter in range [0, 1]
   -> a
-lerp v0 v1 t = v0 + t * (v1 - v0)
+lerp v0 v1 t = v0 * (1 - t) + (v1 * t)
 {-# INLINE lerp #-}
 
 -- | cubic interpolation
@@ -163,26 +163,26 @@ maxHash = realToFrac (maxBound @Hash)
 {-# INLINE maxHash #-}
 
 lookupGrad2 :: (RealFrac a) => Hash -> a
-lookupGrad2 = realToFrac . (grad2d `indexPrimArray`) . fromIntegral
-{-# INLINE [0] lookupGrad2 #-}
+lookupGrad2 = realToFrac . (grad2dd `indexPrimArray`) . fromIntegral
+{-# INLINE [~2] lookupGrad2 #-}
 
 {-# RULES
-"lookupGrad2/Float" forall (i :: Hash).
+"lookupGrad2/Float" [2] forall (i :: Hash).
   lookupGrad2 i =
-    indexPrimArray grad2d (fromIntegral i)
-"lookupGrad2/Double" forall (i :: Hash).
+    indexPrimArray grad2df (fromIntegral i)
+"lookupGrad2/Double" [2] forall (i :: Hash).
   lookupGrad2 i =
     indexPrimArray grad2dd (fromIntegral i)
   #-}
 
-grad2dd :: PrimArray Double
-grad2dd = mapPrimArray realToFrac grad2d
+grad2df :: PrimArray Float
+grad2df = mapPrimArray realToFrac grad2dd
 
 {- ORMOLU_DISABLE -}
 -- >>> sizeofPrimArray grad2d == 256
 -- True
-grad2d :: PrimArray Float
-grad2d =
+grad2dd :: PrimArray Double
+grad2dd =
   [ 0.130526192220052,  0.99144486137381 ,  0.38268343236509 ,  0.923879532511287,  0.608761429008721,  0.793353340291235,  0.793353340291235,  0.608761429008721,
     0.923879532511287,  0.38268343236509 ,  0.99144486137381 ,  0.130526192220051,  0.99144486137381 , -0.130526192220051,  0.923879532511287, -0.38268343236509,
     0.793353340291235, -0.60876142900872 ,  0.608761429008721, -0.793353340291235,  0.38268343236509 , -0.923879532511287,  0.130526192220052, -0.99144486137381,
