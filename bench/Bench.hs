@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -ddump-rule-firings #-}
+
 import BenchLib
 import Data.Typeable
 import Data.Vector.Unboxed qualified as U
@@ -37,10 +39,11 @@ label lbl sz seed px =
         v -> v <> ": "
    in lbl' <> showsTypeRep (typeRep px) "" <> "[seed=" <> show seed <> "] x" <> show sz
 
-createEnv2 :: forall a. (U.Unbox a, MWC.UniformRange a, RealFrac a) => Int -> IO (U.Vector (a, a))
+createEnv2 :: forall a. (U.Unbox a, MWC.UniformRange a, RealFrac a) => Int -> IO (Seed, U.Vector (a, a))
 createEnv2 sz = do
   g <- MWC.createSystemRandom
-  U.generateM sz $ \i -> do
+  seed <- MWC.uniformRM (minBound, maxBound) g
+  v <- U.generateM sz $ \i -> do
     -- most of these functions zero at whole numbers and can short-circuit,
     -- so a random offset should give a better signal of real world performance
     offset <- MWC.uniformRM (0.00001, 0.99999) g
@@ -48,6 +51,7 @@ createEnv2 sz = do
       let r = fromIntegral $ i `div` (sz `div` 2)
           c = fromIntegral $ i `mod` (sz `div` 2)
        in (r + offset, c + offset)
+  pure (seed, v)
 {-# INLINE createEnv2 #-}
 
 benchMany2
@@ -58,9 +62,9 @@ benchMany2
   -> Seed
   -> Noise2 a
   -> Benchmark
-benchMany2 lbl sz seed f =
-  env (createEnv2 sz) $ \ ~v ->
-    bench (label lbl sz seed (Proxy @(U.Vector a))) $
+benchMany2 lbl sz deprecatedSeed f =
+  env (createEnv2 sz) $ \ ~(seed, v) ->
+    bench (label lbl sz deprecatedSeed (Proxy @(U.Vector a))) $
       nf (U.map (uncurry (noise2At f seed))) v
 {-# INLINE benchMany2 #-}
 
@@ -203,8 +207,10 @@ benchCellular2 seed _ sz =
   {-# INLINE benches #-}
 {-# INLINE benchCellular2 #-}
 
-createEnv3 :: forall a m. (Monad m, U.Unbox a, Num a) => Int -> m (U.Vector (a, a, a))
+createEnv3 :: (U.Unbox a, Num a) => Int -> IO (Seed, U.Vector (a, a, a))
 createEnv3 sz = do
+  g <- MWC.createSystemRandom
+  seed <- MWC.uniformRM (minBound, maxBound) g
   !ixs <- U.generateM sz $ \i ->
     pure $
       let d = sz `div` 3
@@ -212,7 +218,7 @@ createEnv3 sz = do
           !y = fromIntegral $ i `div` (d * d)
           !z = fromIntegral $ i `div` d
        in (x, y, z)
-  pure ixs
+  pure (seed, ixs)
 {-# INLINE createEnv3 #-}
 
 benchMany3
@@ -223,9 +229,9 @@ benchMany3
   -> Seed
   -> Noise3 a
   -> Benchmark
-benchMany3 lbl sz seed f =
-  env (createEnv3 sz) $ \ ~v ->
-    bench (label lbl sz seed (Proxy @(U.Vector a))) $
+benchMany3 lbl sz deprecatedSeed f =
+  env (createEnv3 sz) $ \ ~(seed, v) ->
+    bench (label lbl sz deprecatedSeed (Proxy @(U.Vector a))) $
       nf (U.map (\(x, y, z) -> noise3At f seed x y z)) v
 {-# INLINE benchMany3 #-}
 
