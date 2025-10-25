@@ -281,7 +281,7 @@ pingPongNoiseMod :: (RealFrac a) => PingPongStrength a -> a -> a
 pingPongNoiseMod (PingPongStrength s) n =
   let n' = (n + 1) * s
       t = n' - fromIntegral @Int (truncate (n' * 0.5) * 2)
-   in if t < 1 then t else 2 - t
+   in 1 - abs (t - 1)
 {-# INLINE pingPongNoiseMod #-}
 
 -- | Amplitude modifier for ping-pong fractal.
