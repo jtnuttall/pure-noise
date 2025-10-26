@@ -55,15 +55,22 @@ lerp
   -- ^ parameter in range [0, 1]
   -> a
 lerp v0 v1 t = v0 * (1 - t) + (v1 * t)
-{-# INLINE [0] lerp #-}
+{-# NOINLINE [1] lerp #-}
 
 {-# RULES
-"lerp/Float/0" forall (a :: Float) (b :: Float). lerp a b 0 = a
-"lerp/Double/0" forall (a :: Double) (b :: Double). lerp a b 0 = a
-"lerp/Float/1" forall (a :: Float) (b :: Float). lerp a b 1 = b
-"lerp/Double/1" forall (a :: Double) (b :: Double). lerp a b 1 = b
-"lerp/Float/id" forall (t :: Float) (a :: Float). lerp a a t = a
-"lerp/Double/id" forall (a :: Double) (t :: Double). lerp a a t = a
+"lerp/Float/0" forall (a :: Float) b.
+  lerp a b 0 =
+    a
+"lerp/Double/0" forall (a :: Double) b.
+  lerp a b 0 =
+    a
+"lerp/Float/1" forall (a :: Float) b.
+  lerp a b 1 =
+    b
+"lerp/Double/1" forall (a :: Double) b.
+  lerp a b 1 =
+    b
+"lerp/id" forall a t. lerp a a t = a
 "lerp/compose/start" forall a b t u.
   lerp (lerp a b u) b t =
     lerp a b (u + t - t * u)
@@ -77,7 +84,16 @@ cubicInterp :: (Num a) => a -> a -> a -> a -> a -> a
 cubicInterp a b c d t =
   let !p = (d - c) - (a - b)
    in t * t * t * p + t * t * ((a - b) - p) + t * (c - a) + b
-{-# INLINEABLE cubicInterp #-}
+{-# NOINLINE [1] cubicInterp #-}
+
+{-# RULES
+"cubicInterp/Float/0" forall (a :: Float) b c d.
+  cubicInterp a b c d 0 =
+    b
+"cubicInterp/Double/0" forall (a :: Double) b c d.
+  cubicInterp a b c d 0 =
+    b
+  #-}
 
 -- | hermite interpolation
 hermiteInterp :: (Num a) => a -> a
@@ -87,7 +103,22 @@ hermiteInterp t = t * t * (3 - 2 * t)
 -- | quintic interpolation
 quinticInterp :: (Num a) => a -> a
 quinticInterp t = t * t * t * (t * (t * 6 - 15) + 10)
-{-# INLINEABLE quinticInterp #-}
+{-# NOINLINE [1] quinticInterp #-}
+
+{-# RULES
+"quinticInterp/Float/0"
+  quinticInterp (0 :: Float) =
+    0
+"quinticInterp/Double/0"
+  quinticInterp (0 :: Double) =
+    0
+"quinticInterp/Float/1"
+  quinticInterp (1 :: Float) =
+    1
+"quinticInterp/Double/1"
+  quinticInterp (1 :: Double) =
+    1
+  #-}
 
 -- | Clamp a value to a specified range.
 --

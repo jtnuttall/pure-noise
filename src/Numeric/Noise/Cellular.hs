@@ -47,6 +47,7 @@ defaultCellularConfig =
     , cellularJitter = 1
     , cellularResult = CellValue
     }
+{-# INLINEABLE defaultCellularConfig #-}
 
 -- | Distance function for cellular noise calculations.
 --
@@ -176,7 +177,7 @@ noise2 CellularConfig{..} = Noise2 $ \ !seed !x !y ->
         Distance2Div ->
           let (!_, !d0, !d1) = selectSmallestTwo
            in norm d0 / norm d1 - 1
-{-# INLINE noise2 #-}
+{-# INLINE [2] noise2 #-}
 
 -- >>> sizeofPrimArray randVecs2d == 512
 -- True
