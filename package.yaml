@@ -62,10 +62,17 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - pure-noise
+      - aeson >= 2.0 && < 2.3
+      - bytestring
+      - directory
+      - filepath
+      - JuicyPixels >= 3.3 && < 3.4
+      - massiv >= 1.0 && < 2.0
       - tasty
       - tasty-discover
       - tasty-hunit
       - tasty-quickcheck
+      - tasty-golden
 
 benchmarks:
   pure-noise-bench:
