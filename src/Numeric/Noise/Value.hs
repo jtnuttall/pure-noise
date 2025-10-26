@@ -46,7 +46,7 @@ noise2Base seed x y =
             xs
         )
         ys
-{-# INLINE [1] noise2Base #-}
+{-# INLINE [2] noise2Base #-}
 
 noise3 :: (RealFrac a) => Noise3 a
 noise3 = Noise3 noise3Base
