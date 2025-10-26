@@ -137,7 +137,7 @@ import Numeric.Noise.Internal as NoiseUtility (
   clamp,
   clamp2,
   clamp3,
-  constNoise,
+  constant,
   cubicInterp,
   hermiteInterp,
   lerp,

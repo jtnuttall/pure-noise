@@ -13,8 +13,8 @@ and this project adheres to the
 - 1D noise support with `noise1At` evaluation function
 - Noise slicing functions (`sliceX`, `sliceY`, `sliceZ`) and `SliceNoise` typeclass for reducing noise dimensionality
 - `NoiseN` typeclass with dimension-polymorphic methods:
-  - `constNoise` - create constant noise field
-  - `mapSeed` - alter the seed for independent noise layers (generalizes `alterSeed2`/`alterSeed3`)
+  - `uniform` - create constant noise field
+  - `reseed` - alter the seed for independent noise layers (generalizes `alterSeed2`/`alterSeed3`)
   - `mapNoise` - apply transformations to noise output (generalizes `map2`/`map3`)
   - `combineNoise` - combine two noise functions pointwise
   - `clampNoise` - clamp noise output between bounds

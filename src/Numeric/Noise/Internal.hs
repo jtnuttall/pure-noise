@@ -42,7 +42,7 @@ class NoiseN (dim :: Nat) a where
   -- | A noise function that produces the same value everywhere.
   --
   -- Used to provide the 'Num' instance.
-  constNoise :: a -> Noise dim a
+  constant :: a -> Noise dim a
 
   -- | Alter the seed for a noise function.
   --
@@ -50,29 +50,29 @@ class NoiseN (dim :: Nat) a where
   --
   -- @
   -- layer1 = perlin2
-  -- layer2 = mapSeed (+12) perlin2
-  -- layer3 = mapSeed (subtract 2) perlin2
+  -- layer2 = reseed (+12) perlin2
+  -- layer3 = reseed (subtract 2) perlin2
   -- @
-  mapSeed :: (Seed -> Seed) -> Noise dim a -> Noise dim a
+  reseed :: (Seed -> Seed) -> Noise dim a -> Noise dim a
 
   -- | Map an arbitrary function across a noise field
-  mapNoise :: (a -> a) -> Noise dim a -> Noise dim a
+  remap :: (a -> a) -> Noise dim a -> Noise dim a
 
   -- | Combine two noise functions pointwise (i.e., by altering their output)
-  combineNoise :: (a -> a -> a) -> Noise dim a -> Noise dim a -> Noise dim a
+  blend :: (a -> a -> a) -> Noise dim a -> Noise dim a -> Noise dim a
 
 -- | Clamp a noise function between the given lower and higer bound
 clampNoise :: (NoiseN dim a, Ord a) => a -> a -> Noise dim a -> Noise dim a
-clampNoise l u = mapNoise (clamp l u)
+clampNoise l u = remap (clamp l u)
 {-# INLINE clampNoise #-}
 
 instance (Num a, NoiseN dim a) => Num (Noise dim a) where
-  (+) = combineNoise (+)
-  (*) = combineNoise (*)
-  abs = mapNoise abs
-  signum = mapNoise signum
-  fromInteger i = constNoise (fromInteger i)
-  negate = mapNoise negate
+  (+) = blend (+)
+  (*) = blend (*)
+  abs = remap abs
+  signum = remap signum
+  fromInteger i = constant (fromInteger i)
+  negate = remap negate
   {-# INLINE (+) #-}
   {-# INLINE (*) #-}
   {-# INLINE abs #-}
@@ -81,27 +81,27 @@ instance (Num a, NoiseN dim a) => Num (Noise dim a) where
   {-# INLINE negate #-}
 
 instance (Fractional a, NoiseN dim a) => Fractional (Noise dim a) where
-  fromRational r = constNoise (fromRational r)
-  recip = mapNoise recip
-  (/) = combineNoise (/)
+  fromRational r = constant (fromRational r)
+  recip = remap recip
+  (/) = blend (/)
   {-# INLINE fromRational #-}
   {-# INLINE recip #-}
   {-# INLINE (/) #-}
 
 instance (Floating a, NoiseN dim a) => Floating (Noise dim a) where
-  pi = constNoise pi
-  exp = mapNoise exp
-  log = mapNoise log
-  sin = mapNoise sin
-  cos = mapNoise cos
-  asin = mapNoise asin
-  acos = mapNoise acos
-  atan = mapNoise atan
-  sinh = mapNoise sinh
-  cosh = mapNoise cosh
-  asinh = mapNoise asinh
-  acosh = mapNoise acosh
-  atanh = mapNoise atanh
+  pi = constant pi
+  exp = remap exp
+  log = remap log
+  sin = remap sin
+  cos = remap cos
+  asin = remap asin
+  acos = remap acos
+  atan = remap atan
+  sinh = remap sinh
+  cosh = remap cosh
+  asinh = remap asinh
+  acosh = remap acosh
+  atanh = remap atanh
   {-# INLINE pi #-}
   {-# INLINE exp #-}
   {-# INLINE log #-}
@@ -137,14 +137,14 @@ sliceZ = sliceNoise (SNat @AxisZ)
 
 instance NoiseN 1 a where
   newtype Noise 1 a = Noise1 {unNoise1 :: Seed -> a -> a}
-  constNoise a = Noise1 (\_ _ -> a)
-  mapSeed f (Noise1 g) = Noise1 (g . f)
-  mapNoise f (Noise1 g) = Noise1 (\s x -> f (g s x))
-  combineNoise f (Noise1 g) (Noise1 h) = Noise1 (\s x -> g s x `f` h s x)
-  {-# INLINE constNoise #-}
-  {-# INLINE mapSeed #-}
-  {-# INLINE mapNoise #-}
-  {-# INLINE combineNoise #-}
+  constant a = Noise1 (\_ _ -> a)
+  reseed f (Noise1 g) = Noise1 (g . f)
+  remap f (Noise1 g) = Noise1 (\s x -> f (g s x))
+  blend f (Noise1 g) (Noise1 h) = Noise1 (\s x -> g s x `f` h s x)
+  {-# INLINE constant #-}
+  {-# INLINE reseed #-}
+  {-# INLINE remap #-}
+  {-# INLINE blend #-}
 
 -- | A 2D noise function parameterized by a seed and two coordinates.
 --
@@ -162,14 +162,14 @@ instance NoiseN 1 a where
 -- To evaluate a 'Noise2', use 'noise2At' from "Numeric.Noise".
 instance NoiseN 2 a where
   newtype Noise 2 a = Noise2 {unNoise2 :: Seed -> a -> a -> a}
-  constNoise a = Noise2 (\_ _ _ -> a)
-  mapSeed f (Noise2 g) = Noise2 (g . f)
-  mapNoise f (Noise2 g) = Noise2 (\s x y -> f (g s x y))
-  combineNoise f (Noise2 g) (Noise2 h) = Noise2 (\s x y -> g s x y `f` h s x y)
-  {-# INLINE constNoise #-}
-  {-# INLINE mapSeed #-}
-  {-# INLINE mapNoise #-}
-  {-# INLINE combineNoise #-}
+  constant a = Noise2 (\_ _ _ -> a)
+  reseed f (Noise2 g) = Noise2 (g . f)
+  remap f (Noise2 g) = Noise2 (\s x y -> f (g s x y))
+  blend f (Noise2 g) (Noise2 h) = Noise2 (\s x y -> g s x y `f` h s x y)
+  {-# INLINE constant #-}
+  {-# INLINE reseed #-}
+  {-# INLINE remap #-}
+  {-# INLINE blend #-}
 
 -- | Convenience wrapper for $Noise 2 a$
 type Noise2 a = Noise 2 a
@@ -184,14 +184,14 @@ instance SliceNoise 2 AxisY a where
 
 -- | Increment the seed for a 2D noise function.
 --
--- Equivalent to $mapSeed (+1)$
+-- Equivalent to $reseed (+1)$
 next2 :: Noise 2 a -> Noise 2 a
-next2 = mapSeed (+ 1)
+next2 = reseed (+ 1)
 {-# INLINE next2 #-}
 
 -- | Map an arbitrary function across a noise field
 map2 :: (a -> a) -> Noise 2 a -> Noise 2 a
-map2 = mapNoise
+map2 = remap
 {-# INLINE map2 #-}
 
 -- | Clamp the output of a 2D noise function to the range @[lower, upper]@.
@@ -208,7 +208,7 @@ clamp2 = clampNoise
 --
 -- Used to provide the 'Num' instance.
 const2 :: a -> Noise 2 a
-const2 = constNoise
+const2 = constant
 {-# INLINE const2 #-}
 
 -- | A 3D noise function parameterized by a seed and three coordinates.
@@ -222,14 +222,14 @@ const2 = constNoise
 -- To evaluate a 'Noise3', use 'noise3At' from "Numeric.Noise".
 instance NoiseN 3 a where
   newtype Noise 3 a = Noise3 {unNoise3 :: Seed -> a -> a -> a -> a}
-  constNoise a = Noise3 (\_ _ _ _ -> a)
-  mapSeed f (Noise3 g) = Noise3 (g . f)
-  mapNoise f (Noise3 g) = Noise3 (\s x y z -> f (g s x y z))
-  combineNoise f (Noise3 g) (Noise3 h) = Noise3 (\s x y z -> g s x y z `f` h s x y z)
-  {-# INLINE constNoise #-}
-  {-# INLINE mapSeed #-}
-  {-# INLINE mapNoise #-}
-  {-# INLINE combineNoise #-}
+  constant a = Noise3 (\_ _ _ _ -> a)
+  reseed f (Noise3 g) = Noise3 (g . f)
+  remap f (Noise3 g) = Noise3 (\s x y z -> f (g s x y z))
+  blend f (Noise3 g) (Noise3 h) = Noise3 (\s x y z -> g s x y z `f` h s x y z)
+  {-# INLINE constant #-}
+  {-# INLINE reseed #-}
+  {-# INLINE remap #-}
+  {-# INLINE blend #-}
 
 -- | Convenience wrapper for $Noise 3 a$
 type Noise3 a = Noise 3 a
@@ -250,19 +250,19 @@ instance SliceNoise 3 AxisZ a where
 --
 -- Analogous to 'next2', this is useful for generating independent 3D noise layers.
 next3 :: Noise 3 a -> Noise 3 a
-next3 = mapSeed (+ 1)
+next3 = reseed (+ 1)
 {-# INLINE next3 #-}
 
 -- | Map an arbitrary function across a noise field
 map3 :: (a -> a) -> Noise 3 a -> Noise 3 a
-map3 = mapNoise
+map3 = remap
 {-# INLINE map3 #-}
 
 -- | A noise function that produces the same value everywhere.
 --
 -- Used to provide the 'Num' instance.
 const3 :: a -> Noise 3 a
-const3 = constNoise
+const3 = constant
 {-# INLINE const3 #-}
 
 -- | Clamp the output of a 3D noise function to the range @[lower, upper]@.
