@@ -4,140 +4,140 @@
             0,
             0
         ],
-        "expected": 0.6171843347666888
+        "expected": 0.6171843385421811
     },
     {
         "coordinates": [
             1,
             1
         ],
-        "expected": 6.151587979147233e-2
+        "expected": 6.1515860073163564e-2
     },
     {
         "coordinates": [
             0,
             1
         ],
-        "expected": 0.5918556226024183
+        "expected": 0.5918556233250638
     },
     {
         "coordinates": [
             1,
             0
         ],
-        "expected": 0.2277220996911722
+        "expected": 0.22772208701500252
     },
     {
         "coordinates": [
             -1,
             -1
         ],
-        "expected": -6.088728898294882e-2
+        "expected": -6.088729570462226e-2
     },
     {
         "coordinates": [
             -1,
             0
         ],
-        "expected": 1.5583506974209405e-2
+        "expected": 1.5583528887852527e-2
     },
     {
         "coordinates": [
             0,
             -1
         ],
-        "expected": 1.3147675308460158
+        "expected": 1.3147675142565713
     },
     {
         "coordinates": [
             -1,
             1
         ],
-        "expected": 2.0641080552709745e-2
+        "expected": 2.064107440781271e-2
     },
     {
         "coordinates": [
             1,
             -1
         ],
-        "expected": 0.35584731446788864
+        "expected": 0.35584731131142244
     },
     {
         "coordinates": [
             0.5,
             0.5
         ],
-        "expected": -0.40955785986861015
+        "expected": -0.4095578407140652
     },
     {
         "coordinates": [
             0.25,
             0.75
         ],
-        "expected": 7.6307341084593805e-3
+        "expected": 7.6307477692312276e-3
     },
     {
         "coordinates": [
             0.75,
             0.25
         ],
-        "expected": -1.3259777571423603e-2
+        "expected": -1.3259779969984287e-2
     },
     {
         "coordinates": [
             0.1,
             0.9
         ],
-        "expected": 0.5587657599156555
+        "expected": 0.5587657758338795
     },
     {
         "coordinates": [
             0.9,
             0.1
         ],
-        "expected": -0.11485454977069698
+        "expected": -0.11485456094189872
     },
     {
         "coordinates": [
             10,
             10
         ],
-        "expected": -9.492531901174173e-2
+        "expected": -9.492531090162726e-2
     },
     {
         "coordinates": [
             100,
             100
         ],
-        "expected": 1.1876144769685828
+        "expected": 1.1876144418886598
     },
     {
         "coordinates": [
             -10,
             -10
         ],
-        "expected": 0.2670209304935398
+        "expected": 0.26702089429841136
     },
     {
         "coordinates": [
             5.5,
             7.3
         ],
-        "expected": 1.2419490487626432
+        "expected": 1.241949020251047
     },
     {
         "coordinates": [
             -3.2,
             4.7
         ],
-        "expected": -6.359117529763103e-2
+        "expected": -6.359118695982324e-2
     },
     {
         "coordinates": [
             1.0e-10,
             1.0e-10
         ],
-        "expected": 0.6171843348431598
+        "expected": 0.6171843386186522
     },
     {
         "coordinates": [
@@ -151,210 +151,210 @@
             2.5,
             3.7
         ],
-        "expected": 0.9826591173633374
+        "expected": 0.9826591075080375
     },
     {
         "coordinates": [
             -5.2,
             8.9
         ],
-        "expected": 0.9782698751453038
+        "expected": 0.978269829242933
     },
     {
         "coordinates": [
             12.34,
             -56.78
         ],
-        "expected": 0.19540603062048412
+        "expected": 0.19540603818570057
     },
     {
         "coordinates": [
             0.123,
             0.456
         ],
-        "expected": -4.415740401520363e-2
+        "expected": -4.415740401923984e-2
     },
     {
         "coordinates": [
             0.789,
             0.321
         ],
-        "expected": 0.18338665917672392
+        "expected": 0.18338663053500914
     },
     {
         "coordinates": [
             -0.5,
             -0.5
         ],
-        "expected": -7.636788440859166e-2
+        "expected": -7.636788604677658e-2
     },
     {
         "coordinates": [
             0.5,
             -0.5
         ],
-        "expected": -0.5239355994715367
+        "expected": -0.5239355726905939
     },
     {
         "coordinates": [
             -0.5,
             0.5
         ],
-        "expected": 1.0652164459036202
+        "expected": 1.0652164609775383
     },
     {
         "coordinates": [
             2,
             3
         ],
-        "expected": -3.965974981196252e-2
+        "expected": -3.965976152377482e-2
     },
     {
         "coordinates": [
             5,
             7
         ],
-        "expected": 1.3394419646428926
+        "expected": 1.3394419711112784
     },
     {
         "coordinates": [
             11,
             13
         ],
-        "expected": 0.4852392480804033
+        "expected": 0.4852392274220736
     },
     {
         "coordinates": [
             17,
             19
         ],
-        "expected": 1.3810739199225743
+        "expected": 1.3810739296207002
     },
     {
         "coordinates": [
             23,
             29
         ],
-        "expected": 0.8177225117372144
+        "expected": 0.8177224873937712
     },
     {
         "coordinates": [
             31,
             37
         ],
-        "expected": -0.10856359780722169
+        "expected": -0.10856359420578454
     },
     {
         "coordinates": [
             41,
             43
         ],
-        "expected": 0.24686047171082204
+        "expected": 0.2468604422272076
     },
     {
         "coordinates": [
             47,
             53
         ],
-        "expected": 0.6067061730178214
+        "expected": 0.6067061462112153
     },
     {
         "coordinates": [
             2,
             2
         ],
-        "expected": 0.29498356946703574
+        "expected": 0.29498359951821085
     },
     {
         "coordinates": [
             3,
             3
         ],
-        "expected": -2.7154553901295064e-2
+        "expected": -2.7154568512539834e-2
     },
     {
         "coordinates": [
             -2,
             -2
         ],
-        "expected": 0.6886890038919005
+        "expected": 0.6886890060997164
     },
     {
         "coordinates": [
             2,
             -2
         ],
-        "expected": 0.6387435439531188
+        "expected": 0.6387435087011628
     },
     {
         "coordinates": [
             -2,
             2
         ],
-        "expected": 0.6692541920200048
+        "expected": 0.6692542200497751
     },
     {
         "coordinates": [
             0.999999,
             0.999999
         ],
-        "expected": 6.151679094665652e-2
+        "expected": 6.151677122832444e-2
     },
     {
         "coordinates": [
             1.0e-6,
             1.0e-6
         ],
-        "expected": 0.6171850994787937
+        "expected": 0.6171851032543265
     },
     {
         "coordinates": [
             0.999999999,
             0.999999999
         ],
-        "expected": 6.15158807026257e-2
+        "expected": 6.151586098431672e-2
     },
     {
         "coordinates": [
             1.000000001,
             1.000000001
         ],
-        "expected": 6.1515878880319175e-2
+        "expected": 6.151585916201019e-2
     },
     {
         "coordinates": [
             256,
             256
         ],
-        "expected": 0.6171843347666888
+        "expected": 0.6171843385421811
     },
     {
         "coordinates": [
             1024,
             1024.1
         ],
-        "expected": 0.8676121564715773
+        "expected": 0.867612162082301
     },
     {
         "coordinates": [
             65536.5,
             65536.5
         ],
-        "expected": -0.40955785986861015
+        "expected": -0.4095578407140652
     },
     {
         "coordinates": [
             10000,
             10000
         ],
-        "expected": 5.8923193207371494e-2
+        "expected": 5.892319158428383e-2
     },
     {
         "coordinates": [
             10000.1,
             10000.1
         ],
-        "expected": -1.2383623594048876e-2
+        "expected": -1.2383624150952177e-2
     },
     {
         "coordinates": [
