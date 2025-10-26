@@ -29,6 +29,8 @@ module Golden.Util (
 
 import Codec.Picture
 import Data.Aeson (FromJSON, ToJSON, encodeFile)
+import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.ByteString.Lazy qualified as LB
 import Data.Massiv.Array (Array, B (..), Comp (..), Ix2 (..), Ix3, IxN (..), Sz (..))
 import Data.Massiv.Array qualified as M
 import GHC.Generics (Generic)
@@ -36,7 +38,7 @@ import Numeric.Noise (Noise2, Noise3, Seed, noise2At, noise3At, sliceZ)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath
 import Test.Tasty (TestTree)
-import Test.Tasty.Golden (goldenVsFile, goldenVsFileDiff)
+import Test.Tasty.Golden
 
 defaultSeeds :: [Seed]
 defaultSeeds = [0, 42, 12345]
@@ -287,12 +289,14 @@ goldenSparseTest noiseName variant act =
 goldenSparseTest2D :: String -> String -> Noise2 Double -> Seed -> TestTree
 goldenSparseTest2D noiseName variant noise seed = goldenSparseTest noiseName variant $ \path -> do
   let samples = generateSparse2D noise seed
-  encodeFile path samples
+      json = encodePretty samples
+  LB.writeFile path json
 
 goldenSparseTest3D :: String -> String -> Noise3 Double -> Seed -> TestTree
 goldenSparseTest3D noiseName variant noise seed = goldenSparseTest noiseName variant $ \path -> do
   let samples = generateSparse3D noise seed
-  encodeFile path samples
+      json = encodePretty samples
+  LB.writeFile path json
 
 labelBatch :: (Show a) => String -> a -> String
 labelBatch dim seed = dim <> "-seed_" <> show seed

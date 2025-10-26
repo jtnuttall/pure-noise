@@ -77,6 +77,7 @@ test-suite pure-noise-test
   build-depends:
       JuicyPixels ==3.3.*
     , aeson >=2.0 && <2.3
+    , aeson-pretty
     , base >=4.16 && <5
     , bytestring
     , directory

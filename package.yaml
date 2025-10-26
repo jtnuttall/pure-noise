@@ -63,6 +63,7 @@ tests:
     dependencies:
       - pure-noise
       - aeson >= 2.0 && < 2.3
+      - aeson-pretty
       - bytestring
       - directory
       - filepath
