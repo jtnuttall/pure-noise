@@ -85,6 +85,8 @@ cubicInterp a b c d t =
   let !p = (d - c) - (a - b)
    in t * t * t * p + t * t * ((a - b) - p) + t * (c - a) + b
 {-# NOINLINE [1] cubicInterp #-}
+{-# SPECIALIZE cubicInterp :: Float -> Float -> Float -> Float -> Float -> Float #-}
+{-# SPECIALIZE cubicInterp :: Double -> Double -> Double -> Double -> Double -> Double #-}
 
 {-# RULES
 "cubicInterp/Float/0" forall (a :: Float) b c d.
@@ -93,6 +95,18 @@ cubicInterp a b c d t =
 "cubicInterp/Double/0" forall (a :: Double) b c d.
   cubicInterp a b c d 0 =
     b
+"cubicInterp/Float/1" forall (a :: Float) b c d.
+  cubicInterp a b c d 1 =
+    c
+"cubicInterp/Double/1" forall (a :: Double) b c d.
+  cubicInterp a b c d 1 =
+    c
+"cubicInterp/Float/0.5" forall (a :: Float) b c d.
+  cubicInterp a b c d (0.5 :: Float) =
+    0.125 * (-a + 5 * b + 5 * c - d)
+"cubicInterp/Double/0.5" forall (a :: Double) b c d.
+  cubicInterp a b c d (0.5 :: Double) =
+    0.125 * (-a + 5 * b + 5 * c - d)
   #-}
 
 -- | hermite interpolation
@@ -180,7 +194,9 @@ valCoord3 seed xPrimed yPrimed zPrimed =
   let !hash = hash3 seed xPrimed yPrimed zPrimed
       !val = (hash * hash) `xor` (hash `shiftL` 19)
    in fromIntegral val / maxHash
-{-# INLINE valCoord3 #-}
+{-# NOINLINE [1] valCoord3 #-}
+{-# SPECIALIZE valCoord3 :: Seed -> Hash -> Hash -> Hash -> Float #-}
+{-# SPECIALIZE valCoord3 :: Seed -> Hash -> Hash -> Hash -> Double #-}
 
 gradCoord2 :: (RealFrac a) => Seed -> Hash -> Hash -> a -> a -> a
 gradCoord2 seed xPrimed yPrimed xd yd =

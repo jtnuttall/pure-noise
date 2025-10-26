@@ -221,4 +221,4 @@ noise3Base seed x y z =
               ys
           )
           zs
-{-# INLINE [2] noise3Base #-}
+{-# INLINEABLE [1] noise3Base #-}
