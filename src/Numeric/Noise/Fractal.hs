@@ -69,6 +69,7 @@ defaultFractalConfig =
     , gain = 0.5
     , weightedStrength = 0
     }
+{-# INLINEABLE defaultFractalConfig #-}
 
 -- | Apply Fractal Brownian Motion (FBM) to a 2D noise function.
 --
@@ -82,7 +83,7 @@ defaultFractalConfig =
 -- @
 fractal2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
 fractal2 config = Noise2 . fractal2With fractalNoiseMod (fractalAmpMod config) config . unNoise2
-{-# INLINE fractal2 #-}
+{-# INLINE [2] fractal2 #-}
 
 -- | Apply billow fractal to a 2D noise function.
 --
@@ -96,7 +97,7 @@ fractal2 config = Noise2 . fractal2With fractalNoiseMod (fractalAmpMod config) c
 -- @
 billow2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
 billow2 config = Noise2 . fractal2With billowNoiseMod (billowAmpMod config) config . unNoise2
-{-# INLINE billow2 #-}
+{-# INLINE [2] billow2 #-}
 
 -- | Apply ridged fractal to a 2D noise function.
 --
@@ -110,7 +111,7 @@ billow2 config = Noise2 . fractal2With billowNoiseMod (billowAmpMod config) conf
 -- @
 ridged2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
 ridged2 config = Noise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) config . unNoise2
-{-# INLINE ridged2 #-}
+{-# INLINE [2] ridged2 #-}
 
 -- | Apply ping-pong fractal to a 2D noise function.
 --
@@ -125,7 +126,7 @@ ridged2 config = Noise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) conf
 pingPong2 :: (RealFrac a) => FractalConfig a -> PingPongStrength a -> Noise2 a -> Noise2 a
 pingPong2 config strength =
   Noise2 . fractal2With (pingPongNoiseMod strength) (pingPongAmpMod config) config . unNoise2
-{-# INLINE pingPong2 #-}
+{-# INLINE [2] pingPong2 #-}
 
 fractal2With
   :: (RealFrac a)
@@ -150,28 +151,28 @@ fractal2With modNoise modAmps FractalConfig{..} noise2 seed x y
     let !noise = amp * modNoise (noise2 s (freq * x) (freq * y))
         !amp' = amp * gain * modAmps (min (noise + 1) 2)
      in go (o - 1) (acc + noise) (s + 1) (freq * lacunarity) amp'
-{-# INLINE fractal2With #-}
+{-# INLINE [1] fractal2With #-}
 
 -- | Apply Fractal Brownian Motion (FBM) to a 3D noise function.
 --
 -- 3D version of 'fractal2'. See 'fractal2' for details.
 fractal3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
 fractal3 config = Noise3 . fractal3With fractalNoiseMod (fractalAmpMod config) config . unNoise3
-{-# INLINE fractal3 #-}
+{-# INLINE [2] fractal3 #-}
 
 -- | Apply billow fractal to a 3D noise function.
 --
 -- 3D version of 'billow2'. See 'billow2' for details.
 billow3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
 billow3 config = Noise3 . fractal3With billowNoiseMod (billowAmpMod config) config . unNoise3
-{-# INLINE billow3 #-}
+{-# INLINE [2] billow3 #-}
 
 -- | Apply ridged fractal to a 3D noise function.
 --
 -- 3D version of 'ridged2'. See 'ridged2' for details.
 ridged3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
 ridged3 config = Noise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) config . unNoise3
-{-# INLINE ridged3 #-}
+{-# INLINE [2] ridged3 #-}
 
 -- | Apply ping-pong fractal to a 3D noise function.
 --
@@ -179,7 +180,7 @@ ridged3 config = Noise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) conf
 pingPong3 :: (RealFrac a) => FractalConfig a -> PingPongStrength a -> Noise3 a -> Noise3 a
 pingPong3 config strength =
   Noise3 . fractal3With (pingPongNoiseMod strength) (pingPongAmpMod config) config . unNoise3
-{-# INLINE pingPong3 #-}
+{-# INLINE [2] pingPong3 #-}
 
 fractal3With
   :: (RealFrac a)
@@ -205,13 +206,13 @@ fractal3With modNoise modAmps FractalConfig{..} noise3 seed x y z
     let !noise = amp * modNoise (noise3 s (freq * x) (freq * y) (freq * z))
         !amp' = amp * gain * modAmps (min (noise + 1) 2)
      in go (o - 1) (acc + noise) (s + 1) (freq * lacunarity) amp'
-{-# INLINE fractal3With #-}
+{-# INLINE [1] fractal3With #-}
 
 fractalBounding :: (RealFrac a) => FractalConfig a -> a
 fractalBounding FractalConfig{..} = recip (sum amps + 1)
  where
   amps = take octaves $ iterate (* gain) gain
-{-# INLINE fractalBounding #-}
+{-# INLINE [2] fractalBounding #-}
 
 -- | Identity noise modifier for standard FBM.
 --

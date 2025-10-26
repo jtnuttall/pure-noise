@@ -106,7 +106,7 @@ noise2Base seed xo yo =
         | t > g2 = vgx + vgy
         | otherwise = vlx + vly
    in normalize $ v0 + v1 + v2
-{-# INLINE noise2Base #-}
+{-# INLINE [2] noise2Base #-}
 
 attenuate :: (RealFrac a) => a -> Seed -> Hash -> Hash -> a -> a -> a
 attenuate !vi !seed !i !j !x !y =

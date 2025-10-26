@@ -54,7 +54,7 @@ noise2Base !seed !xo !yo =
             y2 = y0 + (2 * g2 - 1)
          in attenuate c seed (i + primeX) (j + primeY) x2 y2
    in normalize $ n0 + n1 + n2
-{-# INLINE noise2Base #-}
+{-# INLINE [2] noise2Base #-}
 
 attenuate :: (RealFrac a) => a -> Seed -> Hash -> Hash -> a -> a -> a
 attenuate !vi !seed !i !j !x !y =

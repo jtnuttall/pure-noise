@@ -1,5 +1,3 @@
-{-# LANGUAGE Strict #-}
-
 -- |
 -- Maintainer: Jeremy Nuttall <jeremy@jeremy-nuttall.com>
 -- Stability : experimental
@@ -68,7 +66,7 @@ noise2Base seed x y =
               xs
           )
           ys
-{-# INLINE noise2Base #-}
+{-# INLINE [2] noise2Base #-}
 
 noise3 :: (RealFrac a) => Noise3 a
 noise3 = Noise3 noise3Base
@@ -223,4 +221,4 @@ noise3Base seed x y z =
               ys
           )
           zs
-{-# INLINE noise3Base #-}
+{-# INLINE [2] noise3Base #-}

@@ -1,4 +1,4 @@
-{-# OPTIONS_GHC -ddump-simpl -dsuppress-all -ddump-types #-}
+{-# OPTIONS_GHC -ddump-rule-firings #-}
 
 import BenchLib
 import Data.Typeable
