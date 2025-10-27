@@ -120,7 +120,7 @@ noise2 CellularConfig{..} = Noise2 $ \ !seed !x !y ->
       norm = normDist cellularDistanceFn
       coeff = 1 / (fromIntegral (maxBound @Hash) + 1)
 
-      {-# INLINE [2] pointDist #-}
+      {-# INLINE pointDist #-}
       pointDist !xi !yi =
         let !px = fromIntegral xi - x
             !py = fromIntegral yi - y

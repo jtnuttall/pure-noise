@@ -81,10 +81,10 @@ lerp v0 v1 t = v0 * (1 - t) + (v1 * t)
 
 -- | cubic interpolation
 cubicInterp :: (Num a) => a -> a -> a -> a -> a -> a
-cubicInterp a b c d t =
-  let !p = (d - c) - (a - b)
+cubicInterp a !b c d !t =
+  let p = (d - c) - (a - b)
    in t * t * t * p + t * t * ((a - b) - p) + t * (c - a) + b
-{-# NOINLINE [1] cubicInterp #-}
+{-# INLINE [1] cubicInterp #-}
 {-# SPECIALIZE cubicInterp :: Float -> Float -> Float -> Float -> Float -> Float #-}
 {-# SPECIALIZE cubicInterp :: Double -> Double -> Double -> Double -> Double -> Double #-}
 
@@ -112,12 +112,19 @@ cubicInterp a b c d t =
 -- | hermite interpolation
 hermiteInterp :: (Num a) => a -> a
 hermiteInterp t = t * t * (3 - 2 * t)
-{-# INLINEABLE hermiteInterp #-}
+{-# INLINE [1] hermiteInterp #-}
+
+{-# RULES
+"hermiteInterp/Float/0" hermiteInterp (0 :: Float) = 0
+"hermiteInterp/Double/0" hermiteInterp (0 :: Double) = 0
+"hermiteInterp/Float/1" hermiteInterp (1 :: Float) = 1
+"hermiteInterp/Double/1" hermiteInterp (1 :: Double) = 1
+  #-}
 
 -- | quintic interpolation
 quinticInterp :: (Num a) => a -> a
 quinticInterp t = t * t * t * (t * (t * 6 - 15) + 10)
-{-# NOINLINE [1] quinticInterp #-}
+{-# INLINE [1] quinticInterp #-}
 
 {-# RULES
 "quinticInterp/Float/0"
@@ -187,16 +194,14 @@ valCoord2 seed xPrimed yPrimed =
   let !hash = hash2 seed xPrimed yPrimed
       !val = (hash * hash) `xor` (hash `shiftL` 19)
    in fromIntegral val / maxHash
-{-# INLINEABLE valCoord2 #-}
+{-# INLINE valCoord2 #-}
 
 valCoord3 :: (RealFrac a) => Seed -> Hash -> Hash -> Hash -> a
 valCoord3 seed xPrimed yPrimed zPrimed =
   let !hash = hash3 seed xPrimed yPrimed zPrimed
       !val = (hash * hash) `xor` (hash `shiftL` 19)
    in fromIntegral val / maxHash
-{-# NOINLINE [1] valCoord3 #-}
-{-# SPECIALIZE valCoord3 :: Seed -> Hash -> Hash -> Hash -> Float #-}
-{-# SPECIALIZE valCoord3 :: Seed -> Hash -> Hash -> Hash -> Double #-}
+{-# INLINE valCoord3 #-}
 
 gradCoord2 :: (RealFrac a) => Seed -> Hash -> Hash -> a -> a -> a
 gradCoord2 seed xPrimed yPrimed xd yd =
@@ -218,7 +223,7 @@ gradCoord3 seed xPrimed yPrimed zPrimed xd yd zd =
 {-# INLINE gradCoord3 #-}
 
 maxHash :: (RealFrac a) => a
-maxHash = realToFrac (maxBound @Hash)
+maxHash = fromIntegral (maxBound @Hash)
 {-# INLINE maxHash #-}
 
 lookupGrad2 :: (RealFrac a) => Hash -> a

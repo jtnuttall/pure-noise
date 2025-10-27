@@ -146,7 +146,7 @@ fractal2With modNoise modAmps FractalConfig{..} noise2 seed x y
       let !bounding = fractalBounding FractalConfig{..}
        in go octaves 0 seed 1 bounding
  where
-  go 0 !acc _ _ _ = acc
+  go 0 !acc !_ !_ !_ = acc
   go !o !acc !s !freq !amp =
     let !noise = amp * modNoise (noise2 s (freq * x) (freq * y))
         !amp' = amp * gain * modAmps (min (noise + 1) 2)
@@ -201,7 +201,7 @@ fractal3With modNoise modAmps FractalConfig{..} noise3 seed x y z
       let !bounding = fractalBounding FractalConfig{..}
        in go octaves 0 seed 1 bounding
  where
-  go 0 !acc _ _ _ = acc
+  go 0 !acc !_ !_ !_ = acc
   go !o !acc !s !freq !amp =
     let !noise = amp * modNoise (noise3 s (freq * x) (freq * y) (freq * z))
         !amp' = amp * gain * modAmps (min (noise + 1) 2)

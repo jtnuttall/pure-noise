@@ -1,5 +1,3 @@
-{-# OPTIONS_GHC -ddump-rule-firings #-}
-
 import BenchLib
 import Data.Typeable
 import Data.Vector.Unboxed qualified as U
