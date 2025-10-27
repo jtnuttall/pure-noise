@@ -35,6 +35,8 @@ main = do
         ( benchMassivBase2 massivW massivH
             <> benchMassivFractal2 octaves massivW massivH
         )
+    , bgroup "FNL compare 2D" benchFnlCompare2D
+    , bgroup "FNL compare 3D" benchFnlCompare3D
     ]
 
 label :: (Typeable a) => String -> Int -> Proxy a -> String
@@ -240,6 +242,52 @@ benchCellular2 _ sz =
       ]
   ]
 
+-- | Create environment for FNL-style 2D benchmarks with integer-aligned coordinates
+-- Mimics FastNoiseLite's benchmark methodology exactly:
+-- for(y = 0; y < gridSize; y++)
+--   for(x = 0; x < gridSize; x++)
+--     noise(float(x), float(y))
+createEnvFnl2 :: Int -> IO (Seed, U.Vector (Float, Float))
+createEnvFnl2 gridSize = do
+  g <- newAtomicGenM =<< newStdGen
+  seed <- uniformRM (minBound, maxBound) g
+  let v = U.generate (gridSize * gridSize) $ \i ->
+        let x = fromIntegral (i `mod` gridSize) :: Float
+            y = fromIntegral (i `div` gridSize) :: Float
+        in (x, y)
+  pure (seed, v)
+{-# INLINE createEnvFnl2 #-}
+
+-- | Benchmark for FNL comparison (integer coordinates, Float only)
+benchFnlCompare2
+  :: String
+  -> Int
+  -> Noise2 Float
+  -> Benchmark
+benchFnlCompare2 lbl gridSize f =
+  env (createEnvFnl2 gridSize) $ \ ~(seed, v) ->
+    bench (lbl <> ": Float (FNL grid) x" <> show (gridSize * gridSize)) $
+      nf (U.map (uncurry (noise2At f seed))) v
+{-# INLINE benchFnlCompare2 #-}
+
+-- | FNL-style 2D benchmarks: 512x512 grid with integer coordinates
+benchFnlCompare2D :: [Benchmark]
+benchFnlCompare2D =
+  let gridSize = 512
+   in [ bgroup
+          "FNL compare"
+          [ benchFnlCompare2 "value2" gridSize value2
+          , benchFnlCompare2 "perlin2" gridSize perlin2
+          , benchFnlCompare2 "openSimplex2" gridSize openSimplex2
+          , benchFnlCompare2 "superSimplex2" gridSize superSimplex2
+          , benchFnlCompare2 "valueCubic2" gridSize valueCubic2
+          , benchFnlCompare2
+              "cellular2 (Distance)"
+              gridSize
+              (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance})
+          ]
+      ]
+
 createEnv3 :: (U.Unbox a, UniformRange a, RealFrac a) => Int -> IO (Seed, U.Vector (a, a, a))
 createEnv3 sz = do
   g <- newAtomicGenM =<< newStdGen
@@ -328,6 +376,49 @@ benchValueCubic3 octaves sz =
       , benchMany3 @Double "pingPong" sz (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic3)
       ]
   ]
+
+-- | Create environment for FNL-style 3D benchmarks with integer-aligned coordinates
+-- Mimics FastNoiseLite's benchmark methodology exactly:
+-- for(z = 0; z < gridSize; z++)
+--   for(y = 0; y < gridSize; y++)
+--     for(x = 0; x < gridSize; x++)
+--       noise(float(x), float(y), float(z))
+createEnvFnl3 :: Int -> IO (Seed, U.Vector (Float, Float, Float))
+createEnvFnl3 gridSize = do
+  g <- newAtomicGenM =<< newStdGen
+  seed <- uniformRM (minBound, maxBound) g
+  let gridSq = gridSize * gridSize
+      v = U.generate (gridSize * gridSize * gridSize) $ \i ->
+        let x = fromIntegral (i `mod` gridSize) :: Float
+            y = fromIntegral ((i `div` gridSize) `mod` gridSize) :: Float
+            z = fromIntegral (i `div` gridSq) :: Float
+        in (x, y, z)
+  pure (seed, v)
+{-# INLINE createEnvFnl3 #-}
+
+-- | Benchmark for FNL 3D comparison (integer coordinates, Float only)
+benchFnlCompare3
+  :: String
+  -> Int
+  -> Noise3 Float
+  -> Benchmark
+benchFnlCompare3 lbl gridSize f =
+  env (createEnvFnl3 gridSize) $ \ ~(seed, v) ->
+    bench (lbl <> ": Float (FNL grid) x" <> show (gridSize * gridSize * gridSize)) $
+      nf (U.map (\(x, y, z) -> noise3At f seed x y z)) v
+{-# INLINE benchFnlCompare3 #-}
+
+-- | FNL-style 3D benchmarks: 64x64x64 grid with integer coordinates
+benchFnlCompare3D :: [Benchmark]
+benchFnlCompare3D =
+  let gridSize = 64
+   in [ bgroup
+          "FNL compare"
+          [ benchFnlCompare3 "value3" gridSize value3
+          , benchFnlCompare3 "perlin3" gridSize perlin3
+          , benchFnlCompare3 "valueCubic3" gridSize valueCubic3
+          ]
+      ]
 
 benchMassiv2
   :: forall a
