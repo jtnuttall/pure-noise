@@ -74,6 +74,7 @@ tests:
       - tasty-hunit
       - tasty-quickcheck
       - tasty-golden
+      - typed-process
 
 benchmarks:
   pure-noise-bench:
