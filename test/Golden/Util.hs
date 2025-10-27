@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- | Utilities for golden testing of noise functions
 module Golden.Util (
   -- * Test configuration
@@ -28,17 +30,26 @@ module Golden.Util (
 ) where
 
 import Codec.Picture
-import Data.Aeson (FromJSON, ToJSON, encodeFile)
+import Control.Monad
+import Data.Aeson (FromJSON, ToJSON)
 import Data.Aeson.Encode.Pretty (encodePretty)
+import Data.ByteString qualified as BS
 import Data.ByteString.Lazy qualified as LB
 import Data.Massiv.Array (Array, B (..), Comp (..), Ix2 (..), Ix3, IxN (..), Sz (..))
 import Data.Massiv.Array qualified as M
+import Data.Text.Lazy qualified as LT
+import Data.Text.Lazy.Encoding qualified as LT
+import Foreign.C (eNOENT)
+import Foreign.C.Error (errnoToIOError)
 import GHC.Generics (Generic)
 import Numeric.Noise (Noise2, Noise3, Seed, noise2At, noise3At, sliceZ)
-import System.Directory (createDirectoryIfMissing)
+import System.Directory
+import System.Exit
 import System.FilePath
-import Test.Tasty (TestTree)
+import System.Process.Typed qualified as PT
+import Test.Tasty (TestName, TestTree, askOption)
 import Test.Tasty.Golden
+import Test.Tasty.Golden.Advanced (goldenTest2)
 
 defaultSeeds :: [Seed]
 defaultSeeds = [0, 42, 12345]
@@ -247,7 +258,7 @@ generateSparse3D noise seed =
 -- -----------------------------------------------------------------------------
 
 goldenDir :: FilePath
-goldenDir = "test" </> "golden"
+goldenDir = "test-data" </> "golden"
 
 goldenImageTest :: String -> String -> (String -> IO ()) -> TestTree
 goldenImageTest noiseName variant act =
@@ -255,11 +266,63 @@ goldenImageTest noiseName variant act =
       imageRoot = goldenDir </> "images" </> noiseName
       goldenPath = imageRoot </> variant <.> "png"
       actualPath = imageRoot </> variant <.> "actual" <.> "png"
-   in goldenVsFile
+   in goldenVsImage
         testName
         goldenPath
         actualPath
         (createDirectoryIfMissing True imageRoot >> act actualPath)
+
+-- This is more-or-less the same as goldenVsFileDiff, but it doesn't share stdio with
+-- the child process, which is pretty important because odiff doesn't have a quiet option
+goldenVsImage :: TestName -> FilePath -> FilePath -> IO () -> TestTree
+goldenVsImage name ref new act = askOption $ \sizeCutoff ->
+  goldenTest2
+    name
+    throwIfDoesNotExist
+    act
+    (\_ _ -> runDiff sizeCutoff)
+    update
+    delete
+ where
+  throwIfDoesNotExist = do
+    exists <- doesFileExist ref
+    unless exists $
+      ioError $
+        errnoToIOError "goldenVsFileDiff" eNOENT Nothing Nothing
+  runDiff
+    :: SizeCutoff
+    -> IO (Maybe String)
+  runDiff sizeCutoff = do
+    let (refName, refExt) = splitExtension ref
+        proc =
+          PT.proc
+            "odiff"
+            [ "-t"
+            , "0.004" -- Tolerate roughly +/- 1 error for 8-bit grayscale.
+            , "--diff-overlay"
+            , "--fail-on-layout"
+            , "--output-diff-lines"
+            , ref
+            , new
+            , refName <.> "diff" <.> refExt
+            ]
+        procConf = PT.setStdin PT.closed proc
+
+    (exitCode, out) <- PT.readProcessInterleaved procConf
+    return $ case exitCode of
+      ExitSuccess -> Nothing
+      _ -> Just . LT.unpack . LT.decodeUtf8 . truncateLargeOutput sizeCutoff $ out
+  truncateLargeOutput (SizeCutoff n) str =
+    if LB.length str <= n
+      then str
+      else
+        LB.take n str
+          <> "<truncated>"
+          <> "\nUse --accept or increase --size-cutoff to see full output."
+  update _ = do
+    f <- BS.readFile new
+    createDirectoriesAndWriteFile ref (LB.fromStrict f)
+  delete = removeFile new
 
 goldenImageTest2D :: String -> String -> Noise2 Double -> Seed -> TestTree
 goldenImageTest2D noiseName variant noise seed = goldenImageTest noiseName variant $ \path -> do

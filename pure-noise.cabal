@@ -90,6 +90,8 @@ test-suite pure-noise-test
     , tasty-golden
     , tasty-hunit
     , tasty-quickcheck
+    , text
+    , typed-process
   default-language: GHC2021
 
 benchmark pure-noise-bench
