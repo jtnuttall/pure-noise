@@ -106,9 +106,10 @@ benchmark pure-noise-bench
   build-depends:
       base >=4.16 && <5
     , deepseq
-    , mwc-random
+    , massiv >=1.0 && <2.0
     , primitive >=0.8 && <0.10
     , pure-noise
+    , random
     , tasty
     , tasty-bench
     , vector <=0.14
