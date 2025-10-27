@@ -254,11 +254,13 @@ createEnvFnl2 gridSize = do
   let v = U.generate (gridSize * gridSize) $ \i ->
         let x = fromIntegral (i `mod` gridSize) :: Float
             y = fromIntegral (i `div` gridSize) :: Float
-        in (x, y)
+         in (x, y)
   pure (seed, v)
 {-# INLINE createEnvFnl2 #-}
 
 -- | Benchmark for FNL comparison (integer coordinates, Float only)
+-- Uses foldl' to avoid vector materialization overhead, matching FNL's DoNotOptimize approach
+-- Sums results to prevent DCE while keeping overhead minimal
 benchFnlCompare2
   :: String
   -> Int
@@ -267,7 +269,7 @@ benchFnlCompare2
 benchFnlCompare2 lbl gridSize f =
   env (createEnvFnl2 gridSize) $ \ ~(seed, v) ->
     bench (lbl <> ": Float (FNL grid) x" <> show (gridSize * gridSize)) $
-      nf (U.map (uncurry (noise2At f seed))) v
+      nf (\vec -> U.foldl' (\acc (x, y) -> acc + (noise2At f seed) x y) 0 vec) v
 {-# INLINE benchFnlCompare2 #-}
 
 -- | FNL-style 2D benchmarks: 512x512 grid with integer coordinates
@@ -392,11 +394,13 @@ createEnvFnl3 gridSize = do
         let x = fromIntegral (i `mod` gridSize) :: Float
             y = fromIntegral ((i `div` gridSize) `mod` gridSize) :: Float
             z = fromIntegral (i `div` gridSq) :: Float
-        in (x, y, z)
+         in (x, y, z)
   pure (seed, v)
 {-# INLINE createEnvFnl3 #-}
 
 -- | Benchmark for FNL 3D comparison (integer coordinates, Float only)
+-- Uses foldl' to avoid vector materialization overhead, matching FNL's DoNotOptimize approach
+-- Sums results to prevent DCE while keeping overhead minimal
 benchFnlCompare3
   :: String
   -> Int
@@ -405,7 +409,7 @@ benchFnlCompare3
 benchFnlCompare3 lbl gridSize f =
   env (createEnvFnl3 gridSize) $ \ ~(seed, v) ->
     bench (lbl <> ": Float (FNL grid) x" <> show (gridSize * gridSize * gridSize)) $
-      nf (U.map (\(x, y, z) -> noise3At f seed x y z)) v
+      nf (\vec -> U.foldl' (\acc (x, y, z) -> acc + noise3At f seed x y z) 0 vec) v
 {-# INLINE benchFnlCompare3 #-}
 
 -- | FNL-style 3D benchmarks: 64x64x64 grid with integer coordinates

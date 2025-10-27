@@ -24,9 +24,14 @@ myNoise2 =
 
 More examples can be found in `bench` and `demo`.
 
+## Parallel noise generation
+
+For large-scale noise generation, this library integrates well with [massiv](https://hackage.haskell.org/package/massiv) for parallel computation. Parallel performance can reach 10-12× single-threaded performance by leveraging multiple cores—for example, 2D Perlin noise generation achieves ~1.7 billion values/sec on an i9-13900K. This is the recommended approach for generating large noise textures or datasets.
+
 ## Performance notes
 
 - This library benefits considerably from compilation with the LLVM backend (`-fllvm`). Benchmarks suggest a ~50-80% difference depending on the kind of noise.
+- In single-threaded scenarios with LLVM enabled, this library achieves 68-94% of C++ FastNoiseLite performance, with simpler noise algorithms (Perlin, OpenSimplex2, SuperSimplex) reaching 86-94% of C++ speed.
 
 ## Benchmarks
 
@@ -40,20 +45,20 @@ There's inevitably some noise in the measurements because all of the results are
 
 | name          | Float (values/sec) | Double (values/sec) |
 | ------------- | ------------------ | ------------------- |
-| value2        | 157_118_179        | 150_561_205         |
-| perlin2       | 136_955_764        | 138_086_637         |
-| openSimplex2  | 69_839_897         | 78_570_139          |
-| superSimplex2 | 65_601_602         | 66_192_319          |
-| valueCubic2   | 50_947_232         | 47_452_124          |
-| cellular2     | 21_377_704         | 19_364_103          |
+| perlin2       | 150_184_296        | 158_927_257         |
+| value2        | 149_517_446        | 156_863_684         |
+| openSimplex2  | 73_271_710         | 74_653_530          |
+| valueCubic2   | 60_116_124         | 51_553_169          |
+| superSimplex2 | 49_809_654         | 50_437_097          |
+| cellular2     | 34_909_269         | 31_798_924          |
 
 #### 3D
 
 | name        | Float (values/sec) | Double (values/sec) |
 | ----------- | ------------------ | ------------------- |
-| value3      | 82_756_927         | 80_898_932          |
-| perlin3     | 60_351_521         | 65_078_477          |
-| valueCubic3 | 15_152_285         | 13_068_956          |
+| value3      | 81_757_803         | 85_014_911          |
+| perlin3     | 61_928_496         | 71_840_232          |
+| valueCubic3 | 16_767_544         | 12_729_966          |
 
 ## Examples
 
