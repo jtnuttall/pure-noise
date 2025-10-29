@@ -63,9 +63,9 @@ jobs:
           path: |
             ~/.stack
             .stack-work
-          key: ${{ CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}
+          key: ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}
           restoreKeys: |
-            ${{ CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-
+            ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-
 
       - name: Install and build dependencies
         run: stack build --resolver ${{ matrix.resolver }} --test --bench --only-dependencies
