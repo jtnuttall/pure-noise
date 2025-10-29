@@ -32,7 +32,6 @@ jobs:
     strategy:
       matrix:
         resolver:
-          - lts-24.17
           - lts-23.24
           - lts-22.44
 
@@ -52,7 +51,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
 
       - name: Install odiff
         run: npm i -g odiff-bin
