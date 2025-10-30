@@ -62,14 +62,14 @@ jobs:
             ~/.stack
             .stack-work
           key: ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}
-          restoreKeys: |
+          restore-keys: |
             ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-
 
       - name: Install and build dependencies
         run: stack build --resolver ${{ matrix.resolver }} --test --bench --only-dependencies
 
       - name: Run Tests
-        run: stack test --resolver ${{ matrix.resolver }} --coverage
+        run: stack test --resolver ${{ matrix.resolver }}
 
       - name: Build Haddock
         run: stack haddock --resolver ${{ matrix.resolver }} --no-haddock-deps
