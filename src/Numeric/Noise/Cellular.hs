@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StrictData #-}
 
 -- |
 -- Maintainer: Jeremy Nuttall <jeremy@jeremy-nuttall.com>
@@ -28,13 +29,13 @@ import Numeric.Noise.Internal.Math
 -- Cellular noise is based on distances to randomly distributed cell points,
 -- creating a distinctive cellular or organic pattern.
 data CellularConfig a = CellularConfig
-  { cellularDistanceFn :: !CellularDistanceFn
+  { cellularDistanceFn :: CellularDistanceFn
   -- ^ Distance metric to use when computing distance to cell points.
-  , cellularJitter :: !a
+  , cellularJitter :: a
   -- ^ Amount of randomness in cell point positions.
   -- 0 creates a regular grid, 1 creates fully random positions.
   -- Values outside [0, 1] are valid but may produce unusual results.
-  , cellularResult :: !CellularResult
+  , cellularResult :: CellularResult
   -- ^ What value to return from the noise function.
   }
   deriving (Generic, Show)

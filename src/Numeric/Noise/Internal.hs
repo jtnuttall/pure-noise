@@ -33,8 +33,6 @@ module Numeric.Noise.Internal (
   const3,
 ) where
 
-import Data.Coerce
-import Data.Functor.Contravariant
 import Numeric.Noise.Internal.Math as Math (
   Hash,
   Seed,
@@ -154,7 +152,7 @@ remap = fmap
 
 -- | 'contramap'
 warp :: (p -> p') -> Noise p' v -> Noise p v
-warp f (Noise g) = coerce (\s p -> g s (f p))
+warp f (Noise g) = Noise (\s p -> g s (f p))
 {-# INLINE warp #-}
 
 reseed :: (Seed -> Seed) -> Noise p a -> Noise p a
