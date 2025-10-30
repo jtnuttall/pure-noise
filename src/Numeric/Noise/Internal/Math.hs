@@ -54,7 +54,7 @@ lerp
   -> a
   -- ^ parameter in range [0, 1]
   -> a
-lerp v0 v1 t = v0 * (1 - t) + (v1 * t)
+lerp v0 v1 t = v0 + t * (v1 - v0)
 {-# NOINLINE [1] lerp #-}
 
 {-# RULES
@@ -82,8 +82,11 @@ lerp v0 v1 t = v0 * (1 - t) + (v1 * t)
 -- | cubic interpolation
 cubicInterp :: (Num a) => a -> a -> a -> a -> a -> a
 cubicInterp a !b c d !t =
-  let p = (d - c) - (a - b)
-   in t * t * t * p + t * t * ((a - b) - p) + t * (c - a) + b
+  let !c' = c - a
+      !a' = a - b
+      !p = (d - c) - a'
+      !b' = a' - p
+   in b + t * (c' + t * (b' + t * p))
 {-# INLINE [1] cubicInterp #-}
 {-# SPECIALIZE cubicInterp :: Float -> Float -> Float -> Float -> Float -> Float #-}
 {-# SPECIALIZE cubicInterp :: Double -> Double -> Double -> Double -> Double -> Double #-}
@@ -193,14 +196,14 @@ valCoord2 :: (RealFrac a) => Seed -> Hash -> Hash -> a
 valCoord2 seed xPrimed yPrimed =
   let !hash = hash2 seed xPrimed yPrimed
       !val = (hash * hash) `xor` (hash `shiftL` 19)
-   in fromIntegral val / maxHash
+   in fromIntegral val * recip maxHash
 {-# INLINE valCoord2 #-}
 
 valCoord3 :: (RealFrac a) => Seed -> Hash -> Hash -> Hash -> a
 valCoord3 seed xPrimed yPrimed zPrimed =
   let !hash = hash3 seed xPrimed yPrimed zPrimed
       !val = (hash * hash) `xor` (hash `shiftL` 19)
-   in fromIntegral val / maxHash
+   in fromIntegral val * recip maxHash
 {-# INLINE valCoord3 #-}
 
 gradCoord2 :: (RealFrac a) => Seed -> Hash -> Hash -> a -> a -> a
