@@ -1,4 +1,5 @@
 mydumps
+dumps
 
 ### C ###
 # Prerequisites
@@ -118,4 +119,4 @@ tags
 .history
 .ionide
 
-test/**/*.actual.*
+test*/**/*.actual.*
