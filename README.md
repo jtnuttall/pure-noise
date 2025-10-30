@@ -26,12 +26,12 @@ More examples can be found in `bench` and `demo`.
 
 ## Parallel noise generation
 
-For large-scale noise generation, this library integrates well with [massiv](https://hackage.haskell.org/package/massiv) for parallel computation. Parallel performance can reach 10-12× single-threaded performance by leveraging multiple cores—for example, 2D Perlin noise generation achieves ~1.7 billion values/sec on an i9-13900K. This is the recommended approach for generating large noise textures or datasets.
+For large-scale noise generation, this library integrates well with [massiv](https://hackage.haskell.org/package/massiv) for parallel computation. Parallel performance can reach 10-15× single-threaded performance by leveraging multiple cores—for example, 2D Perlin noise generation achieves ~1.73 billion values/sec on an i9-13900K. This is the recommended approach for generating large noise textures or datasets.
 
 ## Performance notes
 
 - This library benefits considerably from compilation with the LLVM backend (`-fllvm`). Benchmarks suggest a ~50-80% difference depending on the kind of noise.
-- In single-threaded scenarios with LLVM enabled, this library achieves 68-94% of C++ FastNoiseLite performance, with simpler noise algorithms (Perlin, OpenSimplex2, SuperSimplex) reaching 86-94% of C++ speed.
+- In single-threaded scenarios with LLVM enabled, this library achieves 84-95% of C++ FastNoiseLite performance, with simpler noise algorithms (Perlin, OpenSimplex2, SuperSimplex, Cellular) reaching 86-95% of C++ speed.
 
 ## Benchmarks
 
@@ -45,20 +45,20 @@ There's inevitably some noise in the measurements because all of the results are
 
 | name          | Float (values/sec) | Double (values/sec) |
 | ------------- | ------------------ | ------------------- |
-| perlin2       | 150_184_296        | 158_927_257         |
-| value2        | 149_517_446        | 156_863_684         |
-| openSimplex2  | 73_271_710         | 74_653_530          |
-| valueCubic2   | 60_116_124         | 51_553_169          |
-| superSimplex2 | 49_809_654         | 50_437_097          |
-| cellular2     | 34_909_269         | 31_798_924          |
+| value2        | 173_511_654        | 189_119_731         |
+| perlin2       | 154_674_464        | 161_114_532         |
+| openSimplex2  | 74_747_031         | 74_332_345          |
+| valueCubic2   | 61_415_544         | 62_481_313          |
+| superSimplex2 | 51_295_369         | 50_383_577          |
+| cellular2     | 34_996_382         | 32_652_899          |
 
 #### 3D
 
 | name        | Float (values/sec) | Double (values/sec) |
 | ----------- | ------------------ | ------------------- |
-| value3      | 81_757_803         | 85_014_911          |
-| perlin3     | 61_928_496         | 71_840_232          |
-| valueCubic3 | 16_767_544         | 12_729_966          |
+| value3      | 90_805_572         | 93_188_363          |
+| perlin3     | 74_080_032         | 82_477_882          |
+| valueCubic3 | 18_765_912         | 18_284_749          |
 
 ## Examples
 
