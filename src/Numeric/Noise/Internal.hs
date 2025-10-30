@@ -43,10 +43,35 @@ import Numeric.Noise.Internal.Math as Math (
   quinticInterp,
  )
 
--- | TODO: docs
+-- |  'Noise' represents a function from a 'Seed' and coordinates @p@ to a noise
+-- value @v@.
 --
--- Technically this admits a Profunctor instance, but I don't want to depend
--- on profunctors.
+-- For convenience, dimension-specific type aliases are provided:
+--
+-- === Instances
+--
+-- 'Noise' can be composed algebraically:
+--
+-- @
+-- combined :: Noise (Float, Float) Float
+-- combined = (perlin2 + superSimplex2) / 2
+-- @
+--
+-- === Coordinate Transformation
+--
+-- Noise is contravariant in the coordinate parameter and covariant in the
+-- value parameter. Use 'warp' to transform coordinates and 'remap' (or
+-- 'fmap') to transform values.
+--
+-- @
+-- scaled :: Noise2 Float
+-- scaled = warp (\\(x, y) -> (x * 2, y * 2)) perlin2
+-- @
+--
+-- === Evaluation
+--
+-- To evaluate noise functions, use 'noise1At', 'noise2At', or 'noise3At' from
+-- "Numeric.Noise".
 newtype Noise p v = Noise {unNoise :: Seed -> p -> v}
 
 type Noise1' p v = Noise p v
@@ -146,15 +171,53 @@ instance (Floating a) => Floating (Noise p a) where
   {-# INLINE acosh #-}
   {-# INLINE atanh #-}
 
+-- | Transform the values produced by a noise function.
+--
+-- This is an alias for 'fmap'. Use it to transform noise values after generation:
+--
+-- @
+-- -- Scale noise from [-1, 1] to [0, 1]
+-- normalized :: Noise2 Float
+-- normalized = remap (\\x -> (x + 1) / 2) perlin2
+-- @
 remap :: (a -> b) -> Noise p a -> Noise p b
 remap = fmap
 {-# INLINE remap #-}
 
--- | 'contramap'
+-- | Transform the coordinate space of a noise function.
+--
+-- This allows you to scale, rotate, or otherwise modify coordinates before
+-- they're passed to the noise function:
+--
+-- @
+-- -- Scale the noise frequency
+-- scaled :: Noise2 Float
+-- scaled = warp (\\(x, y) -> (x * 2, y * 2)) perlin2
+--
+-- -- Rotate the noise field
+-- rotated :: Noise2 Float
+-- rotated = warp (\\(x, y) -> (x * cos a - y * sin a, x * sin a + y * cos a)) perlin2
+--   where a = pi / 4
+-- @
+--
+-- NB: This is 'contramap'
 warp :: (p -> p') -> Noise p' v -> Noise p v
 warp f (Noise g) = Noise (\s p -> g s (f p))
 {-# INLINE warp #-}
 
+-- | Modify the seed used by a noise function.
+--
+-- This is useful for generating independent layers of noise:
+--
+-- @
+-- layer1 = perlin2
+-- layer2 = reseed (+1) perlin2
+-- layer3 = reseed (+2) perlin2
+--
+-- combined = (layer1 + layer2 + layer3) / 3
+-- @
+--
+-- See also 'next2' and 'next3' for convenient increment-by-one variants.
 reseed :: (Seed -> Seed) -> Noise p a -> Noise p a
 reseed f (Noise g) = Noise (g . f)
 {-# INLINE reseed #-}
@@ -163,6 +226,19 @@ constant :: a -> Noise c a
 constant = pure
 {-# INLINE constant #-}
 
+-- | Combine two noise functions with a custom blending function.
+--
+-- This is an alias for 'liftA2'. Use it to mix multiple noise sources:
+--
+-- @
+-- -- Multiply two noise functions
+-- multiplied :: Noise2 Float
+-- multiplied = blend (*) perlin2 superSimplex2
+--
+-- -- Custom blending based on values
+-- custom :: Noise2 Float
+-- custom = blend (\\a b -> if a > 0 then a else b) perlin2 superSimplex2
+-- @
 blend :: (a -> b -> c) -> Noise p a -> Noise p b -> Noise p c
 blend = liftA2
 {-# INLINE blend #-}
@@ -172,22 +248,63 @@ clampNoise :: (Ord a) => a -> a -> Noise p a -> Noise p a
 clampNoise l u = fmap (clamp l u)
 {-# INLINE clampNoise #-}
 
+-- | Slice a 2D noise function at a fixed X coordinate to produce 1D noise.
+--
+-- @
+-- noise1d :: Noise1 Float
+-- noise1d = sliceX2 0.0 perlin2  -- Fix X at 0, vary Y
+--
+-- -- Evaluate at Y = 5.0
+-- value = noise1At noise1d seed 5.0
+-- @
 sliceX2 :: p -> Noise2' p v -> Noise1' p v
 sliceX2 x = warp (x,)
 {-# INLINE sliceX2 #-}
 
+-- | Slice a 2D noise function at a fixed Y coordinate to produce 1D noise.
+--
+-- @
+-- noise1d :: Noise1 Float
+-- noise1d = sliceY2 0.0 perlin2  -- Fix Y at 0, vary X
+--
+-- -- Evaluate at X = 5.0
+-- value = noise1At noise1d seed 5.0
+-- @
 sliceY2 :: p -> Noise2' p v -> Noise1' p v
 sliceY2 y = warp (,y)
 {-# INLINE sliceY2 #-}
 
+-- | Slice a 3D noise function at a fixed X coordinate to produce 2D noise.
+--
+-- @
+-- noise2d :: Noise2 Float
+-- noise2d = sliceX3 0.0 perlin3  -- Fix X at 0, vary Y and Z
+--
+-- -- Evaluate at Y = 1.0, Z = 2.0
+-- value = noise2At noise2d seed 1.0 2.0
+-- @
 sliceX3 :: p -> Noise3' p v -> Noise2' p v
 sliceX3 x = warp (\(y, z) -> (x, y, z))
 {-# INLINE sliceX3 #-}
 
+-- | Slice a 3D noise function at a fixed Y coordinate to produce 2D noise.
+--
+-- @
+-- noise2d :: Noise2 Float
+-- noise2d = sliceY3 0.0 perlin3  -- Fix Y at 0, vary X and Z
+-- @
 sliceY3 :: p -> Noise3' p v -> Noise2' p v
 sliceY3 y = warp (\(x, z) -> (x, y, z))
 {-# INLINE sliceY3 #-}
 
+-- | Slice a 3D noise function at a fixed Z coordinate to produce 2D noise.
+--
+-- This is useful for extracting 2D slices from 3D noise at different heights:
+--
+-- @
+-- heightmap :: Noise2 Float
+-- heightmap = sliceZ3 10.0 perlin3  -- Sample at Z = 10
+-- @
 sliceZ3 :: p -> Noise3' p v -> Noise2' p v
 sliceZ3 z = warp (\(x, y) -> (x, y, z))
 {-# INLINE sliceZ3 #-}

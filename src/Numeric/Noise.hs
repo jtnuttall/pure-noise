@@ -7,9 +7,10 @@
 --
 -- Performant noise generation with composable noise functions.
 --
--- Noise functions are wrapped in 'Noise2' and 'Noise3' newtypes that abstract over
--- the seed and coordinate parameters. These can be composed using 'Num' or 'Fractional'
--- methods with minimal performance overhead.
+-- Noise functions are built on a unified 'Noise' type that abstracts over
+-- the seed and coordinate parameters. 'Noise2' and 'Noise3' are convenient
+-- type aliases for 2D and 3D noise. These can be composed using 'Num',
+-- 'Fractional', or 'Applicative' methods with minimal performance overhead.
 --
 -- Noise values are generally clamped to @[-1, 1]@, though some functions may
 -- occasionally produce values slightly outside this range.
@@ -41,13 +42,40 @@
 -- fbm :: (RealFrac a) => Noise.Noise2 a
 -- fbm = Noise.fractal2 Noise.defaultFractalConfig Noise.perlin2
 -- @
+--
+-- == Advanced Features
+--
+-- Generate 1D noise by slicing higher-dimensional noise:
+--
+-- @
+-- noise1d :: Noise.Noise1 Float
+-- noise1d = Noise.sliceY2 0.5 Noise.perlin2
+--
+-- evaluate :: Float -> Float
+-- evaluate = Noise.noise1At noise1d 0
+-- @
+--
+-- Transform coordinates with 'warp':
+--
+-- @
+-- scaled :: Noise.Noise2 Float
+-- scaled = Noise.warp (\\(x, y) -> (x * 2, y * 2)) Noise.perlin2
+-- @
+--
+-- Layer independent noise with 'reseed' or 'next2':
+--
+-- @
+-- layered :: Noise.Noise2 Float
+-- layered = Noise.perlin2 + Noise.next2 Noise.perlin2 \/ 2
+-- @
 module Numeric.Noise (
   -- * Core Types
 
   --
 
-  -- | 'Noise2' and 'Noise3' are newtypes wrapping noise functions. They can be
-  -- unwrapped with 'noise2At' and 'noise3At' respectively.
+  -- | 'Noise2' and 'Noise3' are type aliases for 2D and 3D noise functions built
+  -- on the unified 'Noise' type. They can be evaluated with 'noise2At' and
+  -- 'noise3At' respectively.
   --
   -- 'Seed' is a 'Word64' value used for deterministic noise generation.
   module NoiseTypes,
@@ -59,7 +87,6 @@ module Numeric.Noise (
 
   -- ** 2D Noise
   const2,
-  map2,
   cellular2,
   openSimplex2,
   superSimplex2,
@@ -69,7 +96,6 @@ module Numeric.Noise (
 
   -- ** 3D Noise
   const3,
-  map3,
   perlin3,
   value3,
   valueCubic3,
@@ -135,18 +161,19 @@ import Numeric.Noise.Internal as NoiseUtility (
   clamp,
   clamp2,
   clamp3,
-  constant,
   cubicInterp,
   hermiteInterp,
   lerp,
   next2,
   next3,
   quinticInterp,
+  reseed,
   sliceX2,
   sliceX3,
   sliceY2,
   sliceY3,
   sliceZ3,
+  warp,
  )
 import Numeric.Noise.OpenSimplex qualified as OpenSimplex
 import Numeric.Noise.Perlin qualified as Perlin

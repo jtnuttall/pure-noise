@@ -8,18 +8,58 @@ The public interface for this library is unlikely to change much, although the i
 
 ## Usage
 
-The library exports newtypes for N-dimensional noise. Currently, these are just functions that accept a seed and a point in N-dimensional space. They can be arbitrarily unwrapped by with the `noiseNAt` family of functions. Since they abstract over the given seed and parameters, they can be composed with `Num` or `Fractional` methods at will with little-to-no performance cost.
+The library provides composable noise functions built on a unified `Noise` type. `Noise2` and `Noise3` are convenient type aliases for 2D and 3D noise. Noise functions can be composed using `Num`, `Fractional`, or `Applicative` methods with minimal performance cost.
 
 Noise values are generally clamped to `[-1, 1]`, although some noise functions may occasionally produce values slightly outside this range.
+
+### Basic Example
 
 ```haskell
 import Numeric.Noise qualified as Noise
 
-myNoise2 :: (RealFrac a) => Seed -> a -> a -> a
+-- Compose multiple noise sources
+myNoise2 :: (RealFrac a) => Noise.Seed -> a -> a -> a
 myNoise2 =
   let fractalConfig = Noise.defaultFractalConfig
-  in Noise.noise2At $
-      Noise.fractal2 fractalConfig ((Noise.perlin2 + Noise.superSimplex2) / 2)
+      combined = (Noise.perlin2 + Noise.superSimplex2) / 2
+  in Noise.noise2At $ Noise.fractal2 fractalConfig combined
+```
+
+### Advanced Features
+
+**1D Noise via Slicing:**
+
+Generate 1D noise by slicing higher-dimensional noise at a fixed coordinate:
+
+```haskell
+-- Create 1D noise by fixing one dimension
+noise1d :: Noise.Noise1 Float
+noise1d = Noise.sliceY2 0.0 Noise.perlin2
+
+-- Evaluate at a point
+value = Noise.noise1At noise1d seed 5.0
+```
+
+**Coordinate Transformation:**
+
+Scale, rotate, or warp the coordinate space:
+
+```haskell
+-- Double the frequency
+scaled = Noise.warp (\(x, y) -> (x * 2, y * 2)) Noise.perlin2
+
+-- Rotate 45 degrees
+rotated = Noise.warp (\(x, y) ->
+  let a = pi / 4
+  in (x * cos a - y * sin a, x * sin a + y * cos a)) Noise.perlin2
+```
+
+**Layering Independent Noise:**
+
+Use `reseed` or `next2`/`next3` to create independent layers:
+
+```haskell
+layered = (Noise.perlin2 + Noise.next2 Noise.perlin2) / 2
 ```
 
 More examples can be found in `bench` and `demo`.

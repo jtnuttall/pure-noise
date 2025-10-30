@@ -11,20 +11,26 @@ and this project adheres to the
 ### Added
 
 - 1D noise support with `noise1At` evaluation function
-- Noise slicing functions (`sliceX`, `sliceY`, `sliceZ`) and `SliceNoise` typeclass for reducing noise dimensionality
-- `NoiseN` typeclass with dimension-polymorphic methods:
-  - `uniform` - create constant noise field
-  - `reseed` - alter the seed for independent noise layers (generalizes `alterSeed2`/`alterSeed3`)
-  - `mapNoise` - apply transformations to noise output (generalizes `map2`/`map3`)
-  - `combineNoise` - combine two noise functions pointwise
-  - `clampNoise` - clamp noise output between bounds
-- Exported `Noise` data family for direct access to noise constructors
+- Noise slicing functions (`sliceX2`, `sliceY2`, `sliceX3`, `sliceY3`, `sliceZ3`) for reducing noise dimensionality
+- Comprehensive Haddock documentation for:
+  - Core `Noise p v` type with usage examples
+  - All utility functions (`warp`, `reseed`, `remap`, `blend`)
+  - All slicing functions with examples
+- Exported utility functions:
+  - `warp` - transform coordinate space
+  - `reseed` - modify seed for independent layers (generalizes `alterSeed2`/`alterSeed3`)
+  - `remap` - transform noise values (alias for `fmap`)
+  - `blend` - combine noise functions with custom blending (alias for `liftA2`)
+- Exported `Noise` type for advanced usage and type annotations
 
 ### Changed
 
-- Refactored to type-indexed noise representation using `Noise (dim :: Nat) a` pattern
-  - `Noise2` and `Noise3` remain as type aliases for backward compatibility
-  - Dimension-specific functions (`alterSeed2`, `alterSeed3`, `map2`, `map3`, `const2`, `const3`) are now superseded by polymorphic `NoiseN` methods
+- Refactored to unified noise representation using `newtype Noise p v`
+  - `Noise2` and `Noise3` are now type aliases: `Noise (a,a) a` and `Noise (a,a,a) a`
+  - Provides `Functor`, `Applicative`, `Monad`, `Num`, `Fractional`, and `Floating` instances
+  - All dimensions share the same instance implementations for consistency
+- Updated module documentation with examples of new features (slicing, warping, layering)
+- Improved README with advanced usage examples
 
 ### Performance
 
