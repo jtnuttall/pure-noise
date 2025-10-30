@@ -111,7 +111,7 @@ normDist = \case
 {-# INLINE normDist #-}
 
 noise2 :: (RealFrac a, Floating a) => CellularConfig a -> Noise2 a
-noise2 CellularConfig{..} = Noise2 $ \ !seed !x !y ->
+noise2 CellularConfig{..} = mkNoise2 $ \ !seed !x !y ->
   let !jitter = cellularJitter * 0.43701595
       !rx = round x
       !ry = round y

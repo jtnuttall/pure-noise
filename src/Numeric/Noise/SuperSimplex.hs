@@ -17,7 +17,7 @@ import Numeric.Noise.Internal
 import Numeric.Noise.Internal.Math
 
 noise2 :: (RealFrac a) => Noise2 a
-noise2 = Noise2 noise2Base
+noise2 = mkNoise2 noise2Base
 {-# INLINE noise2 #-}
 
 noise2Base :: (RealFrac a) => Seed -> a -> a -> a

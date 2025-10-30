@@ -42,7 +42,7 @@ import Data.Text.Lazy.Encoding qualified as LT
 import Foreign.C (eNOENT)
 import Foreign.C.Error (errnoToIOError)
 import GHC.Generics (Generic)
-import Numeric.Noise (Noise2, Noise3, Seed, noise2At, noise3At, sliceZ)
+import Numeric.Noise (Noise2, Noise3, Seed, noise2At, noise3At, sliceZ3)
 import System.Directory
 import System.Exit
 import System.FilePath
@@ -332,7 +332,7 @@ goldenImageTest2D noiseName variant noise seed = goldenImageTest noiseName varia
 
 goldenImageTest3D :: String -> String -> Noise3 Double -> Seed -> Double -> TestTree
 goldenImageTest3D noiseName variant noise seed zOffset = goldenImageTest noiseName variant $ \path -> do
-  let grid2D = generateGrid2D (sliceZ zOffset noise) seed width3D height3D
+  let grid2D = generateGrid2D (sliceZ3 zOffset noise) seed width3D height3D
       img = noiseGridToImage grid2D
   savePngImage path (ImageY8 img)
 

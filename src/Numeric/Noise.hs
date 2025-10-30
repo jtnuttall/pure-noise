@@ -131,9 +131,7 @@ import Numeric.Noise.Internal as NoiseTypes (
   Seed,
  )
 import Numeric.Noise.Internal as NoiseUtility (
-  Noise (..),
-  NoiseN (..),
-  SliceNoise (..),
+  Noise,
   clamp,
   clamp2,
   clamp3,
@@ -144,9 +142,11 @@ import Numeric.Noise.Internal as NoiseUtility (
   next2,
   next3,
   quinticInterp,
-  sliceX,
-  sliceY,
-  sliceZ,
+  sliceX2,
+  sliceX3,
+  sliceY2,
+  sliceY3,
+  sliceZ3,
  )
 import Numeric.Noise.OpenSimplex qualified as OpenSimplex
 import Numeric.Noise.Perlin qualified as Perlin
@@ -157,7 +157,7 @@ import Numeric.Noise.ValueCubic qualified as ValueCubic
 -- | Evaluate a 1D noise function at the given coordinates with the given seed.
 -- Currently, you must use a slicing function like 'sliceX' to reduce
 -- higher-dimensional noise into 1D noise.
-noise1At :: Noise 1 a -> Seed -> a -> a
+noise1At :: Noise1 a -> Seed -> a -> a
 noise1At = unNoise1
 {-# INLINE noise1At #-}
 

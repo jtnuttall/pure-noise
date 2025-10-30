@@ -82,7 +82,7 @@ defaultFractalConfig =
 -- fbm = fractal2 defaultFractalConfig perlin2
 -- @
 fractal2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
-fractal2 config = Noise2 . fractal2With fractalNoiseMod (fractalAmpMod config) config . unNoise2
+fractal2 config = mkNoise2 . fractal2With fractalNoiseMod (fractalAmpMod config) config . unNoise2
 {-# INLINE [2] fractal2 #-}
 
 -- | Apply billow fractal to a 2D noise function.
@@ -96,7 +96,7 @@ fractal2 config = Noise2 . fractal2With fractalNoiseMod (fractalAmpMod config) c
 -- clouds = billow2 defaultFractalConfig perlin2
 -- @
 billow2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
-billow2 config = Noise2 . fractal2With billowNoiseMod (billowAmpMod config) config . unNoise2
+billow2 config = mkNoise2 . fractal2With billowNoiseMod (billowAmpMod config) config . unNoise2
 {-# INLINE [2] billow2 #-}
 
 -- | Apply ridged fractal to a 2D noise function.
@@ -110,7 +110,7 @@ billow2 config = Noise2 . fractal2With billowNoiseMod (billowAmpMod config) conf
 -- mountains = ridged2 defaultFractalConfig perlin2
 -- @
 ridged2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
-ridged2 config = Noise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) config . unNoise2
+ridged2 config = mkNoise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) config . unNoise2
 {-# INLINE [2] ridged2 #-}
 
 -- | Apply ping-pong fractal to a 2D noise function.
@@ -125,7 +125,7 @@ ridged2 config = Noise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) conf
 -- @
 pingPong2 :: (RealFrac a) => FractalConfig a -> PingPongStrength a -> Noise2 a -> Noise2 a
 pingPong2 config strength =
-  Noise2 . fractal2With (pingPongNoiseMod strength) (pingPongAmpMod config) config . unNoise2
+  mkNoise2 . fractal2With (pingPongNoiseMod strength) (pingPongAmpMod config) config . unNoise2
 {-# INLINE [2] pingPong2 #-}
 
 fractal2With
@@ -157,21 +157,21 @@ fractal2With modNoise modAmps FractalConfig{..} noise2 seed x y
 --
 -- 3D version of 'fractal2'. See 'fractal2' for details.
 fractal3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
-fractal3 config = Noise3 . fractal3With fractalNoiseMod (fractalAmpMod config) config . unNoise3
+fractal3 config = mkNoise3 . fractal3With fractalNoiseMod (fractalAmpMod config) config . unNoise3
 {-# INLINE [2] fractal3 #-}
 
 -- | Apply billow fractal to a 3D noise function.
 --
 -- 3D version of 'billow2'. See 'billow2' for details.
 billow3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
-billow3 config = Noise3 . fractal3With billowNoiseMod (billowAmpMod config) config . unNoise3
+billow3 config = mkNoise3 . fractal3With billowNoiseMod (billowAmpMod config) config . unNoise3
 {-# INLINE [2] billow3 #-}
 
 -- | Apply ridged fractal to a 3D noise function.
 --
 -- 3D version of 'ridged2'. See 'ridged2' for details.
 ridged3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
-ridged3 config = Noise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) config . unNoise3
+ridged3 config = mkNoise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) config . unNoise3
 {-# INLINE [2] ridged3 #-}
 
 -- | Apply ping-pong fractal to a 3D noise function.
@@ -179,7 +179,7 @@ ridged3 config = Noise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) conf
 -- 3D version of 'pingPong2'. See 'pingPong2' for details.
 pingPong3 :: (RealFrac a) => FractalConfig a -> PingPongStrength a -> Noise3 a -> Noise3 a
 pingPong3 config strength =
-  Noise3 . fractal3With (pingPongNoiseMod strength) (pingPongAmpMod config) config . unNoise3
+  mkNoise3 . fractal3With (pingPongNoiseMod strength) (pingPongAmpMod config) config . unNoise3
 {-# INLINE [2] pingPong3 #-}
 
 fractal3With
