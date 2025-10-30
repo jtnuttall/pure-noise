@@ -119,7 +119,7 @@ noise2 CellularConfig{..} = mkNoise2 $ \ !seed !x !y ->
 
       dist = distance cellularDistanceFn
       norm = normDist cellularDistanceFn
-      coeff = 1 / (fromIntegral (maxBound @Hash) + 1)
+      coeff = 1 / (maxHash + 1)
 
       {-# INLINE pointDist #-}
       pointDist !xi !yi =

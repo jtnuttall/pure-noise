@@ -18,7 +18,7 @@ noise2 = mkNoise2 noise2Base
 {-# INLINE noise2 #-}
 
 noise2Base :: (RealFrac a) => Seed -> a -> a -> a
-noise2Base !seed !xo !yo =
+noise2Base seed xo yo =
   let !f2 = 0.5 * (sqrt3 - 1)
       !to = (xo + yo) * f2
       !x = xo + to
@@ -57,7 +57,7 @@ noise2Base !seed !xo !yo =
 {-# INLINE [2] noise2Base #-}
 
 attenuate :: (RealFrac a) => a -> Seed -> Hash -> Hash -> a -> a -> a
-attenuate !vi !seed !i !j !x !y =
+attenuate !vi seed i j x y =
   let !v = max 0 vi
    in (v * v) * (v * v) * gradCoord2 seed i j x y
 {-# INLINE attenuate #-}
