@@ -144,7 +144,7 @@ See the [demo app](demo/) for an interactive version with adjustable parameters.
 ### Parallel noise generation
 
 This library integrates well with [massiv](https://hackage.haskell.org/package/massiv)
-for parallel computation. Parallel performance can reach 10-15× single-threaded
+for parallel computation. Parallel performance can reach 10-15x single-threaded
 performance.
 
 **This is the recommended approach for generating large noise textures or datasets.**

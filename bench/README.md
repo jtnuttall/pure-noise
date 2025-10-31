@@ -10,7 +10,7 @@ a pure Haskell noise library compiled with the LLVM backend. The headline result
 **Hardware:** i9-13900K, Fedora 42 distrobox, LLVM 15
 
 **Parallel performance** using `massiv` reaches over **1.7 billion values/sec** for 2D Perlin noise,
-demonstrating 10-15× speedups over single-threaded execution.
+demonstrating 10-15x speedups over single-threaded execution.
 
 ## Comparison with FastNoiseLite
 
@@ -20,7 +20,7 @@ results (compiled with the LLVM backend).
 
 ### Single-Thread Performance Comparison
 
-**Direct comparison (integer-aligned grid, 512×512 for 2D, 64³ for 3D):**
+**Direct comparison (integer-aligned grid, 512x512 for 2D, 64x64x64 for 3D):**
 
 | Noise Type          | pure-noise (Float) | FastNoiseLite | % of FNL |
 | :------------------ | :----------------- | :------------ | :------- |
@@ -41,8 +41,8 @@ Pure Haskell with LLVM achieves **84-95% of C++ performance** in single-threaded
 The `massiv`-based parallel benchmarks demonstrate significantly higher throughput by leveraging multiple cores.
 This is the intended path for high-performance, large-scale noise generation with this library.
 
-For example, the parallel `massiv` 2D Perlin benchmark achieves **~1.73 billion values/sec**, over 9× the
-single-threaded FNL result and 11× the single-threaded pure-noise result.
+For example, the parallel `massiv` 2D Perlin benchmark achieves **~1.73 billion values/sec**, over 9x the
+single-threaded FNL result and 11x the single-threaded pure-noise result.
 
 ## Detailed `pure-noise` Results (LLVM)
 
@@ -89,8 +89,8 @@ Benchmarks are run by mapping a noise function over a 1 million element unboxed 
 - Using index tuples increases the probability of hitting diverse code paths in the noise implementation.
   Some noise functions may skip certain computations when specific conditions are met relative to the input.
 - Memory allocation is constant:
-  - Float ~= 4.0MB (4 bytes × 1_000_000 elements)
-  - Double ~= 8.0MB (8 bytes × 1_000_000 elements)
+  - Float ~= 4.0MB (4 bytes x 1_000_000 elements)
+  - Double ~= 8.0MB (8 bytes x 1_000_000 elements)
 
 Benchmarks that use `massiv` demonstrate thread-level parallelism and are the intended path of use for
 most purposes.
@@ -103,8 +103,8 @@ Two benchmark approaches are used to balance real-world accuracy and fair compar
    code paths and avoid potential fast-path optimizations at integer boundaries. These are more representative
    of typical use cases.
 
-2. **FNL-comparison benchmarks** (262K values): Use integer-aligned grid coordinates (512×512 for 2D,
-   64³ for 3D) matching FNL's exact methodology for direct apples-to-apples comparison. These benchmarks
+2. **FNL-comparison benchmarks** (262K values): Use integer-aligned grid coordinates (512x512 for 2D,
+   64x64x64 for 3D) matching FNL's exact methodology for direct apples-to-apples comparison. These benchmarks
    use `foldl'` with summation to prevent dead code elimination, matching FNL's `DoNotOptimize` approach.
    This adds ~2-5% overhead from coordinate tuple loading and floating-point addition, but provides a
    fairer comparison than materializing output vectors.
@@ -130,5 +130,5 @@ of typical use cases).
 There are two scripts in this folder for running benchmarks with the exact parameters used to generate
 these results:
 
-- `results/collect-bench.sh` — Documents the parameters used to create benchmark results
-- `results/vps.py` — Calculates values/second numbers from `tasty-bench` CSV output
+- `results/collect-bench.sh` Documents the parameters used to create benchmark results
+- `results/vps.py` Calculates values/second numbers from `tasty-bench` CSV output
