@@ -79,7 +79,7 @@ module Numeric.Noise (
   -- functions built on the unified 'Noise' type. They can be evaluated with
   -- 'noise1At', 'noise2At', and 'noise3At' respectively.
   --
-  -- 'Seed' is a 'Word64' value used for deterministic noise generation.
+  -- 'Seed' is a 'Data.Word.Word64' value used for deterministic noise generation.
   Noise,
   Noise1,
   Noise1',
