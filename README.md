@@ -19,13 +19,18 @@ The public interface for this library is unlikely to change much, although the
 implementations (`noiseBaseN` functions and anything in `Numeric.Noise.Internal`)
 are subject to change and may change between minor versions.
 
-## Credit
+## Acknowledgments
 
-- The algorithms used in this library are ported from
-  [FastNoiseLite](https://github.com/Auburn/FastNoiseLite). The library structure
-  has been retuned to fit better with Haskell semantics.
-- **All credit goes to [@Auburn](https://github.com/Auburn) for the terrific FastNoiseLite implementation and
-  the opportunity to learn from it.**
+- This project grew from a port of the excellent
+  [FastNoiseLite](https://github.com/Auburn/FastNoiseLite) library. The library
+  structure has been tuned to perform well in Haskell and fit well with Haskell
+  semantics, but the core noise implementations are the same.
+- All credit for the original design, algorithms, and implementation goes to its
+  creator **[Jordan Peck (@Auburn)](https://github.com/Auburn)**. I'm grateful for
+  their work and the opportunity to work from it.
+- The original FastNoiseLite code, from which the core algorithms in this library
+  were originally ported, is (C) 2020 Jordan Peck and is licensed under the MIT
+  license, a copy of which is included in this repository.
 
 ## Usage
 
