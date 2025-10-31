@@ -27,7 +27,7 @@ are subject to change and may change between minor versions.
   semantics, but the core noise implementations are the same.
 - All credit for the original design, algorithms, and implementation goes to its
   creator **[Jordan Peck (@Auburn)](https://github.com/Auburn)**. I'm grateful for
-  their work and the opportunity to work from it.
+  their work and the opportunity to learn from it.
 - The original FastNoiseLite code, from which the core algorithms in this library
   were originally ported, is (C) 2020 Jordan Peck and is licensed under the MIT
   license, a copy of which is included in this repository.
