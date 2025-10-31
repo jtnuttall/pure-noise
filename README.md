@@ -10,7 +10,7 @@ Performant, modern noise generation for Haskell with a minimal dependency footpr
 - **Complex effects** like domain warping and multi-octave fractals with clean,
   type-safe composition.
 - **84-95% of C++ FastNoiseLite performance** through aggressive optimization and
-  LLVM compilation ([see benchmarks](bench/README.md)).
+  LLVM compilation.
 
 **For detailed FastNoiseLite comparison, methodology, and reproducibility instructions,
 see the [benchmark README](https://github.com/jtnuttall/pure-noise/blob/main/bench/README.md).**
