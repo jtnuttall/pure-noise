@@ -9,7 +9,7 @@
 --
 -- Noise functions are built on a unified 'Noise' type that abstracts over
 -- the seed and coordinate parameters. 'Noise2' and 'Noise3' are convenient
--- type aliases for 2D and 3D noise. These can be composed using algebraically
+-- type aliases for 2D and 3D noise. These can be composed algebraically
 -- with minimal performance overhead.
 --
 -- Noise values are generally clamped to @[-1, 1]@, though some functions may

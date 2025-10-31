@@ -8,6 +8,12 @@ and this project adheres to the
 
 ## Unreleased
 
+## 0.2.1.1 2025-10-31
+
+### Changed
+
+- Fixed some errata in the documentation
+
 ## 0.2.1.0 2025-10-31
 
 ### Added

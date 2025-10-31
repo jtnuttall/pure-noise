@@ -34,7 +34,7 @@ are subject to change and may change between minor versions.
 
 ## Usage
 
-The library provides composable noise functions `Noise2` and `Noise3` are type
+The library provides composable noise functions. `Noise2` and `Noise3` are type
 aliases for 2D and 3D noise. Noise functions can be composed transparently using
 standard operators with minimal performance cost.
 
@@ -122,9 +122,9 @@ domainWarped :: Noise.Noise2 Float
 domainWarped = do
   -- Generate 3D fractal for warp offsets
   let warpNoise = Noise.fractal3 Noise.defaultFractalConfig{Noise.octaves = 5} Noise.perlin3
-  -- Extract X and Y warp offsets by slicing at z=0
-  warpX <- Noise.sliceX3 0.0 warpNoise
-  warpY <- Noise.sliceY3 0.0 warpNoise
+  -- Sample 3D noise at different slices to create warp offsets
+  warpX <- Noise.sliceX3 0.0 warpNoise  -- Samples at (0, x, y)
+  warpY <- Noise.sliceY3 0.0 warpNoise  -- Samples at (x, 0, y)
   -- Apply warping to base noise coordinates
   Noise.warp (\(x, y) -> (x + 30 * warpX, y + 30 * warpY))
     $ Noise.fractal2 Noise.defaultFractalConfig{Noise.octaves = 5} Noise.openSimplex2
