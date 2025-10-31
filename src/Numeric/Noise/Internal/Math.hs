@@ -55,7 +55,7 @@ lerp
   -- ^ parameter in range [0, 1]
   -> a
 lerp v0 v1 t = v0 + t * (v1 - v0)
-{-# NOINLINE [1] lerp #-}
+{-# INLINE [1] lerp #-}
 
 {-# RULES
 "lerp/Float/0" forall (a :: Float) b.
@@ -88,8 +88,6 @@ cubicInterp a !b c d !t =
       !b' = a' - p
    in b + t * (c' + t * (b' + t * p))
 {-# INLINE [1] cubicInterp #-}
-{-# SPECIALIZE cubicInterp :: Float -> Float -> Float -> Float -> Float -> Float #-}
-{-# SPECIALIZE cubicInterp :: Double -> Double -> Double -> Double -> Double -> Double #-}
 
 {-# RULES
 "cubicInterp/Float/0" forall (a :: Float) b c d.

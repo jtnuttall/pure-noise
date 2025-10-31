@@ -44,19 +44,19 @@ import Numeric.Noise.Internal
 data FractalConfig a = FractalConfig
   { octaves :: Int
   -- ^ Number of noise layers to combine. More octaves create more detail
-  -- but are more expensive to compute. Must be >= 1.
+  -- but are more expensive to compute. Must be \( >= 1 \).
   , lacunarity :: a
   -- ^ Frequency multiplier between octaves. Each octave's frequency is
   -- the previous octave's frequency multiplied by lacunarity.
   , gain :: a
   -- ^ Amplitude multiplier between octaves. Each octave's amplitude is
   -- the previous octave's amplitude multiplied by gain.
-  -- Values < 1 create smoother noise, values > 1 create rougher noise.
+  -- Values \( < 1 \) create smoother noise, values \( > 1 \) create rougher noise.
   , weightedStrength :: a
   -- ^ Controls how much each octave's amplitude is influenced by the
   -- previous octave's value. At 0, octaves have independent amplitudes.
   -- At 1, lower-valued areas in previous octaves reduce the amplitude
-  -- of subsequent octaves. Range: [0, 1].
+  -- of subsequent octaves. Range: \( [0, 1] \).
   }
   deriving (Generic, Read, Show, Eq)
 
@@ -82,7 +82,7 @@ defaultFractalConfig =
 -- fbm = fractal2 defaultFractalConfig perlin2
 -- @
 fractal2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
-fractal2 config = mkNoise2 . fractal2With fractalNoiseMod (fractalAmpMod config) config . unNoise2
+fractal2 config = mkNoise2 . fractal2With fractalNoiseMod (fractalAmpMod config) config . noise2At
 {-# INLINE [2] fractal2 #-}
 
 -- | Apply billow fractal to a 2D noise function.
@@ -96,7 +96,7 @@ fractal2 config = mkNoise2 . fractal2With fractalNoiseMod (fractalAmpMod config)
 -- clouds = billow2 defaultFractalConfig perlin2
 -- @
 billow2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
-billow2 config = mkNoise2 . fractal2With billowNoiseMod (billowAmpMod config) config . unNoise2
+billow2 config = mkNoise2 . fractal2With billowNoiseMod (billowAmpMod config) config . noise2At
 {-# INLINE [2] billow2 #-}
 
 -- | Apply ridged fractal to a 2D noise function.
@@ -110,7 +110,7 @@ billow2 config = mkNoise2 . fractal2With billowNoiseMod (billowAmpMod config) co
 -- mountains = ridged2 defaultFractalConfig perlin2
 -- @
 ridged2 :: (RealFrac a) => FractalConfig a -> Noise2 a -> Noise2 a
-ridged2 config = mkNoise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) config . unNoise2
+ridged2 config = mkNoise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) config . noise2At
 {-# INLINE [2] ridged2 #-}
 
 -- | Apply ping-pong fractal to a 2D noise function.
@@ -125,7 +125,7 @@ ridged2 config = mkNoise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) co
 -- @
 pingPong2 :: (RealFrac a) => FractalConfig a -> PingPongStrength a -> Noise2 a -> Noise2 a
 pingPong2 config strength =
-  mkNoise2 . fractal2With (pingPongNoiseMod strength) (pingPongAmpMod config) config . unNoise2
+  mkNoise2 . fractal2With (pingPongNoiseMod strength) (pingPongAmpMod config) config . noise2At
 {-# INLINE [2] pingPong2 #-}
 
 fractal2With
@@ -141,7 +141,7 @@ fractal2With
   -> a
   -> a
 fractal2With modNoise modAmps FractalConfig{..} noise2 seed x y
-  | octaves < 1 = error "octaves must be a positive integer"
+  | octaves < 1 = 0
   | otherwise =
       let !bounding = fractalBounding FractalConfig{..}
        in go octaves 0 seed 1 bounding
@@ -157,21 +157,21 @@ fractal2With modNoise modAmps FractalConfig{..} noise2 seed x y
 --
 -- 3D version of 'fractal2'. See 'fractal2' for details.
 fractal3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
-fractal3 config = mkNoise3 . fractal3With fractalNoiseMod (fractalAmpMod config) config . unNoise3
+fractal3 config = mkNoise3 . fractal3With fractalNoiseMod (fractalAmpMod config) config . noise3At
 {-# INLINE [2] fractal3 #-}
 
 -- | Apply billow fractal to a 3D noise function.
 --
 -- 3D version of 'billow2'. See 'billow2' for details.
 billow3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
-billow3 config = mkNoise3 . fractal3With billowNoiseMod (billowAmpMod config) config . unNoise3
+billow3 config = mkNoise3 . fractal3With billowNoiseMod (billowAmpMod config) config . noise3At
 {-# INLINE [2] billow3 #-}
 
 -- | Apply ridged fractal to a 3D noise function.
 --
 -- 3D version of 'ridged2'. See 'ridged2' for details.
 ridged3 :: (RealFrac a) => FractalConfig a -> Noise3 a -> Noise3 a
-ridged3 config = mkNoise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) config . unNoise3
+ridged3 config = mkNoise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) config . noise3At
 {-# INLINE [2] ridged3 #-}
 
 -- | Apply ping-pong fractal to a 3D noise function.
@@ -179,7 +179,7 @@ ridged3 config = mkNoise3 . fractal3With ridgedNoiseMod (ridgedAmpMod config) co
 -- 3D version of 'pingPong2'. See 'pingPong2' for details.
 pingPong3 :: (RealFrac a) => FractalConfig a -> PingPongStrength a -> Noise3 a -> Noise3 a
 pingPong3 config strength =
-  mkNoise3 . fractal3With (pingPongNoiseMod strength) (pingPongAmpMod config) config . unNoise3
+  mkNoise3 . fractal3With (pingPongNoiseMod strength) (pingPongAmpMod config) config . noise3At
 {-# INLINE [2] pingPong3 #-}
 
 fractal3With
@@ -196,7 +196,7 @@ fractal3With
   -> a
   -> a
 fractal3With modNoise modAmps FractalConfig{..} noise3 seed x y z
-  | octaves < 1 = error "octaves must be a positive integer"
+  | octaves < 1 = 0
   | otherwise =
       let !bounding = fractalBounding FractalConfig{..}
        in go octaves 0 seed 1 bounding

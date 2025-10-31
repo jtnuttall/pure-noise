@@ -18,7 +18,7 @@ module Numeric.Noise.Cellular (
 ) where
 
 import Data.Bits
-import Data.Foldable -- redundant since GHC 9.10.1, here for compat
+import Data.Foldable (foldl') -- redundant since GHC 9.10.1, here for compat
 import Data.Primitive.PrimArray
 import GHC.Generics (Generic)
 import Numeric.Noise.Internal
@@ -33,8 +33,8 @@ data CellularConfig a = CellularConfig
   -- ^ Distance metric to use when computing distance to cell points.
   , cellularJitter :: a
   -- ^ Amount of randomness in cell point positions.
-  -- 0 creates a regular grid, 1 creates fully random positions.
-  -- Values outside [0, 1] are valid but may produce unusual results.
+  -- \( 0 \) creates a regular grid, \( 1 \) creates fully random positions.
+  -- Values outside \( [0, 1] \) may produce unusual results.
   , cellularResult :: CellularResult
   -- ^ What value to return from the noise function.
   }
@@ -55,17 +55,13 @@ defaultCellularConfig =
 -- Different distance metrics produce different visual characteristics
 -- in the cellular pattern.
 data CellularDistanceFn
-  = -- | Standard Euclidean distance (sqrt(dx² + dy²)).
-    -- Creates circular cells with smooth edges.
+  = -- | \( \sqrt{dx^2 + dy^2} \) - Creates circular cells with smooth edges.
     DistEuclidean
-  | -- | Squared Euclidean distance (dx² + dy²), no square root.
-    -- Faster than 'DistEuclidean' with similar appearance.
+  | -- | \( dx^2 + dy^2 \) - Faster than 'DistEuclidean' with similar appearance.
     DistEuclideanSq
-  | -- | Manhattan/taxicab distance (|dx| + |dy|).
-    -- Creates diamond-shaped cells with sharp edges.
+  | -- | \( |dx| + |dy| \) - Creates diamond-shaped cells with sharp edges.
     DistManhattan
   | -- | Hybrid of Euclidean and Manhattan distances.
-    -- Combines characteristics of both metrics.
     DistHybrid
   deriving (Generic, Read, Show, Eq, Ord, Enum, Bounded)
 

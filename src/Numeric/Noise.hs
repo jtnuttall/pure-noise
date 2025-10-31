@@ -9,8 +9,8 @@
 --
 -- Noise functions are built on a unified 'Noise' type that abstracts over
 -- the seed and coordinate parameters. 'Noise2' and 'Noise3' are convenient
--- type aliases for 2D and 3D noise. These can be composed using 'Num',
--- 'Fractional', or 'Applicative' methods with minimal performance overhead.
+-- type aliases for 2D and 3D noise. These can be composed using algebraically
+-- with minimal performance overhead.
 --
 -- Noise values are generally clamped to @[-1, 1]@, though some functions may
 -- occasionally produce values slightly outside this range.
@@ -58,8 +58,10 @@
 -- Transform coordinates with 'warp':
 --
 -- @
--- scaled :: Noise.Noise2 Float
--- scaled = Noise.warp (\\(x, y) -> (x * 2, y * 2)) Noise.perlin2
+-- scaledAndLayered :: Noise.Noise2 Float
+-- scaledAndLayered =
+--  Noise.warp (\\(x, y) -> (x * 2, y * 2)) Noise.perlin2
+--    + fmap (logBase 2) Noise.perlin2
 -- @
 --
 -- Layer independent noise with 'reseed' or 'next2':
@@ -69,7 +71,7 @@
 -- layered = Noise.perlin2 + Noise.next2 Noise.perlin2 \/ 2
 -- @
 module Numeric.Noise (
-  -- * Core Types
+  -- * Noise
 
   --
 
@@ -78,34 +80,69 @@ module Numeric.Noise (
   -- 'noise3At' respectively.
   --
   -- 'Seed' is a 'Word64' value used for deterministic noise generation.
-  module NoiseTypes,
+  Noise,
+  Noise1,
+  Noise1',
+  Noise2,
+  Noise2',
+  Noise3,
+  Noise3',
+  Seed,
 
-  -- * Noise evaluation
+  -- * Accessors
   noise1At,
   noise2At,
   noise3At,
 
-  -- ** 2D Noise
-  const2,
-  cellular2,
-  openSimplex2,
-  superSimplex2,
+  -- * Noise functions
+
+  -- ** Perlin
   perlin2,
+  perlin3,
+
+  -- ** OpenSimplex
+  openSimplex2,
+
+  -- ** OpenSimplex2S
+  superSimplex2,
+
+  -- ** Cellular
+  cellular2,
+
+  -- *** Configuration
+  CellularConfig (..),
+  defaultCellularConfig,
+  CellularDistanceFn (..),
+  CellularResult (..),
+
+  -- ** Value
   value2,
   valueCubic2,
-
-  -- ** 3D Noise
-  const3,
-  perlin3,
   value3,
   valueCubic3,
 
-  -- * Noise manipulation
+  -- ** Constant fields
+  const2,
+  const3,
 
-  -- ** Math utility functions
-  module NoiseUtility,
+  -- * Noise alteration
 
-  -- ** Fractal noise composition
+  --  ** Altering values
+  remap,
+  --  ** Altering parameters
+  warp,
+  reseed,
+  next2,
+  next3,
+
+  -- ** Slicing (projecting)
+  sliceX2,
+  sliceX3,
+  sliceY2,
+  sliceY3,
+  sliceZ3,
+
+  -- * Fractals
 
   --
 
@@ -115,17 +152,11 @@ module Numeric.Noise (
   -- For custom fractal implementations using modifier functions, see
   -- "Numeric.Noise.Fractal".
 
-  -- *** Configuration
-  FractalConfig (..),
-  defaultFractalConfig,
-  PingPongStrength (..),
-  defaultPingPongStrength,
-
-  -- *** Fractal Brownian Motion (FBM)
+  -- ** Fractal Brownian Motion (FBM)
   fractal2,
   fractal3,
 
-  -- *** Fractal variants
+  -- ** Fractal variants
   billow2,
   billow3,
   ridged2,
@@ -133,76 +164,37 @@ module Numeric.Noise (
   pingPong2,
   pingPong3,
 
-  -- ** Cellular noise configuration
+  -- ** Configuration
+  FractalConfig (..),
+  defaultFractalConfig,
+  PingPongStrength (..),
+  defaultPingPongStrength,
 
-  --
-
-  -- | Cellular (Worley) noise creates patterns based on distances to
-  -- randomly distributed cell points.
-
-  -- *** Configuration
-  CellularConfig (..),
-  defaultCellularConfig,
-  CellularDistanceFn (..),
-  CellularResult (..),
-) where
-
-import Numeric.Noise.Cellular (CellularConfig, CellularDistanceFn (..), CellularResult (..), defaultCellularConfig)
-import Numeric.Noise.Cellular qualified as Cellular
-import Numeric.Noise.Fractal
-import Numeric.Noise.Internal
-import Numeric.Noise.Internal as NoiseTypes (
-  Noise2,
-  Noise3,
-  Seed,
- )
-import Numeric.Noise.Internal as NoiseUtility (
-  Noise,
+  -- * Math utilities
   clamp,
   clamp2,
   clamp3,
   cubicInterp,
   hermiteInterp,
   lerp,
-  next2,
-  next3,
   quinticInterp,
-  reseed,
-  sliceX2,
-  sliceX3,
-  sliceY2,
-  sliceY3,
-  sliceZ3,
-  warp,
- )
+) where
+
+import Numeric.Noise.Cellular (CellularConfig, CellularDistanceFn (..), CellularResult (..), defaultCellularConfig)
+import Numeric.Noise.Cellular qualified as Cellular
+import Numeric.Noise.Fractal
+import Numeric.Noise.Internal
 import Numeric.Noise.OpenSimplex qualified as OpenSimplex
 import Numeric.Noise.Perlin qualified as Perlin
 import Numeric.Noise.SuperSimplex qualified as SuperSimplex
 import Numeric.Noise.Value qualified as Value
 import Numeric.Noise.ValueCubic qualified as ValueCubic
 
--- | Evaluate a 1D noise function at the given coordinates with the given seed.
--- Currently, you must use a slicing function like 'sliceX' to reduce
--- higher-dimensional noise into 1D noise.
-noise1At :: Noise1 a -> Seed -> a -> a
-noise1At = unNoise1
-{-# INLINE noise1At #-}
-
--- | Evaluate a 2D noise function at the given coordinates with the given seed.
-noise2At
-  :: Noise2 a
-  -> Seed
-  -- ^ deterministic seed
-  -> a
-  -- ^ x coordinate
-  -> a
-  -- ^ y coordinate
-  -> a
-noise2At = unNoise2
-{-# INLINE noise2At #-}
-
 -- | 2D Cellular (Worley) noise. Configure with 'CellularConfig' to control
 -- distance functions and return values.
+--
+-- Cellular noise creates patterns based on distances to randomly distributed
+-- cell points.
 cellular2 :: (RealFrac a, Floating a) => CellularConfig a -> Noise2 a
 cellular2 = Cellular.noise2
 {-# INLINE cellular2 #-}
@@ -223,21 +215,6 @@ superSimplex2 = SuperSimplex.noise2
 perlin2 :: (RealFrac a) => Noise2 a
 perlin2 = Perlin.noise2
 {-# INLINE perlin2 #-}
-
--- | Evaluate a 3D noise function at the given coordinates with the given seed.
-noise3At
-  :: Noise3 a
-  -> Seed
-  -- ^ deterministic seed
-  -> a
-  -- ^ x coordinate
-  -> a
-  -- ^ y coordinate
-  -> a
-  -- ^ z coordinate
-  -> a
-noise3At = unNoise3
-{-# INLINE noise3At #-}
 
 -- | 3D Perlin noise. Classic gradient noise algorithm.
 perlin3 :: (RealFrac a) => Noise3 a

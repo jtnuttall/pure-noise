@@ -14,21 +14,22 @@ module Numeric.Noise.Internal (
   sliceX3,
   sliceY3,
   sliceZ3,
+  Noise1',
   Noise1,
   mkNoise1,
-  unNoise1,
+  noise1At,
+  Noise2',
   Noise2,
   mkNoise2,
-  unNoise2,
+  noise2At,
   next2,
-  map2,
   clamp2,
   const2,
+  Noise3',
   Noise3,
   mkNoise3,
-  unNoise3,
+  noise3At,
   next3,
-  map3,
   clamp3,
   const3,
 ) where
@@ -48,7 +49,15 @@ import Numeric.Noise.Internal.Math as Math (
 --
 -- For convenience, dimension-specific type aliases are provided:
 --
--- === Instances
+-- Use 'warp' to transform coordinates and 'remap' (or 'fmap') to transform values.
+--
+-- To evaluate noise functions, use 'noise1At', 'noise2At', or 'noise3At'
+--
+-- NB: 'Noise' is a lawful 'Profunctor' where 'lmap' = warp and 'rmap' = remap.
+-- There are some useful implications to this, but pure-noise is committed to
+-- a minimal dependency footprint and so will not provide this instance itself.
+--
+-- === __Algebraic composition__
 --
 -- 'Noise' can be composed algebraically:
 --
@@ -57,69 +66,52 @@ import Numeric.Noise.Internal.Math as Math (
 -- combined = (perlin2 + superSimplex2) / 2
 -- @
 --
--- === Coordinate Transformation
+-- === __Coordinate Transformation__
 --
--- Noise is contravariant in the coordinate parameter and covariant in the
--- value parameter. Use 'warp' to transform coordinates and 'remap' (or
--- 'fmap') to transform values.
+-- This allows you to, for example, compose multiple layers of noise at different
+-- offsets.
 --
 -- @
 -- scaled :: Noise2 Float
 -- scaled = warp (\\(x, y) -> (x * 2, y * 2)) perlin2
 -- @
---
--- === Evaluation
---
--- To evaluate noise functions, use 'noise1At', 'noise2At', or 'noise3At' from
--- "Numeric.Noise".
 newtype Noise p v = Noise {unNoise :: Seed -> p -> v}
 
-type Noise1' p v = Noise p v
-type Noise1 v = Noise1' v v
+-- NOTE: Noise p v is isomorphic to Reader (Seed, p), so it has trivial
+-- instances of Monad and Category, Arrow, ArrowChoice, ArrowApply, etc.
+--
+-- I've decided not to include Category et al. as instances for now
+-- because I can't come up with a use-case that is not sufficiently
+-- covered by the monad instance.
 
-mkNoise1 :: (Seed -> p -> v) -> Noise1' p v
-mkNoise1 = Noise
-{-# INLINE mkNoise1 #-}
-
-unNoise1 :: Noise p v -> Seed -> p -> v
-unNoise1 = unNoise
-{-# INLINE unNoise1 #-}
-
-type Noise2' p v = Noise (p, p) v
-type Noise2 v = Noise2' v v
-
-mkNoise2 :: (Seed -> p -> p -> v) -> Noise2' p v
-mkNoise2 f = Noise (\s (x, y) -> f s x y)
-{-# INLINE mkNoise2 #-}
-
-unNoise2 :: Noise2' p v -> Seed -> p -> p -> v
-unNoise2 (Noise f) seed x y = f seed (x, y)
-{-# INLINE unNoise2 #-}
-
-type Noise3' p v = Noise (p, p, p) v
-type Noise3 v = Noise3' v v
-
-mkNoise3 :: (Seed -> p -> p -> p -> v) -> Noise3' p v
-mkNoise3 f = Noise (\s (x, y, z) -> f s x y z)
-{-# INLINE mkNoise3 #-}
-
-unNoise3 :: Noise3' p v -> Seed -> p -> p -> p -> v
-unNoise3 (Noise f) seed x y z = f seed (x, y, z)
-{-# INLINE unNoise3 #-}
-
-instance Functor (Noise c) where
+-- | Noise admits 'Functor' on the value it produces
+instance Functor (Noise p) where
   fmap f (Noise g) = Noise (\seed -> f . g seed)
-  {-# INLINE fmap #-}
 
+-- | Noise admits 'Applicative' on the value it produces
 instance Applicative (Noise p) where
   pure a = Noise $ \_ _ -> a
   liftA2 f (Noise g) (Noise h) = Noise (\s p -> g s p `f` h s p)
-  {-# INLINE pure #-}
-  {-# INLINE liftA2 #-}
 
+-- | Note: The 'Monad' instance evaluates all noise functions at the same
+-- seed and coordinate. For independent sampling at different coordinates,
+-- use 'warp' to transform the coordinate space.
+--
+-- @
+-- do n1 <- perlin2
+--    n2 <- superSimplex2
+--    return (n1 + n2)
+-- @
+--
+-- is equivalent to:
+--
+-- @
+-- perlin2 + superSimplex2
+-- @
+--
+-- This is useful for domain warping.
 instance Monad (Noise p) where
   Noise g >>= f = Noise (\s p -> unNoise (f (g s p)) s p)
-  {-# INLINE (>>=) #-}
 
 instance (Num a) => Num (Noise p a) where
   (+) = liftA2 (+)
@@ -128,20 +120,11 @@ instance (Num a) => Num (Noise p a) where
   signum = fmap signum
   fromInteger i = pure (fromInteger i)
   negate = fmap negate
-  {-# INLINE (+) #-}
-  {-# INLINE (*) #-}
-  {-# INLINE abs #-}
-  {-# INLINE signum #-}
-  {-# INLINE fromInteger #-}
-  {-# INLINE negate #-}
 
 instance (Fractional a) => Fractional (Noise p a) where
   fromRational = pure . fromRational
   recip = fmap recip
   (/) = liftA2 (/)
-  {-# INLINE fromRational #-}
-  {-# INLINE recip #-}
-  {-# INLINE (/) #-}
 
 instance (Floating a) => Floating (Noise p a) where
   pi = pure pi
@@ -157,23 +140,68 @@ instance (Floating a) => Floating (Noise p a) where
   asinh = fmap asinh
   acosh = fmap acosh
   atanh = fmap atanh
-  {-# INLINE pi #-}
-  {-# INLINE exp #-}
-  {-# INLINE log #-}
-  {-# INLINE sin #-}
-  {-# INLINE cos #-}
-  {-# INLINE asin #-}
-  {-# INLINE acos #-}
-  {-# INLINE atan #-}
-  {-# INLINE sinh #-}
-  {-# INLINE cosh #-}
-  {-# INLINE asinh #-}
-  {-# INLINE acosh #-}
-  {-# INLINE atanh #-}
+
+type Noise1' p v = Noise p v
+type Noise1 v = Noise1' v v
+
+mkNoise1 :: (Seed -> p -> v) -> Noise1' p v
+mkNoise1 = Noise
+{-# INLINE mkNoise1 #-}
+
+-- | Evaluate a 1D noise function at the given coordinates with the given seed.
+-- Currently, you must use a slicing function like 'sliceX' to reduce
+-- higher-dimensional noise into 1D noise.
+noise1At :: Noise1 a -> Seed -> a -> a
+noise1At = unNoise
+{-# INLINE noise1At #-}
+
+type Noise2' p v = Noise (p, p) v
+type Noise2 v = Noise2' v v
+
+mkNoise2 :: (Seed -> p -> p -> v) -> Noise2' p v
+mkNoise2 f = Noise (\s (x, y) -> f s x y)
+{-# INLINE mkNoise2 #-}
+
+-- | Evaluate a 2D noise function at the given coordinates with the given seed.
+noise2At
+  :: Noise2 a
+  -> Seed
+  -- ^ deterministic seed
+  -> a
+  -- ^ x coordinate
+  -> a
+  -- ^ y coordinate
+  -> a
+noise2At (Noise f) seed x y = f seed (x, y)
+{-# INLINE noise2At #-}
+
+type Noise3' p v = Noise (p, p, p) v
+type Noise3 v = Noise3' v v
+
+mkNoise3 :: (Seed -> p -> p -> p -> v) -> Noise3' p v
+mkNoise3 f = Noise (\s (x, y, z) -> f s x y z)
+{-# INLINE mkNoise3 #-}
+
+-- | Evaluate a 3D noise function at the given coordinates with the given seed.
+noise3At
+  :: Noise3 a
+  -> Seed
+  -- ^ deterministic seed
+  -> a
+  -- ^ x coordinate
+  -> a
+  -- ^ y coordinate
+  -> a
+  -- ^ z coordinate
+  -> a
+noise3At (Noise f) seed x y z = f seed (x, y, z)
+{-# INLINE noise3At #-}
 
 -- | Transform the values produced by a noise function.
 --
 -- This is an alias for 'fmap'. Use it to transform noise values after generation:
+--
+-- === __Examples__
 --
 -- @
 -- -- Scale noise from [-1, 1] to [0, 1]
@@ -189,6 +217,10 @@ remap = fmap
 -- This allows you to scale, rotate, or otherwise modify coordinates before
 -- they're passed to the noise function:
 --
+-- NB: This is 'contramap'
+--
+-- === __Examples__
+--
 -- @
 -- -- Scale the noise frequency
 -- scaled :: Noise2 Float
@@ -199,8 +231,6 @@ remap = fmap
 -- rotated = warp (\\(x, y) -> (x * cos a - y * sin a, x * sin a + y * cos a)) perlin2
 --   where a = pi / 4
 -- @
---
--- NB: This is 'contramap'
 warp :: (p -> p') -> Noise p' v -> Noise p v
 warp f (Noise g) = Noise (\s p -> g s (f p))
 {-# INLINE warp #-}
@@ -209,6 +239,9 @@ warp f (Noise g) = Noise (\s p -> g s (f p))
 --
 -- This is useful for generating independent layers of noise:
 --
+-- See also 'next2' and 'next3' for convenient increment-by-one variants.
+--
+-- === __Examples__
 -- @
 -- layer1 = perlin2
 -- layer2 = reseed (+1) perlin2
@@ -216,8 +249,6 @@ warp f (Noise g) = Noise (\s p -> g s (f p))
 --
 -- combined = (layer1 + layer2 + layer3) / 3
 -- @
---
--- See also 'next2' and 'next3' for convenient increment-by-one variants.
 reseed :: (Seed -> Seed) -> Noise p a -> Noise p a
 reseed f (Noise g) = Noise (g . f)
 {-# INLINE reseed #-}
@@ -250,6 +281,8 @@ clampNoise l u = fmap (clamp l u)
 
 -- | Slice a 2D noise function at a fixed X coordinate to produce 1D noise.
 --
+-- === __Examples__
+--
 -- @
 -- noise1d :: Noise1 Float
 -- noise1d = sliceX2 0.0 perlin2  -- Fix X at 0, vary Y
@@ -262,6 +295,8 @@ sliceX2 x = warp (x,)
 {-# INLINE sliceX2 #-}
 
 -- | Slice a 2D noise function at a fixed Y coordinate to produce 1D noise.
+--
+-- === __Examples__
 --
 -- @
 -- noise1d :: Noise1 Float
@@ -276,6 +311,8 @@ sliceY2 y = warp (,y)
 
 -- | Slice a 3D noise function at a fixed X coordinate to produce 2D noise.
 --
+-- === __Examples__
+--
 -- @
 -- noise2d :: Noise2 Float
 -- noise2d = sliceX3 0.0 perlin3  -- Fix X at 0, vary Y and Z
@@ -289,6 +326,8 @@ sliceX3 x = warp (\(y, z) -> (x, y, z))
 
 -- | Slice a 3D noise function at a fixed Y coordinate to produce 2D noise.
 --
+-- === __Examples__
+--
 -- @
 -- noise2d :: Noise2 Float
 -- noise2d = sliceY3 0.0 perlin3  -- Fix Y at 0, vary X and Z
@@ -301,6 +340,8 @@ sliceY3 y = warp (\(x, z) -> (x, y, z))
 --
 -- This is useful for extracting 2D slices from 3D noise at different heights:
 --
+-- === __Examples__
+--
 -- @
 -- heightmap :: Noise2 Float
 -- heightmap = sliceZ3 10.0 perlin3  -- Sample at Z = 10
@@ -309,48 +350,27 @@ sliceZ3 :: p -> Noise3' p v -> Noise2' p v
 sliceZ3 z = warp (\(x, y) -> (x, y, z))
 {-# INLINE sliceZ3 #-}
 
--- | Increment the seed for a 2D noise function.
---
--- Equivalent to $reseed (+1)$
+-- | Increment the seed for a 2D noise function. See 'reseed'
 next2 :: Noise2 a -> Noise2 a
 next2 = reseed (+ 1)
 {-# INLINE next2 #-}
 
--- | Map an arbitrary function across a noise field
-map2 :: (a -> a) -> Noise2 a -> Noise2 a
-map2 = fmap
-{-# INLINE map2 #-}
-
 -- | Clamp the output of a 2D noise function to the range @[lower, upper]@.
---
--- @
--- clamped :: Noise2 Float
--- clamped = clamp2 0 1 perlin2  -- clamp to [0, 1]
--- @
 clamp2 :: (Ord a) => a -> a -> Noise2 a -> Noise2 a
 clamp2 = clampNoise
 {-# INLINE clamp2 #-}
 
--- | A noise function that produces the same value everywhere.
---
--- Used to provide the 'Num' instance.
+-- | A noise function that produces the same value everywhere. Alias of 'pure'.
 const2 :: a -> Noise2 a
 const2 = pure
 {-# INLINE const2 #-}
 
--- | Increment the seed for a 3D noise function.
---
--- Analogous to 'next2', this is useful for generating independent 3D noise layers.
+-- | Increment the seed for a 3D noise function. See 'reseed'
 next3 :: Noise3 a -> Noise3 a
 next3 = reseed (+ 1)
 {-# INLINE next3 #-}
 
--- | Map an arbitrary function across a noise field
-map3 :: (a -> a) -> Noise3 a -> Noise3 a
-map3 = fmap
-{-# INLINE map3 #-}
-
--- | A noise function that produces the same value everywhere.
+-- | A noise function that produces the same value everywhere. Alias of 'pure'
 --
 -- Used to provide the 'Num' instance.
 const3 :: a -> Noise3 a
@@ -358,11 +378,6 @@ const3 = pure
 {-# INLINE const3 #-}
 
 -- | Clamp the output of a 3D noise function to the range @[lower, upper]@.
---
--- @
--- clamped :: Noise3 Float
--- clamped = clamp3 (-0.5) 0.5 perlin3  -- clamp to [-0.5, 0.5]
--- @
 clamp3 :: (Ord a) => a -> a -> Noise3 a -> Noise3 a
 clamp3 = clampNoise
 {-# INLINE clamp3 #-}
