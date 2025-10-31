@@ -23,6 +23,10 @@ description: |
   Benefits significantly from LLVM backend compilation (~50-80% performance improvement).
 
 language: GHC2021
+tested-with:
+  - GHC == 9.6.7
+  - GHC == 9.8.4
+  - GHC == 9.10.2
 
 dependencies:
   - base >= 4.16 && < 5

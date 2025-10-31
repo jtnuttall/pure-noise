@@ -21,6 +21,10 @@ copyright:      2024 Jeremy Nuttall
 license:        BSD-3-Clause
 license-file:   LICENSE
 build-type:     Simple
+tested-with:
+    GHC == 9.6.7
+  , GHC == 9.8.4
+  , GHC == 9.10.2
 extra-source-files:
     README.md
 extra-doc-files:
