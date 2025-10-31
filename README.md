@@ -12,7 +12,7 @@ Performant, modern noise generation for Haskell with a minimal dependency footpr
 - **84-95% of C++ FastNoiseLite performance** through aggressive optimization and
   LLVM compilation ([see benchmarks](bench/README.md)).
 
-**📊 For detailed FastNoiseLite comparison, methodology, and reproducibility instructions,
+**For detailed FastNoiseLite comparison, methodology, and reproducibility instructions,
 see the [benchmark README](bench/README.md).**
 
 The public interface for this library is unlikely to change much, although the
@@ -24,8 +24,8 @@ are subject to change and may change between minor versions.
 - The algorithms used in this library are ported from
   [FastNoiseLite](https://github.com/Auburn/FastNoiseLite). The library structure
   has been retuned to fit better with Haskell semantics.
-- All credit goes to @Auburn for the terrific FastNoiseLite implementation and
-  the opportunity to learn from it.
+- **All credit goes to @Auburn for the terrific FastNoiseLite implementation and
+  the opportunity to learn from it.**
 
 ## Usage
 
