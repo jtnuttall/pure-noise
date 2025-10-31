@@ -75,9 +75,9 @@ module Numeric.Noise (
 
   --
 
-  -- | 'Noise2' and 'Noise3' are type aliases for 2D and 3D noise functions built
-  -- on the unified 'Noise' type. They can be evaluated with 'noise2At' and
-  -- 'noise3At' respectively.
+  -- | 'Noise1', 'Noise2', and 'Noise3' are type aliases for 1D, 2D, and 3D noise
+  -- functions built on the unified 'Noise' type. They can be evaluated with
+  -- 'noise1At', 'noise2At', and 'noise3At' respectively.
   --
   -- 'Seed' is a 'Word64' value used for deterministic noise generation.
   Noise,

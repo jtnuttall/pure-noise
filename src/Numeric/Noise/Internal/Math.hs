@@ -211,6 +211,8 @@ gradCoord2 seed xPrimed yPrimed xd yd =
       !xg = lookupGrad2 ix
       !yg = lookupGrad2 (ix .|. 1)
    in xd * xg + yd * yg
+-- Phase 2 inlining ensures specialization happens after hash computation
+-- but before gradient lookup, allowing REWRITE RULES to fire effectively
 {-# INLINE [2] gradCoord2 #-}
 
 gradCoord3 :: (RealFrac a) => Seed -> Hash -> Hash -> Hash -> a -> a -> a -> a

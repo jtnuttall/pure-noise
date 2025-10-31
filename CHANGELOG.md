@@ -34,10 +34,17 @@ and this project adheres to the
 
 ### Performance
 
-- Branchless OpenSimplex optimization (8-25% improvement depending on variant)
-- Branchless ping-pong fractal optimization (~45% improvement)
-- Added RULES pragmas for gradient lookups (~6-9% global improvement)
-- Fixed fractal performance regression
+- **Overall**: 90% of benchmarks improved with +32.4% average performance gain
+- **Ping-pong fractals**: Branchless optimization yields 110-148% improvement (perlin, value, openSimplex)
+- **Cellular noise**: REWRITE RULES for gradient lookups provide 61-70% improvement
+- **3D ValueCubic fractals**: Fixed performance regression, achieving 45-80% improvement
+- **Perlin noise**: 10-63% improvements from optimized lerp/cubic interpolation with REWRITE RULES
+- **Value noise**: 11-43% improvements from interpolation optimizations
+- **OpenSimplex2**: 6-16% improvement for Float; minor regression (~5%) for Double variants
+- **SuperSimplex2**: Shows 3-21% regression due to improved benchmark methodology
+  - Previous benchmarks used same X/Y offset (diagonal sampling), which favored SuperSimplex's triangular lattice
+  - New benchmarks use independent X/Y offsets for realistic 2D coordinate distributions
+  - Algorithm remains functionally correct; numbers now reflect true 2D performance
 
 ## 0.2.0.0 - 2025-10-21
 

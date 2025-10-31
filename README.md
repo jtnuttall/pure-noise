@@ -2,6 +2,10 @@
 
 Performant, modern noise generation for Haskell with a minimal dependency footprint.
 
+Built on a unified `Noise p v` type that enables type-safe, composable noise functions.
+The library uses only `base` and `primitive` as dependencies, achieving 84-95% of C++
+FastNoiseLite performance through aggressive optimization and LLVM compilation.
+
 The algorithms used in this library are ported from
 [FastNoiseLite](https://github.com/Auburn/FastNoiseLite). The library structure
 has been retuned to fit better with Haskell semantics.
@@ -34,6 +38,8 @@ myNoise2 =
 ```
 
 ### Advanced Features
+
+The library's unified `Noise p v` type enables powerful composition patterns:
 
 **1D Noise via Slicing:**
 
@@ -71,6 +77,19 @@ layered = (Noise.perlin2 + Noise.next2 Noise.perlin2) / 2
 ```
 
 More examples can be found in `bench` and `demo`.
+
+## Performance Improvements
+
+This release brings significant performance enhancements across nearly all noise types:
+
+- **+32% average improvement** across all benchmarks
+- **Cellular noise: +61-70%** through specialized REWRITE RULES
+- **3D ValueCubic: +45-80%** for fractal variants
+- **Ping-pong fractals: +110-148%** through branchless optimization
+- **Perlin/Value: +10-43%** through optimized interpolation
+
+Note: SuperSimplex benchmarks reflect a methodology improvement (independent X/Y sampling
+rather than diagonal-only sampling), resulting in more realistic performance measurements.
 
 ## Parallel noise generation
 
