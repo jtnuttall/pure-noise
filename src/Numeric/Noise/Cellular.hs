@@ -1,6 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StrictData #-}
 
 -- |
 -- Maintainer: Jeremy Nuttall <jeremy@jeremy-nuttall.com>
@@ -17,7 +18,7 @@ module Numeric.Noise.Cellular (
 ) where
 
 import Data.Bits
-import Data.Foldable -- redundant since GHC 9.10.1, here for compat
+import Data.Foldable (foldl') -- redundant since GHC 9.10.1, here for compat
 import Data.Primitive.PrimArray
 import GHC.Generics (Generic)
 import Numeric.Noise.Internal
@@ -28,13 +29,13 @@ import Numeric.Noise.Internal.Math
 -- Cellular noise is based on distances to randomly distributed cell points,
 -- creating a distinctive cellular or organic pattern.
 data CellularConfig a = CellularConfig
-  { cellularDistanceFn :: !CellularDistanceFn
+  { cellularDistanceFn :: CellularDistanceFn
   -- ^ Distance metric to use when computing distance to cell points.
-  , cellularJitter :: !a
+  , cellularJitter :: a
   -- ^ Amount of randomness in cell point positions.
-  -- 0 creates a regular grid, 1 creates fully random positions.
-  -- Values outside [0, 1] are valid but may produce unusual results.
-  , cellularResult :: !CellularResult
+  -- \( 0 \) creates a regular grid, \( 1 \) creates fully random positions.
+  -- Values outside \( [0, 1] \) may produce unusual results.
+  , cellularResult :: CellularResult
   -- ^ What value to return from the noise function.
   }
   deriving (Generic, Show)
@@ -47,23 +48,20 @@ defaultCellularConfig =
     , cellularJitter = 1
     , cellularResult = CellValue
     }
+{-# INLINEABLE defaultCellularConfig #-}
 
 -- | Distance function for cellular noise calculations.
 --
 -- Different distance metrics produce different visual characteristics
 -- in the cellular pattern.
 data CellularDistanceFn
-  = -- | Standard Euclidean distance (sqrt(dx² + dy²)).
-    -- Creates circular cells with smooth edges.
+  = -- | \( \sqrt{dx^2 + dy^2} \) - Creates circular cells with smooth edges.
     DistEuclidean
-  | -- | Squared Euclidean distance (dx² + dy²), no square root.
-    -- Faster than 'DistEuclidean' with similar appearance.
+  | -- | \( dx^2 + dy^2 \) - Faster than 'DistEuclidean' with similar appearance.
     DistEuclideanSq
-  | -- | Manhattan/taxicab distance (|dx| + |dy|).
-    -- Creates diamond-shaped cells with sharp edges.
+  | -- | \( |dx| + |dy| \) - Creates diamond-shaped cells with sharp edges.
     DistManhattan
   | -- | Hybrid of Euclidean and Manhattan distances.
-    -- Combines characteristics of both metrics.
     DistHybrid
   deriving (Generic, Read, Show, Eq, Ord, Enum, Bounded)
 
@@ -110,14 +108,14 @@ normDist = \case
 {-# INLINE normDist #-}
 
 noise2 :: (RealFrac a, Floating a) => CellularConfig a -> Noise2 a
-noise2 CellularConfig{..} = Noise2 $ \ !seed !x !y ->
+noise2 CellularConfig{..} = mkNoise2 $ \ !seed !x !y ->
   let !jitter = cellularJitter * 0.43701595
       !rx = round x
       !ry = round y
 
       dist = distance cellularDistanceFn
       norm = normDist cellularDistanceFn
-      coeff = 1 / (fromIntegral (maxBound @Hash) + 1)
+      coeff = 1 / (maxHash + 1)
 
       {-# INLINE pointDist #-}
       pointDist !xi !yi =
@@ -125,9 +123,9 @@ noise2 CellularConfig{..} = Noise2 $ \ !seed !x !y ->
             !py = fromIntegral yi - y
             !h = hash2 seed (primeX * xi) (primeY * yi)
             !i = h .&. 0x1FE
-            !rvx = randVecs2d `indexPrimArray` fromIntegral i
-            !rvy = randVecs2d `indexPrimArray` (fromIntegral i .|. 1)
-            !d = dist (px + realToFrac rvx * jitter) (py + realToFrac rvy * jitter)
+            !rvx = lookupRandVec2d i
+            !rvy = lookupRandVec2d (i .|. 1)
+            !d = dist (px + rvx * jitter) (py + rvy * jitter)
          in (h, d)
 
       {-# INLINE points #-}
@@ -176,15 +174,29 @@ noise2 CellularConfig{..} = Noise2 $ \ !seed !x !y ->
         Distance2Div ->
           let (!_, !d0, !d1) = selectSmallestTwo
            in norm d0 / norm d1 - 1
- where
+{-# INLINE [2] noise2 #-}
 
-{-# INLINE noise2 #-}
+lookupRandVec2d :: (RealFrac a) => Hash -> a
+lookupRandVec2d = realToFrac . indexPrimArray randVecs2dd . fromIntegral
+{-# NOINLINE [1] lookupRandVec2d #-}
+
+{-# RULES
+"lookupRandVec2d/Float" forall h.
+  lookupRandVec2d h =
+    indexPrimArray randVecs2df (fromIntegral h)
+"lookupRandVec2d/Double" forall h.
+  lookupRandVec2d h =
+    indexPrimArray randVecs2dd (fromIntegral h)
+  #-}
+
+randVecs2df :: PrimArray Float
+randVecs2df = mapPrimArray realToFrac randVecs2dd
 
 -- >>> sizeofPrimArray randVecs2d == 512
 -- True
 {- ORMOLU_DISABLE -}
-randVecs2d :: PrimArray Float
-randVecs2d =
+randVecs2dd :: PrimArray Double
+randVecs2dd =
   [-0.2700222198,-0.9628540911,0.3863092627,-0.9223693152,0.04444859006,-0.999011673,-0.5992523158,-0.8005602176
   ,-0.7819280288,0.6233687174,0.9464672271,0.3227999196,-0.6514146797,-0.7587218957,0.9378472289,0.347048376
   ,-0.8497875957,-0.5271252623,-0.879042592,0.4767432447,-0.892300288,-0.4514423508,-0.379844434,-0.9250503802

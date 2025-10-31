@@ -1,0 +1,22 @@
+2025-10-27T13:19:56-05:00
+Running ../bin/NoiseBenchmarking
+Run on (32 X 5500 MHz CPU s)
+CPU Caches:
+  L1 Data 48 KiB (x16)
+  L1 Instruction 32 KiB (x16)
+  L2 Unified 2048 KiB (x16)
+  L3 Unified 36864 KiB (x1)
+Load Average: 0.04, 1.45, 2.92
+name,iterations,real_time,cpu_time,time_unit,bytes_per_second,items_per_second,label,error_occurred,error_message
+"2D_Value_FastNoiseLite",555,1.2382e+06,1.2367e+06,ns,,2.11971e+08,,,
+"2D_Perlin_FastNoiseLite",487,1.43744e+06,1.43595e+06,ns,,1.82558e+08,,,
+"2D_OpenSimplex2_FastNoiseLite",359,1.96694e+06,1.96445e+06,ns,,1.33444e+08,,,
+"2D_OpenSimplex2S_FastNoiseLite",285,2.46409e+06,2.46146e+06,ns,,1.06499e+08,,,
+"2D_Cellular_FastNoiseLite",192,3.65144e+06,3.64726e+06,ns,,7.18742e+07,,,
+"2D_ValueCubic_FastNoiseLite",196,3.57433e+06,3.57067e+06,ns,,7.34159e+07,,,
+"3D_Value_FastNoiseLite",297,2.35327e+06,2.35077e+06,ns,,1.11514e+08,,,
+"3D_Perlin_FastNoiseLite",242,2.88941e+06,2.88637e+06,ns,,9.08212e+07,,,
+"3D_OpenSimplex2_FastNoiseLite",186,3.76101e+06,3.75629e+06,ns,,6.9788e+07,,,
+"3D_OpenSimplex2S_FastNoiseLite",158,4.43169e+06,4.42707e+06,ns,,5.92139e+07,,,
+"3D_Cellular_FastNoiseLite",57,1.22524e+07,1.22366e+07,ns,,2.14229e+07,,,
+"3D_ValueCubic_FastNoiseLite",62,1.12345e+07,1.12213e+07,ns,,2.33612e+07,,,

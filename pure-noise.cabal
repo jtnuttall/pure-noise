@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           pure-noise
-version:        0.2.0.0
+version:        0.2.1.0
 synopsis:       High-performance composable noise generation (Perlin, Simplex, Cellular)
 description:    A high-performance noise generation library ported from FastNoiseLite.
                 Provides N-dimensional noise functions (Perlin, OpenSimplex, SuperSimplex,
@@ -58,9 +58,16 @@ test-suite pure-noise-test
   type: exitcode-stdio-1.0
   main-is: Driver.hs
   other-modules:
+      CellularSpec
+      FractalSpec
+      Golden.Util
       Noise2Spec
       Noise3Spec
+      OpenSimplexSpec
       PerlinSpec
+      SuperSimplexSpec
+      ValueCubicSpec
+      ValueSpec
       Paths_pure_noise
   autogen-modules:
       Paths_pure_noise
@@ -68,13 +75,23 @@ test-suite pure-noise-test
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.16 && <5
+      JuicyPixels ==3.3.*
+    , aeson >=2.0 && <2.3
+    , aeson-pretty
+    , base >=4.16 && <5
+    , bytestring
+    , directory
+    , filepath
+    , massiv >=1.0 && <2.0
     , primitive >=0.8 && <0.10
     , pure-noise
     , tasty
     , tasty-discover
+    , tasty-golden
     , tasty-hunit
     , tasty-quickcheck
+    , text
+    , typed-process
   default-language: GHC2021
 
 benchmark pure-noise-bench
@@ -91,9 +108,10 @@ benchmark pure-noise-bench
   build-depends:
       base >=4.16 && <5
     , deepseq
-    , mwc-random
+    , massiv >=1.0 && <2.0
     , primitive >=0.8 && <0.10
     , pure-noise
+    , random
     , tasty
     , tasty-bench
     , vector <=0.14

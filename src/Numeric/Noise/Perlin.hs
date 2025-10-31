@@ -16,7 +16,7 @@ import Numeric.Noise.Internal
 import Numeric.Noise.Internal.Math
 
 noise2 :: (RealFrac a) => Noise2 a
-noise2 = Noise2 noise2Base
+noise2 = mkNoise2 noise2Base
 {-# INLINE noise2 #-}
 
 noise2Base :: forall a. (RealFrac a) => Seed -> a -> a -> a
@@ -37,8 +37,8 @@ noise2Base seed x y =
 
       x1p = x0p + primeX
       y1p = y0p + primeY
-   in 1.4247691104677813
-        * lerp
+   in normalize2 $
+        lerp
           ( lerp
               (gradCoord2 seed x0p y0p xd0 yd0)
               (gradCoord2 seed x1p y0p xd1 yd0)
@@ -50,10 +50,14 @@ noise2Base seed x y =
               u
           )
           v
-{-# INLINE noise2Base #-}
+{-# INLINE [2] noise2Base #-}
+
+normalize2 :: (RealFrac a) => a -> a
+normalize2 = (1.4247691104677813 *)
+{-# INLINE normalize2 #-}
 
 noise3 :: (RealFrac a) => Noise3 a
-noise3 = Noise3 noise3Base
+noise3 = mkNoise3 noise3Base
 {-# INLINE noise3 #-}
 
 noise3Base :: (RealFrac a) => Seed -> a -> a -> a -> a
@@ -80,8 +84,8 @@ noise3Base seed x y z =
       x1p = x0p + primeX
       y1p = y0p + primeY
       z1p = z0p + primeZ
-   in 0.96492141485214233398437
-        * lerp
+   in normalize3 $
+        lerp
           ( lerp
               ( lerp
                   (gradCoord3 seed x0p y0p z0p xd0 yd0 zd0)
@@ -109,4 +113,8 @@ noise3Base seed x y z =
               v
           )
           w
-{-# INLINE noise3Base #-}
+{-# INLINE [2] noise3Base #-}
+
+normalize3 :: (RealFrac a) => a -> a
+normalize3 = (0.96492141485214233398437 *)
+{-# INLINE normalize3 #-}

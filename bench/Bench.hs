@@ -1,294 +1,501 @@
 import BenchLib
+import Data.Massiv.Array qualified as MA
 import Data.Typeable
 import Data.Vector.Unboxed qualified as U
 import Numeric.Noise
-import System.Random.MWC qualified as MWC
+import System.Random.Stateful
 
 main :: IO ()
 main = do
   let sz = 1_000_000
-      seed = 1337
       octaves = 8
+      massivW = 1_000
+      massivH = 1_000
   defaultMain
     [ bgroup
         "2D"
-        ( baseline2 seed sz
-            <> benchPerlin2 seed octaves sz
-            <> benchOpenSimplex2 seed octaves sz
-            <> benchOpenSimplexSmooth2 seed octaves sz
-            <> benchValue2 seed octaves sz
-            <> benchValueCubic2 seed octaves sz
-            <> benchCombo2 seed octaves sz
-            <> benchCellular2 seed octaves sz
+        ( baseline2 sz
+            <> benchPerlin2 octaves sz
+            <> benchOpenSimplex2 octaves sz
+            <> benchOpenSimplexSmooth2 octaves sz
+            <> benchValue2 octaves sz
+            <> benchValueCubic2 octaves sz
+            <> benchCombo2 octaves sz
+            <> benchCellular2 octaves sz
         )
     , bgroup
         "3D"
-        ( baseline3 seed sz
-            <> benchPerlin3 seed octaves sz
-            <> benchValue3 seed octaves sz
-            <> benchValueCubic3 seed octaves sz
+        ( baseline3 sz
+            <> benchPerlin3 octaves sz
+            <> benchValue3 octaves sz
+            <> benchValueCubic3 octaves sz
         )
+    , bgroup
+        "2D massiv"
+        ( benchMassivBase2 massivW massivH
+            <> benchMassivFractal2 octaves massivW massivH
+        )
+    , bgroup "FNL compare 2D" benchFnlCompare2D
+    , bgroup "FNL compare 3D" benchFnlCompare3D
     ]
 
-label :: (Typeable a) => String -> Int -> Seed -> Proxy a -> String
-label lbl sz seed px =
+label :: (Typeable a) => String -> Int -> Proxy a -> String
+label lbl sz px =
   let lbl' = case lbl of
         "" -> ""
         v -> v <> ": "
-   in lbl' <> showsTypeRep (typeRep px) "" <> "[seed=" <> show seed <> "] x" <> show sz
+   in lbl' <> showsTypeRep (typeRep px) "" <> " x" <> show sz
 
-createEnv2 :: forall a. (U.Unbox a, MWC.UniformRange a, RealFrac a) => Int -> IO (U.Vector (a, a))
+-- most of these functions zero at whole numbers and can short-circuit,
+-- so a random offset should give a better signal of real world performance
+generate2DCoords
+  :: ( UniformRange a
+     , RealFrac a
+     , StatefulGen g IO
+     )
+  => g
+  -> Int
+  -> Int
+  -> IO (a, a)
+generate2DCoords g i j = do
+  offsetX <- uniformRM (0.00001, 0.99999) g
+  offsetY <- uniformRM (0.00001, 0.99999) g
+  let r = fromIntegral i
+      c = fromIntegral j
+
+  pure (r + offsetX, c + offsetY)
+{-# INLINE generate2DCoords #-}
+
+createEnv2 :: forall a. (U.Unbox a, UniformRange a, RealFrac a) => Int -> IO (Seed, U.Vector (a, a))
 createEnv2 sz = do
-  g <- MWC.createSystemRandom
-  U.generateM sz $ \i -> do
-    -- most of these functions zero at whole numbers and can short-circuit,
-    -- so a random offset should give a better signal of real world performance
-    offset <- MWC.uniformRM (0.00001, 0.99999) g
-    pure $
-      let r = fromIntegral $ i `div` (sz `div` 2)
-          c = fromIntegral $ i `mod` (sz `div` 2)
-       in (r + offset, c + offset)
+  g <- newAtomicGenM =<< newStdGen
+  seed <- uniformRM (minBound, maxBound) g
+  v <- U.generateM sz $ \i ->
+    generate2DCoords
+      g
+      (i `div` (sz `div` 2))
+      (i `mod` (sz `div` 2))
+  pure (seed, v)
 {-# INLINE createEnv2 #-}
 
 benchMany2
   :: forall a
-   . (Typeable a, MWC.UniformRange a, U.Unbox a, RealFrac a)
+   . (Typeable a, UniformRange a, U.Unbox a, RealFrac a)
   => String
   -> Int
-  -> Seed
   -> Noise2 a
   -> Benchmark
-benchMany2 lbl sz seed f =
-  env (createEnv2 sz) $ \ ~v ->
-    bench (label lbl sz seed (Proxy @(U.Vector a))) $
+benchMany2 lbl sz f =
+  env (createEnv2 sz) $ \ ~(seed, v) ->
+    bench (label lbl sz (Proxy @(U.Vector a))) $
       nf (U.map (uncurry (noise2At f seed))) v
 {-# INLINE benchMany2 #-}
 
-baseline2 :: Seed -> Int -> [Benchmark]
-baseline2 seed sz =
+baseline2 :: Int -> [Benchmark]
+baseline2 sz =
   [ bgroup
       "baseline2"
-      [ benchMany2 @Float "" sz seed (const2 1)
-      , benchMany2 @Double "" sz seed (const2 2)
+      [ benchMany2 @Float "" sz (const2 1)
+      , benchMany2 @Double "" sz (const2 2)
       ]
   ]
-{-# INLINE baseline2 #-}
 
-benchPerlin2 :: Seed -> Int -> Int -> [Benchmark]
-benchPerlin2 seed octaves sz =
+benchPerlin2 :: Int -> Int -> [Benchmark]
+benchPerlin2 octaves sz =
   [ bgroup
       "perlin2"
-      [ benchMany2 @Float "" sz seed perlin2
-      , benchMany2 @Double "" sz seed perlin2
-      , benchMany2 @Float "fractal" sz seed (fractal2 defaultFractalConfig{octaves} perlin2)
-      , benchMany2 @Double "fractal" sz seed (fractal2 defaultFractalConfig{octaves} perlin2)
-      , benchMany2 @Float "ridged" sz seed (ridged2 defaultFractalConfig{octaves} perlin2)
-      , benchMany2 @Double "ridged" sz seed (ridged2 defaultFractalConfig{octaves} perlin2)
-      , benchMany2 @Float "billow" sz seed (billow2 defaultFractalConfig{octaves} perlin2)
-      , benchMany2 @Double "billow" sz seed (billow2 defaultFractalConfig{octaves} perlin2)
-      , benchMany2 @Float "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength perlin2)
-      , benchMany2 @Double "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength perlin2)
+      [ benchMany2 @Float "" sz perlin2
+      , benchMany2 @Double "" sz perlin2
+      , benchMany2 @Float "fractal" sz (fractal2 defaultFractalConfig{octaves} perlin2)
+      , benchMany2 @Double "fractal" sz (fractal2 defaultFractalConfig{octaves} perlin2)
+      , benchMany2 @Float "ridged" sz (ridged2 defaultFractalConfig{octaves} perlin2)
+      , benchMany2 @Double "ridged" sz (ridged2 defaultFractalConfig{octaves} perlin2)
+      , benchMany2 @Float "billow" sz (billow2 defaultFractalConfig{octaves} perlin2)
+      , benchMany2 @Double "billow" sz (billow2 defaultFractalConfig{octaves} perlin2)
+      , benchMany2 @Float "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength perlin2)
+      , benchMany2 @Double "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength perlin2)
       ]
   ]
-{-# INLINE benchPerlin2 #-}
 
-benchOpenSimplex2 :: Seed -> Int -> Int -> [Benchmark]
-benchOpenSimplex2 seed octaves sz =
+benchOpenSimplex2 :: Int -> Int -> [Benchmark]
+benchOpenSimplex2 octaves sz =
   [ bgroup
       "openSimplex2"
-      [ benchMany2 @Float "" sz seed openSimplex2
-      , benchMany2 @Double "" sz seed openSimplex2
-      , benchMany2 @Float "fractal" sz seed (fractal2 defaultFractalConfig{octaves} openSimplex2)
-      , benchMany2 @Double "fractal" sz seed (fractal2 defaultFractalConfig{octaves} openSimplex2)
-      , benchMany2 @Float "ridged" sz seed (ridged2 defaultFractalConfig{octaves} openSimplex2)
-      , benchMany2 @Double "ridged" sz seed (ridged2 defaultFractalConfig{octaves} openSimplex2)
-      , benchMany2 @Float "billow" sz seed (billow2 defaultFractalConfig{octaves} openSimplex2)
-      , benchMany2 @Double "billow" sz seed (billow2 defaultFractalConfig{octaves} openSimplex2)
-      , benchMany2 @Float "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength openSimplex2)
-      , benchMany2 @Double "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength openSimplex2)
+      [ benchMany2 @Float "" sz openSimplex2
+      , benchMany2 @Double "" sz openSimplex2
+      , benchMany2 @Float "fractal" sz (fractal2 defaultFractalConfig{octaves} openSimplex2)
+      , benchMany2 @Double "fractal" sz (fractal2 defaultFractalConfig{octaves} openSimplex2)
+      , benchMany2 @Float "ridged" sz (ridged2 defaultFractalConfig{octaves} openSimplex2)
+      , benchMany2 @Double "ridged" sz (ridged2 defaultFractalConfig{octaves} openSimplex2)
+      , benchMany2 @Float "billow" sz (billow2 defaultFractalConfig{octaves} openSimplex2)
+      , benchMany2 @Double "billow" sz (billow2 defaultFractalConfig{octaves} openSimplex2)
+      , benchMany2 @Float "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength openSimplex2)
+      , benchMany2 @Double "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength openSimplex2)
       ]
   ]
-{-# INLINE benchOpenSimplex2 #-}
 
-benchOpenSimplexSmooth2 :: Seed -> Int -> Int -> [Benchmark]
-benchOpenSimplexSmooth2 seed octaves sz =
+benchOpenSimplexSmooth2 :: Int -> Int -> [Benchmark]
+benchOpenSimplexSmooth2 octaves sz =
   [ bgroup
       "superSimplex2"
-      [ benchMany2 @Float "" sz seed superSimplex2
-      , benchMany2 @Double "" sz seed superSimplex2
-      , benchMany2 @Float "fractal" sz seed (fractal2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Double "fractal" sz seed (fractal2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Float "ridged" sz seed (ridged2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Double "ridged" sz seed (ridged2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Float "billow" sz seed (billow2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Double "billow" sz seed (billow2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Float "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength superSimplex2)
-      , benchMany2 @Double "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength superSimplex2)
+      [ benchMany2 @Float "" sz superSimplex2
+      , benchMany2 @Double "" sz superSimplex2
+      , benchMany2 @Float "fractal" sz (fractal2 defaultFractalConfig{octaves} superSimplex2)
+      , benchMany2 @Double "fractal" sz (fractal2 defaultFractalConfig{octaves} superSimplex2)
+      , benchMany2 @Float "ridged" sz (ridged2 defaultFractalConfig{octaves} superSimplex2)
+      , benchMany2 @Double "ridged" sz (ridged2 defaultFractalConfig{octaves} superSimplex2)
+      , benchMany2 @Float "billow" sz (billow2 defaultFractalConfig{octaves} superSimplex2)
+      , benchMany2 @Double "billow" sz (billow2 defaultFractalConfig{octaves} superSimplex2)
+      , benchMany2 @Float "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength superSimplex2)
+      , benchMany2 @Double "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength superSimplex2)
       ]
   ]
-{-# INLINE benchOpenSimplexSmooth2 #-}
 
-benchValue2 :: Seed -> Int -> Int -> [Benchmark]
-benchValue2 seed octaves sz =
+benchValue2 :: Int -> Int -> [Benchmark]
+benchValue2 octaves sz =
   [ bgroup
       "value2"
-      [ benchMany2 @Float "" sz seed value2
-      , benchMany2 @Double "" sz seed value2
-      , benchMany2 @Float "fractal" sz seed (fractal2 defaultFractalConfig{octaves} value2)
-      , benchMany2 @Double "fractal" sz seed (fractal2 defaultFractalConfig{octaves} value2)
-      , benchMany2 @Float "ridged" sz seed (ridged2 defaultFractalConfig{octaves} value2)
-      , benchMany2 @Double "ridged" sz seed (ridged2 defaultFractalConfig{octaves} value2)
-      , benchMany2 @Float "billow" sz seed (billow2 defaultFractalConfig{octaves} value2)
-      , benchMany2 @Double "billow" sz seed (billow2 defaultFractalConfig{octaves} value2)
-      , benchMany2 @Float "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength value2)
-      , benchMany2 @Double "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength value2)
+      [ benchMany2 @Float "" sz value2
+      , benchMany2 @Double "" sz value2
+      , benchMany2 @Float "fractal" sz (fractal2 defaultFractalConfig{octaves} value2)
+      , benchMany2 @Double "fractal" sz (fractal2 defaultFractalConfig{octaves} value2)
+      , benchMany2 @Float "ridged" sz (ridged2 defaultFractalConfig{octaves} value2)
+      , benchMany2 @Double "ridged" sz (ridged2 defaultFractalConfig{octaves} value2)
+      , benchMany2 @Float "billow" sz (billow2 defaultFractalConfig{octaves} value2)
+      , benchMany2 @Double "billow" sz (billow2 defaultFractalConfig{octaves} value2)
+      , benchMany2 @Float "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength value2)
+      , benchMany2 @Double "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength value2)
       ]
   ]
-{-# INLINE benchValue2 #-}
 
-benchValueCubic2 :: Seed -> Int -> Int -> [Benchmark]
-benchValueCubic2 seed octaves sz =
+benchValueCubic2 :: Int -> Int -> [Benchmark]
+benchValueCubic2 octaves sz =
   [ bgroup
       "valueCubic2"
-      [ benchMany2 @Float "" sz seed valueCubic2
-      , benchMany2 @Double "" sz seed valueCubic2
-      , benchMany2 @Float "fractal" sz seed (fractal2 defaultFractalConfig{octaves} valueCubic2)
-      , benchMany2 @Double "fractal" sz seed (fractal2 defaultFractalConfig{octaves} valueCubic2)
-      , benchMany2 @Float "ridged" sz seed (ridged2 defaultFractalConfig{octaves} valueCubic2)
-      , benchMany2 @Double "ridged" sz seed (ridged2 defaultFractalConfig{octaves} valueCubic2)
-      , benchMany2 @Float "billow" sz seed (billow2 defaultFractalConfig{octaves} valueCubic2)
-      , benchMany2 @Double "billow" sz seed (billow2 defaultFractalConfig{octaves} valueCubic2)
-      , benchMany2 @Float "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic2)
-      , benchMany2 @Double "pingPong" sz seed (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic2)
+      [ benchMany2 @Float "" sz valueCubic2
+      , benchMany2 @Double "" sz valueCubic2
+      , benchMany2 @Float "fractal" sz (fractal2 defaultFractalConfig{octaves} valueCubic2)
+      , benchMany2 @Double "fractal" sz (fractal2 defaultFractalConfig{octaves} valueCubic2)
+      , benchMany2 @Float "ridged" sz (ridged2 defaultFractalConfig{octaves} valueCubic2)
+      , benchMany2 @Double "ridged" sz (ridged2 defaultFractalConfig{octaves} valueCubic2)
+      , benchMany2 @Float "billow" sz (billow2 defaultFractalConfig{octaves} valueCubic2)
+      , benchMany2 @Double "billow" sz (billow2 defaultFractalConfig{octaves} valueCubic2)
+      , benchMany2 @Float "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic2)
+      , benchMany2 @Double "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic2)
       ]
   ]
-{-# INLINE benchValueCubic2 #-}
 
-benchCombo2 :: Seed -> Int -> Int -> [Benchmark]
-benchCombo2 seed octaves sz =
+benchCombo2 :: Int -> Int -> [Benchmark]
+benchCombo2 octaves sz =
   [ bgroup
       "numeric combination"
-      [ benchMany2 @Float "perlin * opensimplex/2" sz seed $
+      [ benchMany2 @Float "perlin * opensimplex/2" sz $
           openSimplex2 / 2 * perlin2
-      , benchMany2 @Float "(4 * perlin) / 4" sz seed $
+      , benchMany2 @Float "(4 * perlin) / 4" sz $
           4 * perlin2 / 4
-      , benchMany2 @Float "(perlin + perlin + perlin + perlin) / 4" sz seed $
+      , benchMany2 @Float "(perlin + perlin + perlin + perlin) / 4" sz $
           (perlin2 + perlin2 + perlin2 + perlin2) / 4
-      , benchMany2 @Float "fractal (perlin * opensimplex/2)" sz seed $
+      , benchMany2 @Float "fractal (perlin * opensimplex/2)" sz $
           fractal2 defaultFractalConfig{octaves} (openSimplex2 / 2 * perlin2)
-      , benchMany2 @Float "fractal perlin * fractal opensimplex" sz seed $
+      , benchMany2 @Float "fractal perlin * fractal opensimplex" sz $
           fractal2 defaultFractalConfig{octaves} perlin2
             * fractal2 defaultFractalConfig{octaves} openSimplex2
       ]
   ]
-{-# INLINE benchCombo2 #-}
 
-benchCellular2 :: Seed -> Int -> Int -> [Benchmark]
-benchCellular2 seed _ sz =
+benchCellular2 :: Int -> Int -> [Benchmark]
+benchCellular2 _ sz =
   [ bgroup
       "cellular2"
-      ( benches @Float Proxy
-          <> benches @Double Proxy
-      )
+      [ benchMany2 @Float
+          "DistEuclidean CellValue"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = CellValue})
+      , benchMany2 @Float
+          "DistEuclidean Distance2Add"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance2Add})
+      , benchMany2 @Float
+          "DistManhattan CellValue"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistManhattan, cellularResult = CellValue})
+      , benchMany2 @Float
+          "DistManhattan Distance2Add"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistManhattan, cellularResult = Distance2Add})
+      , benchMany2 @Double
+          "DistEuclidean CellValue"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = CellValue})
+      , benchMany2 @Double
+          "DistEuclidean Distance2Add"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance2Add})
+      , benchMany2 @Double
+          "DistManhattan CellValue"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistManhattan, cellularResult = CellValue})
+      , benchMany2 @Double
+          "DistManhattan Distance2Add"
+          sz
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistManhattan, cellularResult = Distance2Add})
+      ]
   ]
- where
-  benches
-    :: forall a. (Typeable a, MWC.UniformRange a, U.Unbox a, RealFrac a, Floating a) => Proxy a -> [Benchmark]
-  benches _ =
-    [ benchMany2 @a (show d <> " " <> show r) sz seed (cellular2 config)
-    | d <- [DistEuclidean]
-    , r <- [CellValue, Distance2Add]
-    , let config = defaultCellularConfig{cellularDistanceFn = d, cellularResult = r}
-    ]
-  {-# INLINE benches #-}
-{-# INLINE benchCellular2 #-}
 
-createEnv3 :: forall a m. (Monad m, U.Unbox a, Num a) => Int -> m (U.Vector (a, a, a))
+-- | Create environment for FNL-style 2D benchmarks with integer-aligned coordinates
+-- Mimics FastNoiseLite's benchmark methodology exactly:
+-- for(y = 0; y < gridSize; y++)
+--   for(x = 0; x < gridSize; x++)
+--     noise(float(x), float(y))
+createEnvFnl2 :: Int -> IO (Seed, U.Vector (Float, Float))
+createEnvFnl2 gridSize = do
+  g <- newAtomicGenM =<< newStdGen
+  seed <- uniformRM (minBound, maxBound) g
+  let v = U.generate (gridSize * gridSize) $ \i ->
+        let x = fromIntegral (i `mod` gridSize) :: Float
+            y = fromIntegral (i `div` gridSize) :: Float
+         in (x, y)
+  pure (seed, v)
+{-# INLINE createEnvFnl2 #-}
+
+-- | Benchmark for FNL comparison (integer coordinates, Float only)
+-- Uses foldl' to avoid vector materialization overhead, matching FNL's DoNotOptimize approach
+-- Sums results to prevent DCE while keeping overhead minimal
+benchFnlCompare2
+  :: String
+  -> Int
+  -> Noise2 Float
+  -> Benchmark
+benchFnlCompare2 lbl gridSize f =
+  env (createEnvFnl2 gridSize) $ \ ~(seed, v) ->
+    bench (lbl <> ": Float (FNL grid) x" <> show (gridSize * gridSize)) $
+      nf (\vec -> U.foldl' (\acc (x, y) -> acc + (noise2At f seed) x y) 0 vec) v
+{-# INLINE benchFnlCompare2 #-}
+
+-- | FNL-style 2D benchmarks: 512x512 grid with integer coordinates
+benchFnlCompare2D :: [Benchmark]
+benchFnlCompare2D =
+  let gridSize = 512
+   in [ bgroup
+          "FNL compare"
+          [ benchFnlCompare2 "value2" gridSize value2
+          , benchFnlCompare2 "perlin2" gridSize perlin2
+          , benchFnlCompare2 "openSimplex2" gridSize openSimplex2
+          , benchFnlCompare2 "superSimplex2" gridSize superSimplex2
+          , benchFnlCompare2 "valueCubic2" gridSize valueCubic2
+          , benchFnlCompare2
+              "cellular2 (Distance)"
+              gridSize
+              (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance})
+          ]
+      ]
+
+createEnv3 :: (U.Unbox a, UniformRange a, RealFrac a) => Int -> IO (Seed, U.Vector (a, a, a))
 createEnv3 sz = do
-  !ixs <- U.generateM sz $ \i ->
-    pure $
-      let d = sz `div` 3
-          !x = fromIntegral $ i `div` d `mod` d
-          !y = fromIntegral $ i `div` (d * d)
-          !z = fromIntegral $ i `div` d
-       in (x, y, z)
-  pure ixs
+  g <- newAtomicGenM =<< newStdGen
+  seed <- uniformRM (minBound, maxBound) g
+  offsetX <- uniformRM (0.00001, 0.99999) g
+  offsetY <- uniformRM (0.00001, 0.99999) g
+  offsetZ <- uniformRM (0.00001, 0.99999) g
+  !ixs <- U.generateM sz $ \i -> do
+    let d = sz `div` 3
+        !x = fromIntegral $ i `div` d `mod` d
+        !y = fromIntegral $ i `div` (d * d)
+        !z = fromIntegral $ i `div` d
+    pure (x + offsetX, y + offsetY, z + offsetZ)
+  pure (seed, ixs)
 {-# INLINE createEnv3 #-}
 
 benchMany3
   :: forall a
-   . (Typeable a, RealFrac a, U.Unbox a)
+   . (Typeable a, UniformRange a, RealFrac a, U.Unbox a)
   => String
   -> Int
-  -> Seed
   -> Noise3 a
   -> Benchmark
-benchMany3 lbl sz seed f =
-  env (createEnv3 sz) $ \ ~v ->
-    bench (label lbl sz seed (Proxy @(U.Vector a))) $
+benchMany3 lbl sz f =
+  env (createEnv3 sz) $ \ ~(seed, v) ->
+    bench (label lbl sz (Proxy @(U.Vector a))) $
       nf (U.map (\(x, y, z) -> noise3At f seed x y z)) v
 {-# INLINE benchMany3 #-}
 
-baseline3 :: Seed -> Int -> [Benchmark]
-baseline3 seed sz =
+baseline3 :: Int -> [Benchmark]
+baseline3 sz =
   [ bgroup
       "baseline3"
-      [ benchMany3 @Float "" sz seed (const3 1)
-      , benchMany3 @Double "" sz seed (const3 2)
+      [ benchMany3 @Float "" sz (const3 1)
+      , benchMany3 @Double "" sz (const3 2)
       ]
   ]
-{-# INLINE baseline3 #-}
 
-benchPerlin3 :: Seed -> Int -> Int -> [Benchmark]
-benchPerlin3 seed octaves sz =
+benchPerlin3 :: Int -> Int -> [Benchmark]
+benchPerlin3 octaves sz =
   [ bgroup
       "perlin3"
-      [ benchMany3 @Float "" sz seed perlin3
-      , benchMany3 @Double "" sz seed perlin3
-      , benchMany3 @Float "fractal" sz seed (fractal3 defaultFractalConfig{octaves} perlin3)
-      , benchMany3 @Double "fractal" sz seed (fractal3 defaultFractalConfig{octaves} perlin3)
-      , benchMany3 @Float "ridged" sz seed (ridged3 defaultFractalConfig{octaves} perlin3)
-      , benchMany3 @Double "ridged" sz seed (ridged3 defaultFractalConfig{octaves} perlin3)
-      , benchMany3 @Float "billow" sz seed (billow3 defaultFractalConfig{octaves} perlin3)
-      , benchMany3 @Double "billow" sz seed (billow3 defaultFractalConfig{octaves} perlin3)
-      , benchMany3 @Float "pingPong" sz seed (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength perlin3)
-      , benchMany3 @Double "pingPong" sz seed (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength perlin3)
+      [ benchMany3 @Float "" sz perlin3
+      , benchMany3 @Double "" sz perlin3
+      , benchMany3 @Float "fractal" sz (fractal3 defaultFractalConfig{octaves} perlin3)
+      , benchMany3 @Double "fractal" sz (fractal3 defaultFractalConfig{octaves} perlin3)
+      , benchMany3 @Float "ridged" sz (ridged3 defaultFractalConfig{octaves} perlin3)
+      , benchMany3 @Double "ridged" sz (ridged3 defaultFractalConfig{octaves} perlin3)
+      , benchMany3 @Float "billow" sz (billow3 defaultFractalConfig{octaves} perlin3)
+      , benchMany3 @Double "billow" sz (billow3 defaultFractalConfig{octaves} perlin3)
+      , benchMany3 @Float "pingPong" sz (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength perlin3)
+      , benchMany3 @Double "pingPong" sz (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength perlin3)
       ]
   ]
-{-# INLINE benchPerlin3 #-}
 
-benchValue3 :: Seed -> Int -> Int -> [Benchmark]
-benchValue3 seed octaves sz =
+benchValue3 :: Int -> Int -> [Benchmark]
+benchValue3 octaves sz =
   [ bgroup
       "value3"
-      [ benchMany3 @Float "" sz seed value3
-      , benchMany3 @Double "" sz seed value3
-      , benchMany3 @Float "fractal" sz seed (fractal3 defaultFractalConfig{octaves} value3)
-      , benchMany3 @Double "fractal" sz seed (fractal3 defaultFractalConfig{octaves} value3)
-      , benchMany3 @Float "ridged" sz seed (ridged3 defaultFractalConfig{octaves} value3)
-      , benchMany3 @Double "ridged" sz seed (ridged3 defaultFractalConfig{octaves} value3)
-      , benchMany3 @Float "billow" sz seed (billow3 defaultFractalConfig{octaves} value3)
-      , benchMany3 @Double "billow" sz seed (billow3 defaultFractalConfig{octaves} value3)
-      , benchMany3 @Float "pingPong" sz seed (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength value3)
-      , benchMany3 @Double "pingPong" sz seed (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength value3)
+      [ benchMany3 @Float "" sz value3
+      , benchMany3 @Double "" sz value3
+      , benchMany3 @Float "fractal" sz (fractal3 defaultFractalConfig{octaves} value3)
+      , benchMany3 @Double "fractal" sz (fractal3 defaultFractalConfig{octaves} value3)
+      , benchMany3 @Float "ridged" sz (ridged3 defaultFractalConfig{octaves} value3)
+      , benchMany3 @Double "ridged" sz (ridged3 defaultFractalConfig{octaves} value3)
+      , benchMany3 @Float "billow" sz (billow3 defaultFractalConfig{octaves} value3)
+      , benchMany3 @Double "billow" sz (billow3 defaultFractalConfig{octaves} value3)
+      , benchMany3 @Float "pingPong" sz (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength value3)
+      , benchMany3 @Double "pingPong" sz (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength value3)
       ]
   ]
-{-# INLINE benchValue3 #-}
 
-benchValueCubic3 :: Seed -> Int -> Int -> [Benchmark]
-benchValueCubic3 seed octaves sz =
+benchValueCubic3 :: Int -> Int -> [Benchmark]
+benchValueCubic3 octaves sz =
   [ bgroup
       "valueCubic3"
-      [ benchMany3 @Float "" sz seed valueCubic3
-      , benchMany3 @Double "" sz seed valueCubic3
-      , benchMany3 @Float "fractal" sz seed (fractal3 defaultFractalConfig{octaves} valueCubic3)
-      , benchMany3 @Double "fractal" sz seed (fractal3 defaultFractalConfig{octaves} valueCubic3)
-      , benchMany3 @Float "ridged" sz seed (ridged3 defaultFractalConfig{octaves} valueCubic3)
-      , benchMany3 @Double "ridged" sz seed (ridged3 defaultFractalConfig{octaves} valueCubic3)
-      , benchMany3 @Float "billow" sz seed (billow3 defaultFractalConfig{octaves} valueCubic3)
-      , benchMany3 @Double "billow" sz seed (billow3 defaultFractalConfig{octaves} valueCubic3)
-      , benchMany3 @Float "pingPong" sz seed (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic3)
-      , benchMany3 @Double "pingPong" sz seed (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic3)
+      [ benchMany3 @Float "" sz valueCubic3
+      , benchMany3 @Double "" sz valueCubic3
+      , benchMany3 @Float "fractal" sz (fractal3 defaultFractalConfig{octaves} valueCubic3)
+      , benchMany3 @Double "fractal" sz (fractal3 defaultFractalConfig{octaves} valueCubic3)
+      , benchMany3 @Float "ridged" sz (ridged3 defaultFractalConfig{octaves} valueCubic3)
+      , benchMany3 @Double "ridged" sz (ridged3 defaultFractalConfig{octaves} valueCubic3)
+      , benchMany3 @Float "billow" sz (billow3 defaultFractalConfig{octaves} valueCubic3)
+      , benchMany3 @Double "billow" sz (billow3 defaultFractalConfig{octaves} valueCubic3)
+      , benchMany3 @Float "pingPong" sz (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic3)
+      , benchMany3 @Double "pingPong" sz (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic3)
       ]
   ]
-{-# INLINE benchValueCubic3 #-}
+
+-- | Create environment for FNL-style 3D benchmarks with integer-aligned coordinates
+-- Mimics FastNoiseLite's benchmark methodology exactly:
+-- for(z = 0; z < gridSize; z++)
+--   for(y = 0; y < gridSize; y++)
+--     for(x = 0; x < gridSize; x++)
+--       noise(float(x), float(y), float(z))
+createEnvFnl3 :: Int -> IO (Seed, U.Vector (Float, Float, Float))
+createEnvFnl3 gridSize = do
+  g <- newAtomicGenM =<< newStdGen
+  seed <- uniformRM (minBound, maxBound) g
+  let gridSq = gridSize * gridSize
+      v = U.generate (gridSize * gridSize * gridSize) $ \i ->
+        let x = fromIntegral (i `mod` gridSize) :: Float
+            y = fromIntegral ((i `div` gridSize) `mod` gridSize) :: Float
+            z = fromIntegral (i `div` gridSq) :: Float
+         in (x, y, z)
+  pure (seed, v)
+{-# INLINE createEnvFnl3 #-}
+
+-- | Benchmark for FNL 3D comparison (integer coordinates, Float only)
+-- Uses foldl' to avoid vector materialization overhead, matching FNL's DoNotOptimize approach
+-- Sums results to prevent DCE while keeping overhead minimal
+benchFnlCompare3
+  :: String
+  -> Int
+  -> Noise3 Float
+  -> Benchmark
+benchFnlCompare3 lbl gridSize f =
+  env (createEnvFnl3 gridSize) $ \ ~(seed, v) ->
+    bench (lbl <> ": Float (FNL grid) x" <> show (gridSize * gridSize * gridSize)) $
+      nf (\vec -> U.foldl' (\acc (x, y, z) -> acc + noise3At f seed x y z) 0 vec) v
+{-# INLINE benchFnlCompare3 #-}
+
+-- | FNL-style 3D benchmarks: 64x64x64 grid with integer coordinates
+benchFnlCompare3D :: [Benchmark]
+benchFnlCompare3D =
+  let gridSize = 64
+   in [ bgroup
+          "FNL compare"
+          [ benchFnlCompare3 "value3" gridSize value3
+          , benchFnlCompare3 "perlin3" gridSize perlin3
+          , benchFnlCompare3 "valueCubic3" gridSize valueCubic3
+          ]
+      ]
+
+benchMassiv2
+  :: forall a
+   . (Typeable a, U.Unbox a, RealFrac a, UniformRange a)
+  => String
+  -> Int
+  -> Int
+  -> Noise2 a
+  -> Benchmark
+benchMassiv2 lbl !w !h noiseF =
+  env
+    ( do
+        g <- newAtomicGenM =<< newStdGen
+        seed <- uniformRM (minBound, maxBound) g
+        -- This intentionally breaks the optimizer's ability to DCE. If we try to calculate
+        -- inline it seems that GHC is smart enough to figure out that the whole-number
+        -- integral points involve relatively simple code paths.
+        (arr :: MA.Array MA.U MA.Ix2 (a, a)) <-
+          MA.generateArray @MA.U MA.Par (MA.Sz2 h w) $ \(i MA.:. j) ->
+            generate2DCoords g i j
+
+        pure (seed, arr)
+    )
+    $ \ ~(seed, arr) ->
+      bench (label lbl (w * h) (Proxy @a)) $
+        nf
+          ( MA.computeP @MA.U
+              . MA.map
+                ( \(!x, !y) ->
+                    noise2At noiseF seed x y
+                )
+          )
+          arr
+{-# INLINE benchMassiv2 #-}
+
+benchMassivBase2 :: Int -> Int -> [Benchmark]
+benchMassivBase2 !w !h =
+  [ bgroup
+      "massiv base2"
+      [ benchMassiv2 @Float "perlin2" w h perlin2
+      , benchMassiv2 @Double "perlin2" w h perlin2
+      , benchMassiv2 @Float "openSimplex2" w h openSimplex2
+      , benchMassiv2 @Double "openSimplex2" w h openSimplex2
+      , benchMassiv2 @Float "superSimplex2" w h superSimplex2
+      , benchMassiv2 @Double "superSimplex2" w h superSimplex2
+      , benchMassiv2 @Float "value2" w h value2
+      , benchMassiv2 @Double "value2" w h value2
+      , benchMassiv2 @Float "valueCubic2" w h valueCubic2
+      , benchMassiv2 @Double "valueCubic2" w h valueCubic2
+      , benchMassiv2 @Float
+          "cellular2"
+          w
+          h
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = CellValue})
+      , benchMassiv2 @Double
+          "cellular2"
+          w
+          h
+          (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = CellValue})
+      ]
+  ]
+
+benchMassivFractal2 :: Int -> Int -> Int -> [Benchmark]
+benchMassivFractal2 octaves w h =
+  [ bgroup
+      "massiv fractal2"
+      [ benchMassiv2 @Float "perlin2 fractal" w h (fractal2 defaultFractalConfig{octaves} perlin2)
+      , benchMassiv2 @Double "perlin2 fractal" w h (fractal2 defaultFractalConfig{octaves} perlin2)
+      , benchMassiv2 @Float "value2 fractal" w h (fractal2 defaultFractalConfig{octaves} value2)
+      , benchMassiv2 @Double "value2 fractal" w h (fractal2 defaultFractalConfig{octaves} value2)
+      , benchMassiv2 @Float "openSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} openSimplex2)
+      , benchMassiv2 @Double "openSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} openSimplex2)
+      , benchMassiv2 @Float "superSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} superSimplex2)
+      , benchMassiv2 @Double "superSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} superSimplex2)
+      ]
+  ]

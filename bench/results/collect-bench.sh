@@ -23,7 +23,7 @@ elif [ -z "$1" ] || [ "$1" = "tasty" ]; then
   else
     echo "no baseline $BASELINE.csv from $PWD"
   fi
-  ARGS="$ARGS --svg=$BFILE.svg --timeout 100 --stdev 1 $COMP"
+  ARGS="$ARGS --svg=$BFILE.svg --timeout 100 --stdev 1 --time-mode wall $COMP"
 else
   echo >&2 "Unrecognized option: $1"
 fi

@@ -64,6 +64,7 @@ data NoiseConfig = NoiseConfig
   , _frequency :: Float
   , _cellularConfig :: Noise.CellularConfig Float
   , ncFractalConfig :: UiFractalConfig
+  , ncWarpConfig :: UiWarpConfig
   }
 
 defaultNoiseConfig :: NoiseConfig
@@ -77,6 +78,7 @@ defaultNoiseConfig =
     , _frequency = 0.01
     , _cellularConfig = Noise.defaultCellularConfig
     , ncFractalConfig = defaultFractalConfig
+    , ncWarpConfig = defaultWarpConfig
     }
 
 data UiFractalConfig = UiFractalConfig
@@ -93,6 +95,20 @@ defaultFractalConfig =
     , _fractalType = FBM
     , _pingPongStrength = Noise.defaultPingPongStrength
     , _fractalConfig = Noise.defaultFractalConfig
+    }
+
+data UiWarpConfig = UiWarpConfig
+  { _warpStrength :: Float
+  , _warpFrequency :: Float
+  , _warpZ :: Float
+  }
+
+defaultWarpConfig :: UiWarpConfig
+defaultWarpConfig =
+  UiWarpConfig
+    { _warpStrength = 25
+    , _warpFrequency = 0.1
+    , _warpZ = 0.0
     }
 
 data FractalType
@@ -118,6 +134,7 @@ data NoiseType
   | ValueCubic
   | PerlinPlusSuperSimplex
   | ValuePlusOpenSimplex2
+  | DomainWarped
   deriving (Eq, Ord, Enum, Bounded)
 
 instance Show NoiseType where
@@ -130,6 +147,7 @@ instance Show NoiseType where
     ValueCubic -> "Value Cubic"
     PerlinPlusSuperSimplex -> "Perlin + SuperSimplex (see README)"
     ValuePlusOpenSimplex2 -> "Value + OpenSimplex2"
+    DomainWarped -> "Domain Warped (Perlin\8594SuperSimplex)"
 
 data DeltaTime = DeltaTime
   { previousMono :: Double
@@ -160,6 +178,15 @@ instance HasUiFractalConfig NoiseConfig where
 instance HasUiFractalConfig AppState where
   uiFractalConfig = noiseConfig . uiFractalConfig
   {-# INLINE uiFractalConfig #-}
+
+makeClassy ''UiWarpConfig
+instance HasUiWarpConfig NoiseConfig where
+  uiWarpConfig = lens ncWarpConfig (\x y -> x{ncWarpConfig = y})
+  {-# INLINE uiWarpConfig #-}
+
+instance HasUiWarpConfig AppState where
+  uiWarpConfig = noiseConfig . uiWarpConfig
+  {-# INLINE uiWarpConfig #-}
 
 fractalOctaves :: (HasUiFractalConfig c, Functor f) => (Int -> f Int) -> c -> f c
 fractalOctaves = fractalConfig . lens Noise.octaves (\x y -> x{Noise.octaves = y})
@@ -232,7 +259,7 @@ scale config =
       y = fromIntegral w / freq / fromIntegral h
    in V2 (1 / x) (1 / y)
 
-createNoiseImage :: (HasAppState c, HasNoiseConfig c, HasUiFractalConfig c) => c -> NoiseImg
+createNoiseImage :: (HasAppState c, HasNoiseConfig c, HasUiFractalConfig c, HasUiWarpConfig c) => c -> NoiseImg
 createNoiseImage config =
   let noiseF = noiseFrom config
       s = config ^. seed
@@ -246,7 +273,7 @@ createNoiseImage config =
             noise = Noise.noise2At noiseF s (x * xScale + offX) (y * yScale + offY)
          in (noise + 1) / 2
 
-noiseFrom :: (HasNoiseConfig c, HasUiFractalConfig c) => c -> Noise.Noise2 Float
+noiseFrom :: (HasNoiseConfig c, HasUiFractalConfig c, HasUiWarpConfig c) => c -> Noise.Noise2 Float
 noiseFrom config = clamp (fractal noise)
  where
   clamp
@@ -262,6 +289,17 @@ noiseFrom config = clamp (fractal noise)
     ValueCubic -> Noise.valueCubic2
     PerlinPlusSuperSimplex -> (Noise.superSimplex2 + Noise.perlin2) / 2
     ValuePlusOpenSimplex2 -> (Noise.value2 + Noise.openSimplex2) / 2
+    DomainWarped -> do
+      let warpSliceZ = config ^. warpZ
+          warpStr = config ^. warpStrength
+          warpFreq = config ^. warpFrequency
+          innerNoise =
+            Noise.warp (\(x, y, z) -> (x * warpFreq, y * warpFreq, z * warpFreq))
+              $ Noise.fractal3 Noise.defaultFractalConfig{Noise.octaves = 5} Noise.perlin3
+      warpX <- Noise.sliceX3 warpSliceZ innerNoise
+      warpY <- Noise.sliceY3 warpSliceZ innerNoise
+      Noise.warp (bimap (+ warpStr * warpX) (+ warpStr * warpY))
+        $ Noise.fractal2 Noise.defaultFractalConfig{Noise.octaves = 5} Noise.openSimplex2
 
   fractal
     | config ^. fractalEnabled =
@@ -359,6 +397,11 @@ noiseDash = dashWin do
         _ <- dragFloat "cellular jitter" cellularJitter 0.005 (-1) 1 "%.4f"
         _ <- combo "distance fn" cellularDistanceFn
         _ <- combo "cellular result" cellularResult
+        pure ()
+      DomainWarped -> do
+        _ <- dragFloat "warp strength" warpStrength 0.5 0 200 "%.2f"
+        _ <- dragFloat "warp frequency" warpFrequency 0.01 0.1 5 "%.3f"
+        _ <- dragFloat "warp z-slice" warpZ 0.5 (-100) 100 "%.2f"
         pure ()
       _ -> pure ()
 

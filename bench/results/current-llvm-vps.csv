@@ -1,94 +1,127 @@
 name,# values created,time (p),noise values per second
-All.2D.baseline2.Vector Float[seed=1337] x1000000,1000000.0,0.00058077675,1721832012
-All.2D.baseline2.Vector Double[seed=1337] x1000000,1000000.0,0.000941492611,1062143226
-All.2D.perlin2.Vector Float[seed=1337] x1000000,1000000.0,0.007243808871,138048921
-All.2D.perlin2.Vector Double[seed=1337] x1000000,1000000.0,0.008612156712,116114933
-All.2D.perlin2.fractal: Vector Float[seed=1337] x1000000,1000000.0,0.069814408787,14323690
-All.2D.perlin2.fractal: Vector Double[seed=1337] x1000000,1000000.0,0.0845339363,11829568
-All.2D.perlin2.ridged: Vector Float[seed=1337] x1000000,1000000.0,0.074327850725,13453907
-All.2D.perlin2.ridged: Vector Double[seed=1337] x1000000,1000000.0,0.08876819965,11265295
-All.2D.perlin2.billow: Vector Float[seed=1337] x1000000,1000000.0,0.0731856304,13663884
-All.2D.perlin2.billow: Vector Double[seed=1337] x1000000,1000000.0,0.0878798118,11379177
-All.2D.perlin2.pingPong: Vector Float[seed=1337] x1000000,1000000.0,0.1516694059,6593287
-All.2D.perlin2.pingPong: Vector Double[seed=1337] x1000000,1000000.0,0.160055365,6247838
-All.2D.openSimplex2.Vector Float[seed=1337] x1000000,1000000.0,0.015507796862,64483692
-All.2D.openSimplex2.Vector Double[seed=1337] x1000000,1000000.0,0.014148060787,70681064
-All.2D.openSimplex2.fractal: Vector Float[seed=1337] x1000000,1000000.0,0.10567287435,9463166
-All.2D.openSimplex2.fractal: Vector Double[seed=1337] x1000000,1000000.0,0.1195408352,8365342
-All.2D.openSimplex2.ridged: Vector Float[seed=1337] x1000000,1000000.0,0.1091564068,9161166
-All.2D.openSimplex2.ridged: Vector Double[seed=1337] x1000000,1000000.0,0.1273460941,7852616
-All.2D.openSimplex2.billow: Vector Float[seed=1337] x1000000,1000000.0,0.1066762926,9374154
-All.2D.openSimplex2.billow: Vector Double[seed=1337] x1000000,1000000.0,0.123974886,8066149
-All.2D.openSimplex2.pingPong: Vector Float[seed=1337] x1000000,1000000.0,0.1906711514,5244631
-All.2D.openSimplex2.pingPong: Vector Double[seed=1337] x1000000,1000000.0,0.2523924604,3962083
-All.2D.superSimplex2.Vector Float[seed=1337] x1000000,1000000.0,0.015336432059,65204214
-All.2D.superSimplex2.Vector Double[seed=1337] x1000000,1000000.0,0.01630223295,61341290
-All.2D.superSimplex2.fractal: Vector Float[seed=1337] x1000000,1000000.0,0.1195231156,8366582
-All.2D.superSimplex2.fractal: Vector Double[seed=1337] x1000000,1000000.0,0.1330857983,7513949
-All.2D.superSimplex2.ridged: Vector Float[seed=1337] x1000000,1000000.0,0.12391528485,8070029
-All.2D.superSimplex2.ridged: Vector Double[seed=1337] x1000000,1000000.0,0.1363964036,7331571
-All.2D.superSimplex2.billow: Vector Float[seed=1337] x1000000,1000000.0,0.123262979,8112735
-All.2D.superSimplex2.billow: Vector Double[seed=1337] x1000000,1000000.0,0.1344841516,7435820
-All.2D.superSimplex2.pingPong: Vector Float[seed=1337] x1000000,1000000.0,0.177620472,5629981
-All.2D.superSimplex2.pingPong: Vector Double[seed=1337] x1000000,1000000.0,0.2031591814,4922248
-All.2D.value2.Vector Float[seed=1337] x1000000,1000000.0,0.006377644778,156797694
-All.2D.value2.Vector Double[seed=1337] x1000000,1000000.0,0.00681771269,146676758
-All.2D.value2.fractal: Vector Float[seed=1337] x1000000,1000000.0,0.06590481595,15173397
-All.2D.value2.fractal: Vector Double[seed=1337] x1000000,1000000.0,0.0649834223,15388540
-All.2D.value2.ridged: Vector Float[seed=1337] x1000000,1000000.0,0.0720891925,13871704
-All.2D.value2.ridged: Vector Double[seed=1337] x1000000,1000000.0,0.0700415714,14277235
-All.2D.value2.billow: Vector Float[seed=1337] x1000000,1000000.0,0.069479523625,14392729
-All.2D.value2.billow: Vector Double[seed=1337] x1000000,1000000.0,0.06843785765,14611795
-All.2D.value2.pingPong: Vector Float[seed=1337] x1000000,1000000.0,0.1475186581,6778803
-All.2D.value2.pingPong: Vector Double[seed=1337] x1000000,1000000.0,0.1461067656,6844310
-All.2D.valueCubic2.Vector Float[seed=1337] x1000000,1000000.0,0.019736919687,50666467
-All.2D.valueCubic2.Vector Double[seed=1337] x1000000,1000000.0,0.0214247816,46674921
-All.2D.valueCubic2.fractal: Vector Float[seed=1337] x1000000,1000000.0,0.16742447335,5972842
-All.2D.valueCubic2.fractal: Vector Double[seed=1337] x1000000,1000000.0,0.1752616134,5705755
-All.2D.valueCubic2.ridged: Vector Float[seed=1337] x1000000,1000000.0,0.1672560187,5978858
-All.2D.valueCubic2.ridged: Vector Double[seed=1337] x1000000,1000000.0,0.1720927426,5810820
-All.2D.valueCubic2.billow: Vector Float[seed=1337] x1000000,1000000.0,0.1699739226,5883255
-All.2D.valueCubic2.billow: Vector Double[seed=1337] x1000000,1000000.0,0.1785946582,5599271
-All.2D.valueCubic2.pingPong: Vector Float[seed=1337] x1000000,1000000.0,0.2432766626,4110546
-All.2D.valueCubic2.pingPong: Vector Double[seed=1337] x1000000,1000000.0,0.2503750841,3994007
-All.2D.numeric combination.perlin * opensimplex/2: Vector Float[seed=1337] x1000000,1000000.0,0.022185232912,45075028
-All.2D.numeric combination.(4 * perlin) / 4: Vector Float[seed=1337] x1000000,1000000.0,0.007274702075,137462674
-All.2D.numeric combination.(perlin + perlin + perlin + perlin) / 4: Vector Float[seed=1337] x1000000,1000000.0,0.007527761981,132841607
-All.2D.numeric combination.fractal (perlin * opensimplex/2): Vector Float[seed=1337] x1000000,1000000.0,0.15022676205,6656603
-All.2D.numeric combination.fractal perlin * fractal opensimplex: Vector Float[seed=1337] x1000000,1000000.0,0.1749902642,5714603
-All.2D.cellular2.DistEuclidean CellValue: Vector Float[seed=1337] x1000000,1000000.0,0.048031009562,20819883
-All.2D.cellular2.DistEuclidean Distance2Add: Vector Float[seed=1337] x1000000,1000000.0,0.0619621896,16138874
-All.2D.cellular2.DistEuclidean CellValue: Vector Double[seed=1337] x1000000,1000000.0,0.0521695542,19168268
-All.2D.cellular2.DistEuclidean Distance2Add: Vector Double[seed=1337] x1000000,1000000.0,0.0685724341,14583119
-All.3D.baseline3.Vector Float[seed=1337] x1000000,1000000.0,0.000572802235,1745803243
-All.3D.baseline3.Vector Double[seed=1337] x1000000,1000000.0,0.000952402009,1049976785
-All.3D.perlin3.Vector Float[seed=1337] x1000000,1000000.0,0.016602015543,60233650
-All.3D.perlin3.Vector Double[seed=1337] x1000000,1000000.0,0.015250785925,65570391
-All.3D.perlin3.fractal: Vector Float[seed=1337] x1000000,1000000.0,0.1387043511,7209579
-All.3D.perlin3.fractal: Vector Double[seed=1337] x1000000,1000000.0,0.1238020772,8077408
-All.3D.perlin3.ridged: Vector Float[seed=1337] x1000000,1000000.0,0.1372180815,7287669
-All.3D.perlin3.ridged: Vector Double[seed=1337] x1000000,1000000.0,0.1260632841,7932523
-All.3D.perlin3.billow: Vector Float[seed=1337] x1000000,1000000.0,0.1402526307,7129991
-All.3D.perlin3.billow: Vector Double[seed=1337] x1000000,1000000.0,0.123093578425,8123900
-All.3D.perlin3.pingPong: Vector Float[seed=1337] x1000000,1000000.0,0.1621221557,6168188
-All.3D.perlin3.pingPong: Vector Double[seed=1337] x1000000,1000000.0,0.1479512277,6758984
-All.3D.value3.Vector Float[seed=1337] x1000000,1000000.0,0.012043196687,83034432
-All.3D.value3.Vector Double[seed=1337] x1000000,1000000.0,0.012252987287,81612750
-All.3D.value3.fractal: Vector Float[seed=1337] x1000000,1000000.0,0.1145525243,8729619
-All.3D.value3.fractal: Vector Double[seed=1337] x1000000,1000000.0,0.1133148137,8824971
-All.3D.value3.ridged: Vector Float[seed=1337] x1000000,1000000.0,0.11529730085,8673229
-All.3D.value3.ridged: Vector Double[seed=1337] x1000000,1000000.0,0.10886773205,9185458
-All.3D.value3.billow: Vector Float[seed=1337] x1000000,1000000.0,0.1192549285,8385397
-All.3D.value3.billow: Vector Double[seed=1337] x1000000,1000000.0,0.11444777645,8737609
-All.3D.value3.pingPong: Vector Float[seed=1337] x1000000,1000000.0,0.120344779925,8309458
-All.3D.value3.pingPong: Vector Double[seed=1337] x1000000,1000000.0,0.1129820003,8850967
-All.3D.valueCubic3.Vector Float[seed=1337] x1000000,1000000.0,0.0657011511,15220433
-All.3D.valueCubic3.Vector Double[seed=1337] x1000000,1000000.0,0.0769298477,12998855
-All.3D.valueCubic3.fractal: Vector Float[seed=1337] x1000000,1000000.0,0.6423917098,1556682
-All.3D.valueCubic3.fractal: Vector Double[seed=1337] x1000000,1000000.0,0.6960102992,1436760
-All.3D.valueCubic3.ridged: Vector Float[seed=1337] x1000000,1000000.0,0.648583607,1541821
-All.3D.valueCubic3.ridged: Vector Double[seed=1337] x1000000,1000000.0,0.6696921848,1493223
-All.3D.valueCubic3.billow: Vector Float[seed=1337] x1000000,1000000.0,0.6398387734,1562893
-All.3D.valueCubic3.billow: Vector Double[seed=1337] x1000000,1000000.0,0.6966520288,1435436
-All.3D.valueCubic3.pingPong: Vector Float[seed=1337] x1000000,1000000.0,0.678801722,1473184
-All.3D.valueCubic3.pingPong: Vector Double[seed=1337] x1000000,1000000.0,0.6852355972,1459352
+All.2D.baseline2.Vector Float x1000000,1000000.0,0.00022856175,4375185261
+All.2D.baseline2.Vector Double x1000000,1000000.0,0.000273846003,3651687404
+All.2D.perlin2.Vector Float x1000000,1000000.0,0.006465191293,154674464
+All.2D.perlin2.Vector Double x1000000,1000000.0,0.006206764753,161114532
+All.2D.perlin2.fractal: Vector Float x1000000,1000000.0,0.054647649862,18299048
+All.2D.perlin2.fractal: Vector Double x1000000,1000000.0,0.051987824975,19235272
+All.2D.perlin2.ridged: Vector Float x1000000,1000000.0,0.05826130225,17164051
+All.2D.perlin2.ridged: Vector Double x1000000,1000000.0,0.054533810525,18337247
+All.2D.perlin2.billow: Vector Float x1000000,1000000.0,0.058420611375,17117246
+All.2D.perlin2.billow: Vector Double x1000000,1000000.0,0.054967933675,18192424
+All.2D.perlin2.pingPong: Vector Float x1000000,1000000.0,0.072194574,13851456
+All.2D.perlin2.pingPong: Vector Double x1000000,1000000.0,0.0650004825,15384501
+All.2D.openSimplex2.Vector Float x1000000,1000000.0,0.013378457768,74747031
+All.2D.openSimplex2.Vector Double x1000000,1000000.0,0.0134530936,74332345
+All.2D.openSimplex2.fractal: Vector Float x1000000,1000000.0,0.09759177685,10246764
+All.2D.openSimplex2.fractal: Vector Double x1000000,1000000.0,0.1047174376,9549507
+All.2D.openSimplex2.ridged: Vector Float x1000000,1000000.0,0.10017339435,9982690
+All.2D.openSimplex2.ridged: Vector Double x1000000,1000000.0,0.10560216335,9469502
+All.2D.openSimplex2.billow: Vector Float x1000000,1000000.0,0.10044554795,9955642
+All.2D.openSimplex2.billow: Vector Double x1000000,1000000.0,0.10719725955,9328596
+All.2D.openSimplex2.pingPong: Vector Float x1000000,1000000.0,0.1131885261,8834817
+All.2D.openSimplex2.pingPong: Vector Double x1000000,1000000.0,0.1158054769,8635170
+All.2D.superSimplex2.Vector Float x1000000,1000000.0,0.019494937037,51295369
+All.2D.superSimplex2.Vector Double x1000000,1000000.0,0.019847737275,50383577
+All.2D.superSimplex2.fractal: Vector Float x1000000,1000000.0,0.12535015315,7977652
+All.2D.superSimplex2.fractal: Vector Double x1000000,1000000.0,0.1437299121,6957493
+All.2D.superSimplex2.ridged: Vector Float x1000000,1000000.0,0.12735263615,7852212
+All.2D.superSimplex2.ridged: Vector Double x1000000,1000000.0,0.15138306815,6605758
+All.2D.superSimplex2.billow: Vector Float x1000000,1000000.0,0.1269891665,7874687
+All.2D.superSimplex2.billow: Vector Double x1000000,1000000.0,0.1458750272,6855182
+All.2D.superSimplex2.pingPong: Vector Float x1000000,1000000.0,0.13518617625,7397206
+All.2D.superSimplex2.pingPong: Vector Double x1000000,1000000.0,0.1551759288,6444298
+All.2D.value2.Vector Float x1000000,1000000.0,0.005763301637,173511654
+All.2D.value2.Vector Double x1000000,1000000.0,0.00528765556,189119731
+All.2D.value2.fractal: Vector Float x1000000,1000000.0,0.049162901025,20340540
+All.2D.value2.fractal: Vector Double x1000000,1000000.0,0.0476314809,20994518
+All.2D.value2.ridged: Vector Float x1000000,1000000.0,0.0512075307,19528377
+All.2D.value2.ridged: Vector Double x1000000,1000000.0,0.0490778252,20375801
+All.2D.value2.billow: Vector Float x1000000,1000000.0,0.052213577425,19152106
+All.2D.value2.billow: Vector Double x1000000,1000000.0,0.05002913705,19988351
+All.2D.value2.pingPong: Vector Float x1000000,1000000.0,0.080069042,12489221
+All.2D.value2.pingPong: Vector Double x1000000,1000000.0,0.05901715565,16944225
+All.2D.valueCubic2.Vector Float x1000000,1000000.0,0.016282522762,61415544
+All.2D.valueCubic2.Vector Double x1000000,1000000.0,0.0160047852,62481313
+All.2D.valueCubic2.fractal: Vector Float x1000000,1000000.0,0.13920954195,7183415
+All.2D.valueCubic2.fractal: Vector Double x1000000,1000000.0,0.1327127633,7535070
+All.2D.valueCubic2.ridged: Vector Float x1000000,1000000.0,0.14108886245,7087731
+All.2D.valueCubic2.ridged: Vector Double x1000000,1000000.0,0.132556119275,7543974
+All.2D.valueCubic2.billow: Vector Float x1000000,1000000.0,0.1410999476,7087174
+All.2D.valueCubic2.billow: Vector Double x1000000,1000000.0,0.1378520018,7254156
+All.2D.valueCubic2.pingPong: Vector Float x1000000,1000000.0,0.1548064551,6459678
+All.2D.valueCubic2.pingPong: Vector Double x1000000,1000000.0,0.1472435676,6791468
+All.2D.numeric combination.perlin * opensimplex/2: Vector Float x1000000,1000000.0,0.019789966562,50530656
+All.2D.numeric combination.(4 * perlin) / 4: Vector Float x1000000,1000000.0,0.006692729512,149415869
+All.2D.numeric combination.(perlin + perlin + perlin + perlin) / 4: Vector Float x1000000,1000000.0,0.006978562831,143295980
+All.2D.numeric combination.fractal (perlin * opensimplex/2): Vector Float x1000000,1000000.0,0.1553153141,6438515
+All.2D.numeric combination.fractal perlin * fractal opensimplex: Vector Float x1000000,1000000.0,0.1537532343,6503928
+All.2D.cellular2.DistEuclidean CellValue: Vector Float x1000000,1000000.0,0.028574381737,34996382
+All.2D.cellular2.DistEuclidean Distance2Add: Vector Float x1000000,1000000.0,0.0385326946,25951987
+All.2D.cellular2.DistManhattan CellValue: Vector Float x1000000,1000000.0,0.028640597762,34915472
+All.2D.cellular2.DistManhattan Distance2Add: Vector Float x1000000,1000000.0,0.037105943343,26949860
+All.2D.cellular2.DistEuclidean CellValue: Vector Double x1000000,1000000.0,0.030625151925,32652899
+All.2D.cellular2.DistEuclidean Distance2Add: Vector Double x1000000,1000000.0,0.041688597575,23987374
+All.2D.cellular2.DistManhattan CellValue: Vector Double x1000000,1000000.0,0.0310392436,32217279
+All.2D.cellular2.DistManhattan Distance2Add: Vector Double x1000000,1000000.0,0.04087107025,24467184
+All.3D.baseline3.Vector Float x1000000,1000000.0,0.000229281706,4361446961
+All.3D.baseline3.Vector Double x1000000,1000000.0,0.000268970483,3717880076
+All.3D.perlin3.Vector Float x1000000,1000000.0,0.013498914162,74080032
+All.3D.perlin3.Vector Double x1000000,1000000.0,0.012124462525,82477882
+All.3D.perlin3.fractal: Vector Float x1000000,1000000.0,0.11445176935,8737304
+All.3D.perlin3.fractal: Vector Double x1000000,1000000.0,0.1123690798,8899245
+All.3D.perlin3.ridged: Vector Float x1000000,1000000.0,0.11972079165,8352768
+All.3D.perlin3.ridged: Vector Double x1000000,1000000.0,0.11642564965,8589172
+All.3D.perlin3.billow: Vector Float x1000000,1000000.0,0.1201173964,8325188
+All.3D.perlin3.billow: Vector Double x1000000,1000000.0,0.115421188,8663920
+All.3D.perlin3.pingPong: Vector Float x1000000,1000000.0,0.1182069372,8459740
+All.3D.perlin3.pingPong: Vector Double x1000000,1000000.0,0.12725504095,7858234
+All.3D.value3.Vector Float x1000000,1000000.0,0.011012539975,90805572
+All.3D.value3.Vector Double x1000000,1000000.0,0.010730953587,93188363
+All.3D.value3.fractal: Vector Float x1000000,1000000.0,0.09765211655,10240433
+All.3D.value3.fractal: Vector Double x1000000,1000000.0,0.09304283155,10747738
+All.3D.value3.ridged: Vector Float x1000000,1000000.0,0.1018954184,9813983
+All.3D.value3.ridged: Vector Double x1000000,1000000.0,0.09677728435,10333003
+All.3D.value3.billow: Vector Float x1000000,1000000.0,0.098815002075,10119920
+All.3D.value3.billow: Vector Double x1000000,1000000.0,0.09473022325,10556293
+All.3D.value3.pingPong: Vector Float x1000000,1000000.0,0.11038081,9059545
+All.3D.value3.pingPong: Vector Double x1000000,1000000.0,0.0994827928,10051989
+All.3D.valueCubic3.Vector Float x1000000,1000000.0,0.05328810955,18765912
+All.3D.valueCubic3.Vector Double x1000000,1000000.0,0.054690386118,18284749
+All.3D.valueCubic3.fractal: Vector Float x1000000,1000000.0,0.405192671437,2467961
+All.3D.valueCubic3.fractal: Vector Double x1000000,1000000.0,0.399578635,2502636
+All.3D.valueCubic3.ridged: Vector Float x1000000,1000000.0,0.4159308548,2404245
+All.3D.valueCubic3.ridged: Vector Double x1000000,1000000.0,0.401993701,2487601
+All.3D.valueCubic3.billow: Vector Float x1000000,1000000.0,0.405833004,2464067
+All.3D.valueCubic3.billow: Vector Double x1000000,1000000.0,0.3865119578,2587242
+All.3D.valueCubic3.pingPong: Vector Float x1000000,1000000.0,0.468172892,2135963
+All.3D.valueCubic3.pingPong: Vector Double x1000000,1000000.0,0.397216297037,2517520
+All.2D massiv.massiv base2.perlin2: Float x1000000,1000000.0,0.000576864244,1733510111
+All.2D massiv.massiv base2.perlin2: Double x1000000,1000000.0,0.000686558702,1456539691
+All.2D massiv.massiv base2.openSimplex2: Float x1000000,1000000.0,0.000887542303,1126706858
+All.2D massiv.massiv base2.openSimplex2: Double x1000000,1000000.0,0.001014851589,985365752
+All.2D massiv.massiv base2.superSimplex2: Float x1000000,1000000.0,0.001220263603,819495064
+All.2D massiv.massiv base2.superSimplex2: Double x1000000,1000000.0,0.001261661194,792605815
+All.2D massiv.massiv base2.value2: Float x1000000,1000000.0,0.000425570138,2349788931
+All.2D massiv.massiv base2.value2: Double x1000000,1000000.0,0.00045980103,2174853762
+All.2D massiv.massiv base2.valueCubic2: Float x1000000,1000000.0,0.000908876078,1100260007
+All.2D massiv.massiv base2.valueCubic2: Double x1000000,1000000.0,0.00096310457,1038308851
+All.2D massiv.massiv base2.cellular2: Float x1000000,1000000.0,0.001642577446,608799300
+All.2D massiv.massiv base2.cellular2: Double x1000000,1000000.0,0.001709257928,585049209
+All.2D massiv.massiv fractal2.perlin2 fractal: Float x1000000,1000000.0,0.003309526127,302158061
+All.2D massiv.massiv fractal2.perlin2 fractal: Double x1000000,1000000.0,0.003294697951,303517959
+All.2D massiv.massiv fractal2.value2 fractal: Float x1000000,1000000.0,0.002842493204,351803831
+All.2D massiv.massiv fractal2.value2 fractal: Double x1000000,1000000.0,0.002888242007,346231374
+All.2D massiv.massiv fractal2.openSimplex2 fractal: Float x1000000,1000000.0,0.00551713875,181253371
+All.2D massiv.massiv fractal2.openSimplex2 fractal: Double x1000000,1000000.0,0.005551183537,180141764
+All.2D massiv.massiv fractal2.superSimplex2 fractal: Float x1000000,1000000.0,0.007193479175,139014790
+All.2D massiv.massiv fractal2.superSimplex2 fractal: Double x1000000,1000000.0,0.007304817143,136895966
+All.FNL compare 2D.FNL compare.value2: Float (FNL grid) x262144,262144.0,0.001470579581,178258969
+All.FNL compare 2D.FNL compare.perlin2: Float (FNL grid) x262144,262144.0,0.001656561642,158245846
+All.FNL compare 2D.FNL compare.openSimplex2: Float (FNL grid) x262144,262144.0,0.002244351555,116801665
+All.FNL compare 2D.FNL compare.superSimplex2: Float (FNL grid) x262144,262144.0,0.002671441034,98128312
+All.FNL compare 2D.FNL compare.valueCubic2: Float (FNL grid) x262144,262144.0,0.004165555206,62931346
+All.FNL compare 2D.FNL compare.cellular2 (Distance): Float (FNL grid) x262144,262144.0,0.003844542621,68186004
+All.FNL compare 3D.FNL compare.value3: Float (FNL grid) x262144,262144.0,0.002703291393,96972157
+All.FNL compare 3D.FNL compare.perlin3: Float (FNL grid) x262144,262144.0,0.003278881585,79949212
+All.FNL compare 3D.FNL compare.valueCubic3: Float (FNL grid) x262144,262144.0,0.013323878275,19674751

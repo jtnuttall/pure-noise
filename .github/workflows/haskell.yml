@@ -2,9 +2,13 @@ name: Haskell CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "next"]
   pull_request:
-    branches: ["main"]
+    branches: ["main", "next"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -13,24 +17,63 @@ env:
   CACHE_BUST_VERSION: v0
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v4
-      - name: Install LLVM and Clang
-        uses: KyleMayes/install-llvm-action@v2.0.5
+      - uses: actions/checkout@v5
+      - name: Run fourmolu
+        uses: haskell-actions/run-fourmolu@v9
         with:
-          version: 15
-      - id: stack
-        uses: freckle/stack-action@v5
+          version: 0.15.0.0
+
+  build:
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        resolver:
+          - lts-23.24
+          - lts-22.44
+
+    name: Stackage ${{matrix.resolver}}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup Haskell environment
+        uses: haskell-actions/setup@v2
         with:
-          test: false
-          stack-build-arguments: "--ghc-options -fllvm"
-          cache-prefix: ${{ env.CACHE_BUST_VERSION }}
+          enable-stack: true
+          stack-no-global: true
+          stack-setup-ghc: true
 
-      - name: test
-        run: stack test --ghc-options -fllvm
+      # Golden tests rely on odiff
+      - name: Setup Node.js for odiff
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
 
-      - name: bench
-        run: stack bench --ghc-options -fllvm --ba='+RTS -T -RTS'
+      - name: Install odiff
+        run: npm i -g odiff-bin
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.stack
+            .stack-work
+          key: ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}
+          restore-keys: |
+            ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-
+
+      - name: Install and build dependencies
+        run: stack build --resolver ${{ matrix.resolver }} --test --bench --only-dependencies
+
+      - name: Run Tests
+        run: stack test --resolver ${{ matrix.resolver }}
+
+      - name: Build Haddock
+        run: stack haddock --resolver ${{ matrix.resolver }} --no-haddock-deps
+
+      # Just verify that the benchmark builds to avoid wasting CI minutes
+      - name: Build benchmarks
+        run: stack bench --resolver ${{ matrix.resolver }} --fast --no-run-benchmarks

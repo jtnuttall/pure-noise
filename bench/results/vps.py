@@ -20,12 +20,7 @@ PICO_PER_SEC = 1e12
 def main():
   try:
     file_name = sys.argv[1]
-    out_file_name = os.path.splitext(file_name)[0].split('-')
-    if len(out_file_name) <= 1:
-        out_file_name = '-'.join(out_file_name + ['vps'])
-    else:
-        out_file_name = '-'.join(out_file_name[:-1] + ['vps', out_file_name[-1]])
-    out_file_name = out_file_name + '.csv'
+    out_file_name = os.path.splitext(file_name)[0] + '-vps.csv'
   except IndexError:
     raise 'file name is required'
 

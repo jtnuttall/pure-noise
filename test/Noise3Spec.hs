@@ -25,12 +25,12 @@ prop_addition_commutative x y z =
 prop_0_is_additive_identity :: Rational -> Rational -> Rational -> Rational -> Bool
 prop_0_is_additive_identity v x y z =
   let n1 = const3 v
-   in noise3At (n1 + fromInteger 0) seed x y z == noise3At n1 seed x y z
+   in noise3At (n1 + 0) seed x y z == noise3At n1 seed x y z
 
 prop_negate_is_additive_inverse :: Rational -> Rational -> Rational -> Rational -> Bool
 prop_negate_is_additive_inverse v x y z =
   let n1 = const3 v
-   in noise3At (n1 + negate n1) seed x y z == 0
+   in noise3At (n1 - n1) seed x y z == 0
 
 prop_multiplication :: Rational -> Rational -> Rational -> Bool
 prop_multiplication x y z =
@@ -46,4 +46,4 @@ prop_multiplication_associative x y z =
 prop_1_is_multiplicative_identity :: Rational -> Rational -> Rational -> Rational -> Bool
 prop_1_is_multiplicative_identity v x y z =
   let n1 = const3 v
-   in noise3At (n1 * fromInteger 1) seed x y z == v
+   in noise3At (n1 * 1) seed x y z == v

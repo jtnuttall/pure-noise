@@ -5,3 +5,6 @@ results/*
 !results/current-llvm-vps.csv
 !results/collect-bench.sh
 !results/vps.py
+!results/format-noisebench.py
+!results/fastnoiselite.csv
+!results/fastnoiselite-vps.csv
