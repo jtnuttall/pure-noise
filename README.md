@@ -24,7 +24,7 @@ are subject to change and may change between minor versions.
 - The algorithms used in this library are ported from
   [FastNoiseLite](https://github.com/Auburn/FastNoiseLite). The library structure
   has been retuned to fit better with Haskell semantics.
-- **All credit goes to @Auburn for the terrific FastNoiseLite implementation and
+- **All credit goes to [@Auburn](https://github.com/Auburn) for the terrific FastNoiseLite implementation and
   the opportunity to learn from it.**
 
 ## Usage
