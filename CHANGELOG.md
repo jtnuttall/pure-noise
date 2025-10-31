@@ -8,6 +8,8 @@ and this project adheres to the
 
 ## Unreleased
 
+## 0.2.1.0 2025-10-31
+
 ### Added
 
 - 1D noise support with `noise1At` evaluation function
