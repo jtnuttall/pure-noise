@@ -2,27 +2,36 @@
 
 Performant, modern noise generation for Haskell with a minimal dependency footprint.
 
-Built on a unified `Noise p v` type that enables **algebraic composition** of noise functions—combine,
-layer, and transform noise sources using standard `Num`, `Fractional`, and `Monad` instances.
-Create complex effects like domain warping, multi-octave fractals, and procedural terrain with clean,
-type-safe code. The library uses only `base` and `primitive` as dependencies, achieving 84-95% of C++
-FastNoiseLite performance through aggressive optimization and LLVM compilation
-([see benchmarks](bench/README.md)).
+## Core features
 
-The algorithms used in this library are ported from
-[FastNoiseLite](https://github.com/Auburn/FastNoiseLite). The library structure
-has been retuned to fit better with Haskell semantics.
+- **algebraic composition** of noise functions. You can combine,
+  layer, and transform noise sources using standard operators (E.g., `Num`,
+  `Fractional`, `Monad`, etc).
+- **Complex effects** like domain warping and multi-octave fractals with clean,
+  type-safe composition.
+- **84-95% of C++ FastNoiseLite performance** through aggressive optimization and
+  LLVM compilation ([see benchmarks](bench/README.md)).
+
+**📊 For detailed FastNoiseLite comparison, methodology, and reproducibility instructions,
+see the [benchmark README](bench/README.md).**
 
 The public interface for this library is unlikely to change much, although the
 implementations (`noiseBaseN` functions and anything in `Numeric.Noise.Internal`)
 are subject to change and may change between minor versions.
 
+## Credit
+
+- The algorithms used in this library are ported from
+  [FastNoiseLite](https://github.com/Auburn/FastNoiseLite). The library structure
+  has been retuned to fit better with Haskell semantics.
+- All credit goes to @Auburn for the terrific FastNoiseLite implementation and
+  the opportunity to learn from it.
+
 ## Usage
 
-The library provides composable noise functions built on a unified `Noise` type.
-`Noise2` and `Noise3` are convenient type aliases for 2D and 3D noise. Noise
-functions can be composed using `Num`, `Fractional`, or `Applicative` methods
-with minimal performance cost.
+The library provides composable noise functions `Noise2` and `Noise3` are type
+aliases for 2D and 3D noise. Noise functions can be composed transparently using
+standard operators with minimal performance cost.
 
 Noise values are generally clamped to `[-1, 1]`, although some noise functions
 may occasionally produce values slightly outside this range.
@@ -44,9 +53,9 @@ myNoise2 =
 
 The library's unified `Noise p v` type enables powerful composition patterns:
 
-**Complex Compositions with Monadic Chaining:**
+#### Complex Compositions
 
-Use the `Monad` instance to create noise that depends on other noise values:
+The `Monad` instance is useful to create noise that depends on other noise values:
 
 ```haskell
 -- Use one noise function's output to modulate another
@@ -61,7 +70,7 @@ complexNoise = do
 This is especially useful for creating organic, varied terrain where one noise pattern
 influences the characteristics of another.
 
-**1D Noise via Slicing:**
+### 1D Noise via Slicing
 
 Generate 1D noise by slicing higher-dimensional noise at a fixed coordinate:
 
@@ -88,7 +97,7 @@ rotated = Noise.warp (\(x, y) ->
   in (x * cos a - y * sin a, x * sin a + y * cos a)) Noise.perlin2
 ```
 
-**Layering Independent Noise:**
+### Layering Independent Noise
 
 Use `reseed` or `next2`/`next3` to create independent layers:
 
@@ -98,35 +107,20 @@ layered = (Noise.perlin2 + Noise.next2 Noise.perlin2) / 2
 
 More examples can be found in `bench` and `demo`.
 
-## Performance Improvements
-
-This release brings significant performance enhancements across nearly all noise types:
-
-- **+32% average improvement** across all benchmarks
-- **Cellular noise: +61-70%** through specialized REWRITE RULES
-- **3D ValueCubic: +45-80%** for fractal variants
-- **Ping-pong fractals: +110-148%** through branchless optimization
-- **Perlin/Value: +10-43%** through optimized interpolation
-
-Note: SuperSimplex benchmarks reflect a methodology improvement (independent X/Y sampling
-rather than diagonal-only sampling), resulting in more realistic performance measurements.
-
-## Parallel noise generation
-
-For large-scale noise generation, this library integrates well with
-[massiv](https://hackage.haskell.org/package/massiv) for parallel computation.
-Parallel performance can reach 10-15× single-threaded performance by leveraging
-multiple cores. For example, 2D Perlin noise generation achieves ~1.73 billion
-values/sec on an i9-13900K. This is the recommended approach for generating
-large noise textures or datasets.
-
 ## Performance notes
 
+- In single-threaded scenarios with LLVM enabled, this library achieves **84-95%
+  of C++ FastNoiseLite performance**.
 - This library benefits considerably from compilation with the LLVM backend
   (`-fllvm`). Benchmarks suggest a ~50-80% difference depending on the kind of noise.
-- In single-threaded scenarios with LLVM enabled, this library achieves 84-95%
-  of C++ FastNoiseLite performance, with simpler noise algorithms (Perlin,
-  OpenSimplex2, SuperSimplex, Cellular) reaching 86-95% of C++ speed.
+
+### Parallel noise generation
+
+This library integrates well with [massiv](https://hackage.haskell.org/package/massiv)
+for parallel computation. Parallel performance can reach 10-15× single-threaded
+performance.
+
+**This is the recommended approach for generating large noise textures or datasets.**
 
 ## Benchmarks
 
@@ -134,9 +128,6 @@ large noise textures or datasets.
 
 Measured by values / second generated by the noise functions. These results come
 from a benchmark with `-fllvm` enabled.
-
-> **📊 For detailed FastNoiseLite comparison, methodology, and reproducibility instructions,
-> see the [benchmark README](bench/README.md).**
 
 There's inevitably some noise in the measurements because all of the results are
 forced into an unboxed vector.
