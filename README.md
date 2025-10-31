@@ -13,7 +13,7 @@ Performant, modern noise generation for Haskell with a minimal dependency footpr
   LLVM compilation ([see benchmarks](bench/README.md)).
 
 **For detailed FastNoiseLite comparison, methodology, and reproducibility instructions,
-see the [benchmark README](bench/README.md).**
+see the [benchmark README](https://github.com/jtnuttall/pure-noise/blob/main/bench/README.md).**
 
 The public interface for this library is unlikely to change much, although the
 implementations (`noiseBaseN` functions and anything in `Numeric.Noise.Internal`)
