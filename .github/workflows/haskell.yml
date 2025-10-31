@@ -32,6 +32,7 @@ jobs:
     strategy:
       matrix:
         resolver:
+          - lts-24.11
           - lts-23.24
           - lts-22.44
 
@@ -44,7 +45,8 @@ jobs:
         with:
           enable-stack: true
           stack-no-global: true
-          stack-setup-ghc: true
+          ghc-version: ""
+          cabal-version: ""
 
       # Golden tests rely on odiff
       - name: Setup Node.js for odiff
