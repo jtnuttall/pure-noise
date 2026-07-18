@@ -120,3 +120,8 @@ tags
 .ionide
 
 test*/**/*.actual.*
+
+.direnv
+
+scripts/fnl-diff/.build/
+test*/**/*.diff.*

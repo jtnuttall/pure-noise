@@ -8,6 +8,10 @@ and this project adheres to the
 
 ## Unreleased
 
+### Changed
+
+- Project now uses haskell.nix instead of Stack.
+
 ## 0.2.1.1 2025-10-31
 
 ### Changed
