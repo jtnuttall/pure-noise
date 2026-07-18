@@ -8,8 +8,18 @@ and this project adheres to the
 
 ## Unreleased
 
+### Added
+
+- Flag `optimize`, with default `true`, which bumps the library's optimization level
+  to `-O2` by default. Refer to the flag's documentation for rationale.
+- Flag `mfma`, which will set `-mfma` for GHC, and may open pathways to
+  fused-multiply-add optimizations
+- Flag `mavx`, which will set `-mavx` for GHC, and may open pathways for AVX2
+  SIMD optimization in the future.
+
 ### Changed
 
+- `pure-noise` now builds at `-O2` by default.
 - Project now uses haskell.nix instead of Stack.
 
 ## 0.2.1.1 2025-10-31

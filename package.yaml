@@ -1,32 +1,27 @@
 name: pure-noise
-version: 0.2.1.1
+version: 0.2.2.0
 github: "jtnuttall/pure-noise"
 license: BSD-3-Clause
 author: "Jeremy Nuttall"
 maintainer: "jeremy@jeremy-nuttall.com"
-copyright: "2024 Jeremy Nuttall"
+copyright: "2026 Jeremy Nuttall"
 
 extra-source-files:
   - README.md
+  - LICENSE
+  - LICENSE_FastNoiseLite
 
 extra-doc-files:
   - CHANGELOG.md
 
-synopsis: High-performance composable noise generation (Perlin, Simplex, Cellular)
+synopsis: Performant, modern noise generation (Perlin, OpenSimplex2, Cellular)
 category: Math, Numeric, Noise
 
 description: |
-  A high-performance noise generation library ported from FastNoiseLite.
-  Provides N-dimensional noise functions (Perlin, OpenSimplex, SuperSimplex,
-  Value, Cellular) that can be composed using Num or Fractional methods with
-  minimal performance overhead. Noise values are generally clamped to [-1, 1].
-  Benefits significantly from LLVM backend compilation (~50-80% performance improvement).
+  Fast, modern noise generation In pure Haskell with an algebraic interface.
+  Provides Perlin, OpenSimplex2, OpenSimplex2S, Value, and Cellular noise variants.
 
 language: GHC2021
-tested-with:
-  - GHC == 9.6.7
-  - GHC == 9.8.4
-  - GHC == 9.10.2
 
 dependencies:
   - base >= 4.16 && < 5
@@ -54,6 +49,20 @@ library:
     - Numeric.Noise.SuperSimplex
     - Numeric.Noise.Value
     - Numeric.Noise.ValueCubic
+  when:
+    - condition: flag(optimize)
+      ghc-options:
+        - -O2
+    - condition: flag(mfma)
+      ghc-options:
+        - -mfma
+      cpp-options:
+        - -DHAS_FMA
+    - condition: flag(mavx)
+      ghc-options:
+        - -mavx
+      cpp-options:
+        - -DHAS_AVX
 
 tests:
   pure-noise-test:
@@ -88,9 +97,8 @@ benchmarks:
     ghc-options:
       - -threaded
       - -rtsopts
-      - -with-rtsopts=-N +RTS -A32m --nonmoving-gc -T -RTS
+      - '"-with-rtsopts=-N -A32m -T"'
       - -O2
-      - -optc-O3
       - -fsimpl-tick-factor=1000
     dependencies:
       - pure-noise
@@ -100,3 +108,25 @@ benchmarks:
       - tasty
       - tasty-bench
       - vector <= 0.14
+
+flags:
+  optimize:
+    description: |
+      Turns on -O2 for pure-noise. Since the library is pretty small, this shouldn't be
+      too much trouble, but you can disable this flag if it's slowing your builds too
+      much.
+
+      Ratonale:
+      - -O1 leaves ~3x on the table for tight noise loops in downstream code.
+      - -O2 seems to produce higher-quality unfoldings, which in turn causes pure-noise's
+      kernels to inline and optimize more reliably at call sites.
+    default: true
+    manual: true
+  mfma:
+    description: Compile with native fused-multiply-add instructions
+    manual: true
+    default: false
+  mavx:
+    description: Compile with AVX instructions
+    manual: true
+    default: false
