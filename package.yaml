@@ -6,10 +6,17 @@ author: "Jeremy Nuttall"
 maintainer: "jeremy@jeremy-nuttall.com"
 copyright: "2026 Jeremy Nuttall"
 
+tested-with:
+  - GHC == 9.6.7
+  - GHC == 9.8.4
+  - GHC == 9.12.2
+
 extra-source-files:
   - README.md
   - LICENSE
   - LICENSE_FastNoiseLite
+  # Required so pure-noise-fnl-bench builds from the sdist
+  - bench/fnl-compare/cbits/FastNoiseLite.h
 
 extra-doc-files:
   - CHANGELOG.md
@@ -92,7 +99,8 @@ tests:
 
 
 # NOTE: Benchmarks want +mfma & +mavx in your cabal.project if your host arch
-# supports such.
+# supports such. 
+# Published numbers additionally require +llvm-bench; see bench/README.md.
 benchmarks:
   pure-noise-bench:
     main: Bench.hs
@@ -103,15 +111,19 @@ benchmarks:
       - '"-with-rtsopts=-N -A32m -T"'
       - -O2
       - -fsimpl-tick-factor=1000
-      # Nix requires us to be kinda explcit about the chain we want
-      - -fllvm
-      - -pgmlo opt
-      - -pgmlc llc
-      - -pgmlas clang
-      - -optc-O3
-      - -optlo-O3
-      - -mavx
-      - -mfma
+    when:
+      - condition: flag(llvm-bench)
+        ghc-options:
+          # Nix requires us to be explicit about the toolchain. Pinned -pgm* also avoids picking up a
+          # mismatched system LLVM.
+          - -fllvm
+          - -pgmlo opt
+          - -pgmlc llc
+          - -pgmlas clang # GHC >= 9.10
+          - -mavx
+          - -mfma # GHC >= 9.8
+          # FP contraction happens in llc; this is where the FMA speedup
+          - -optlc-fp-contract=fast
     dependencies:
       - pure-noise
       - deepseq
@@ -126,10 +138,14 @@ benchmarks:
     source-dirs: bench/fnl-compare
     include-dirs: bench/fnl-compare/cbits
     cxx-sources: bench/fnl-compare/fnl_bench_shim.cpp
+    # Best-effort build FNL the way an ordinary Linux user's -O3 -march=native build behaves. 
+    # Explicit flags instead of -march=native because nix's cc wrapper strips -march=native 
+    # (NIX_ENFORCE_NO_NATIVE=1) and injects -fno-strict-overflow:
     cxx-options:
       - -O3
       - -std=c++14
-      - -march=native
+      - -ffp-contract=fast
+      - -fstrict-overflow
     ghc-options:
       - -threaded
       - -rtsopts
@@ -137,15 +153,6 @@ benchmarks:
       - '"-with-rtsopts=-A64m -T"'
       - -O2
       - -fsimpl-tick-factor=1000
-      # Nix requires us to be kinda explcit about the chain we want
-      - -fllvm
-      - -pgmlo opt
-      - -pgmlc llc
-      - -pgmlas clang
-      - -optc-O3
-      - -optlo-O3
-      - -mavx
-      - -mfma
     dependencies:
       - pure-noise
       - mtl >=2.1 && < 2.4
@@ -154,6 +161,21 @@ benchmarks:
       - tasty-bench >= 0.4 && < 0.6
       - vector >=0.12 && <0.14
     when:
+      - condition: flag(llvm-bench)
+        ghc-options:
+          # See pure-noise-bench for rationale.
+          - -fllvm
+          - -pgmlo opt
+          - -pgmlc llc
+          - -pgmlas clang
+          - -mavx
+          - -mfma
+          - -optlc-fp-contract=fast
+      - condition: arch(x86_64)
+        cxx-options:
+          # Roughly what -march=native selects on 2015+ x86 (AVX2+FMA) without
+          # being build-machine-dependent.
+          - -march=x86-64-v3
       - condition: os(darwin)
         then:
           extra-libraries: c++
@@ -167,7 +189,7 @@ flags:
       too much trouble, but you can disable this flag if it's slowing your builds too
       much.
 
-      Ratonale:
+      Rationale:
       - -O1 leaves ~3x on the table for tight noise loops in downstream code.
       - -O2 seems to produce higher-quality unfoldings, which in turn causes pure-noise's
       kernels to inline and optimize more reliably at call sites.
@@ -181,3 +203,14 @@ flags:
     description: Compile with AVX instructions
     manual: true
     default: false
+  llvm-bench:
+    description: |
+      Build the benchmark suites via GHC's LLVM backend with a pinned toolchain
+      (-fllvm, -pgmlo opt, -pgmlc llc, -pgmlas clang) plus -mavx -mfma and fast
+      FP contraction in llc (-optlc-fp-contract=fast). Requires opt/llc/clang
+      on PATH (LLVM <= 19 for GHC 9.12) and GHC >= 9.10 (for -pgmlas). Off by
+      default so `cabal build --enable-benchmarks` works on machines and CI
+      runners without LLVM. Published benchmark numbers are collected with this
+      flag on; see bench/README.md.
+    default: false
+    manual: true
