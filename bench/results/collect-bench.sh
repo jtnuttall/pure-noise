@@ -1,15 +1,18 @@
 #! /usr/bin/env bash
+SUITE="pure-noise-bench"
 BFILE="bench/results/$(date -u -Iminutes)"
 BASELINE="bench/results/current"
-STACKOPTS="--force-dirty"
-ARGS="--csv=$BFILE.csv +RTS -T -RTS"
+RUN_PRE=()
 
-if [ "$1" = "llvm" ]; then
-  STACKOPTS="$STACKOPTS --ghc-options=-fllvm"
-  BFILE="$BFILE-llvm"
-  BASELINE="$BASELINE-llvm"
-  shift
+if [ "$1" = "fnl" ]; then
+  SUITE="pure-noise-fnl-bench"
+  BFILE="$BFILE-fnl"
+  BASELINE="$BASELINE-fnl"
+  RUN_PRE=(taskset -c 4)
+  [ $# -gt 0 ] && shift
 fi
+
+ARGS="--csv=$BFILE.csv"
 
 if [ "$1" = "criterion" ]; then
   echo >&2 "using criterion"
@@ -29,5 +32,13 @@ else
 fi
 shift
 
-echo >&2 stack bench $STACKOPTS --ba="$ARGS"
-stack bench $STACKOPTS --ba="$ARGS"
+BUILD=(cabal build "$SUITE")
+echo >&2 "${BUILD[@]}"
+"${BUILD[@]}"
+
+EXECUTABLE="$(cabal list-bin "$SUITE")"
+echo >&2 "$SUITE executable: $EXECUTABLE"
+
+RUN=(cabal exec -- "${RUN_PRE[@]}" "$EXECUTABLE" $ARGS)
+echo >&2 "${RUN[@]}"
+"${RUN[@]}"

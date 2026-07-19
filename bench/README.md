@@ -2,23 +2,49 @@
 
 ## Summary
 
-These benchmarks measure single-threaded and parallel noise generation performance for `pure-noise`,
-a pure Haskell noise library compiled with the LLVM backend. The headline result: **pure Haskell achieves
-84-95% of C++ FastNoiseLite performance** in single-threaded scenarios, with simpler noise algorithms
-(Perlin, OpenSimplex2, SuperSimplex, Cellular) reaching 86-95% of C++ speed.
+These benchmarks measure single-threaded and parallel noise generation
+performance for `pure-noise`, a pure Haskell noise library compiled with
+the LLVM backend.
 
-**Hardware:** i9-13900K, Fedora 42 distrobox, LLVM 15
+This pure Haskell implementation appears to be order-of-magnitude equivalent
+with C++. For random access, `pure-noise` appears to attain **80-105% of C++
+performance**.
 
-**Parallel performance** using `massiv` reaches over **1.7 billion values/sec** for 2D Perlin noise,
-demonstrating 10-15x speedups over single-threaded execution.
+That's right, **some algorithms, written in pure Haskell, actually appear to
+perform _better_ than C++ FNL at this point.** I mostly credit the GHC and
+LLVM teams for this, since the main improvements I've made since I released
+the original results were a simple `fastRound` implementation and some new
+cabal optimization flags. My CPU's ring also isn't melting this time (I hope),
+which may help, too :)
 
-## Comparison with FastNoiseLite
+If any passers-by notice errata in these documents or ways I could improve the
+accuracy of the benchmarks, please don't hesitate to open an issue!
 
-To provide an accurate, hardware-equivalent comparison, benchmarks for [FastNoiseLite (FNL)](https://github.com/Auburn/FastNoiseLite)
-were run locally on the same machine using the `NoiseBenchmarking` tool and compared against this library's
-results (compiled with the LLVM backend).
+[[NOTE: @Jeremy update these numbers when the full bench is in.]]
+[[NOTE: The above paragraphs refer to provisional NEW results that were not on
+the melting ring.]]
 
-### Single-Thread Performance Comparison
+> **TODO — re-collect every number in this file with `pure-noise-fnl-bench`.**
+> All results below predate the cellular `fastRound` fix and the FastNoiseLite
+> parity work, and the 2026-07 audit could not reproduce the fixed "84-95%"
+> band on a newer toolchain (see the audit snapshot below: several algorithms
+> sit at genuine parity, and cellular — the audit's outlier — roughly doubled
+> its grid throughput with the fix, so current code should measure
+> significantly better than the snapshot). Once re-collected under controlled
+> conditions (`taskset -c <core> ./bench/results/collect-bench.sh fnl`,
+> turbo off / pinned clocks, quiesced machine), refresh: this headline, the
+> comparison and vps tables below, and the performance claims in the root
+> README.
+
+## Results (historical, external NoiseBenchmarking tool, LLVM 15)
+
+The tables below are the original published comparison, collected before the
+in-repo suite existed.
+
+[FastNoiseLite (FNL)](https://github.com/Auburn/FastNoiseLite)
+was benchmarked locally with Auburn's `NoiseBenchmarking` tool and lined up
+against this library's results (compiled with the LLVM backend) by matching
+coordinate methodology. They are retained until final re-collection.
 
 **Direct comparison (integer-aligned grid, 512x512 for 2D, 64x64x64 for 3D):**
 
@@ -33,8 +59,6 @@ results (compiled with the LLVM backend).
 | **ValueCubic 2D**   | 62_931_346         | 73_415_900    | 85.7%    |
 | **Value 2D**        | 178_258_969        | 211_971_000   | 84.1%    |
 | **ValueCubic 3D**   | 19_674_751         | 23_361_200    | 84.2%    |
-
-Pure Haskell with LLVM achieves **84-95% of C++ performance** in single-threaded scenarios.
 
 ### Parallel Performance
 
@@ -83,11 +107,13 @@ run with the `-fllvm` backend.
 
 ### Measurement Approach
 
-Benchmarks are run by mapping a noise function over a 1 million element unboxed array of indices:
+Benchmarks in the standard suite (`pure-noise-bench`) are run by mapping a noise
+function over a 1 million element unboxed array of indices:
 
 - This creates approximately 1-2ms of overhead
-- Using index tuples increases the probability of hitting diverse code paths in the noise implementation.
-  Some noise functions may skip certain computations when specific conditions are met relative to the input.
+- Using index tuples increases the probability of hitting diverse code paths in
+  the noise implementation. Some noise functions may skip certain computations
+  when specific conditions are met relative to the input.
 - Memory allocation is constant:
   - Float ~= 4.0MB (4 bytes x 1_000_000 elements)
   - Double ~= 8.0MB (8 bytes x 1_000_000 elements)
@@ -95,40 +121,103 @@ Benchmarks are run by mapping a noise function over a 1 million element unboxed 
 Benchmarks that use `massiv` demonstrate thread-level parallelism and are the intended path of use for
 most purposes.
 
-### Two Benchmark Approaches
+## Running the benchmarks
 
-Two benchmark approaches are used to balance real-world accuracy and fair comparison:
+### Quick start
 
-1. **Standard benchmarks** (1M values): Use fractional coordinates with random offsets to exercise all
-   code paths and avoid potential fast-path optimizations at integer boundaries. These are more representative
-   of typical use cases.
+```sh
+nix develop
+# All of these emit CSV for ease-of-evaluation
+./bench/results/collect-bench.sh 
+./bench/results/collect-bench.sh fnl # Shortcut for fnl comparisons
+cabal bench pure-noise-fnl-bench --benchmark-options='-p /perlin/ --stdev 2'
+```
 
-2. **FNL-comparison benchmarks** (262K values): Use integer-aligned grid coordinates (512x512 for 2D,
-   64x64x64 for 3D) matching FNL's exact methodology for direct apples-to-apples comparison. These benchmarks
-   use `foldl'` with summation to prevent dead code elimination, matching FNL's `DoNotOptimize` approach.
-   This adds ~2-5% overhead from coordinate tuple loading and floating-point addition, but provides a
-   fairer comparison than materializing output vectors.
+For serious comparisons, follow the brief guide in [FastNoiseLite Comparison]
 
-### Coordinate Pattern Impact
+#### Reading the output
 
-The choice of coordinate pattern affects performance differently across algorithms:
+Each `pure-noise` line ends with a ratio like `1.05x`, produced by
+tasty-bench's `bcompare`: its mean time relative to the matching `fnl`
+benchmark in the same group (lower is better; `0.95x` means pure-noise is 5%
+_faster_ than FNL). "% of FNL throughput" is the reciprocal of the time
+ratio. Ratios only print when the matching `fnl` leaf runs in the same
+invocation, so filter by group (`-p /perlin/`), never by side. CSV output
+(`--csv`) is plain tasty-bench data; `bench/results/vps.py` converts it to
+values/second.
 
-- **Cellular**: Integer coordinates provide +10-15% performance improvement over fractional coordinates.
-  Distance-based algorithms benefit from simplified calculations and improved branch prediction at grid
-  boundaries where cells align exactly.
-- **OpenSimplex2/SuperSimplex**: Integer coordinates are significantly faster (+47% to +83%) than fractional,
-  likely due to improved cache locality and branch prediction with regular grid patterns.
-- **Perlin/Value/ValueCubic**: Integer coordinates are slightly slower (-1 to -2%) than fractional.
+## FastNoiseLite comparison
 
-This variation demonstrates that different noise algorithms have fundamentally different performance
-characteristics depending on coordinate access patterns. The FNL comparison benchmarks use integer grids
-(matching FNL's methodology), while standard benchmarks use fractional coordinates (more representative
-of typical use cases).
+### Comparison methodology
 
-### Reproducibility Scripts
+As of `0.2.2.0`, `pure-noise` uses a slightly different benchmarking methodology
+for its comparisons. It creates an `unsafe` FFI binding to a C++ shim that
+performs the noise-sum loop _in C++_ against a vendored `FastNoiseLite.h` (v1.1.1),
+which should produce a much fairer result than either FFI for every point
+(too noisy, even with `unsafe` calls) or the previous methodology (comparing
+Google benchmark results with tasty/criterion manually).
 
-There are two scripts in this folder for running benchmarks with the exact parameters used to generate
-these results:
+`tasty-bench` is responsible for measuring the comparisons now, and most of the
+custom infrastructure for results comparison is gone.
 
-- `results/collect-bench.sh` Documents the parameters used to create benchmark results
-- `results/vps.py` Calculates values/second numbers from `tasty-bench` CSV output
+Cross-language comparison is built into the repo for reproducibility as of
+`0.2.2.0`.
+
+### System preparation
+
+Make sure your system is quiet. Close all browsers an graphical applications,
+confirm that the system is idling comfortably. If your DE/WM/etc. has a performance
+mode, turn that on.
+
+```bash
+# 1. Set CPU governor to performance
+echo performance | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+# 2. Disable CPU frequency scaling (introduces unpredictable noise)
+echo 0 | sudo tee /sys/devices/system/cpu/cpufreq/boost
+
+# 3. Disable turbo boost (intel only)
+echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+```
+
+### Running the benchmark
+
+You'll want to pin to a single core. Be sure this is a P-core, not an E-core.
+
+```bash
+cabal build bench:pure-noise-fnl-bench
+ # pinning to core 4, usually a P-core, unlikely to be a dumping ground for OS interrupts etc.
+cabal exec -- taskset -c 4 pure-noise-fnl-bench
+```
+
+### Restoring system performance settings
+
+Don't forget to reset your system's perf settings (or just reboot, `/sys` changes
+will reset):
+
+```bash
+# Restore power-saving CPU governor
+echo powersave | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+# Restore frequency scaling
+echo 1 | sudo tee /sys/devices/system/cpu/cpufreq/boost
+
+# Re-enable Turbo Boost (intel only)
+echo 0 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
+```
+
+## NOTE: 0.2.x series benchmark accuracy
+
+The 0.2.x series benchmarks had some issues that had been addressed. The most
+severe correctness issue was unintentional integer-alignment in 3D benchmarks,
+which didn't affect FNL comparisons.
+
+The other significant issue was that my i9-13900K's ring was melting. I had to
+RMA it later that year. So I'm a bit suspicious of the results - I just can't
+really know for how long the ring was melting or how much it affected these
+results, if at all.
+
+Updated benchmarks on a new machine appear largely to confirm the original
+findings. There are some performance result adjustments in both directions, which
+I imagine is a result of both the ring melting and my recent attempts to further
+increase benchmark precision.

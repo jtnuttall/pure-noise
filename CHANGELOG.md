@@ -18,6 +18,8 @@ and this project adheres to the
   fused-multiply-add optimizations
 - Flag `mavx`, which will set `-mavx` for GHC, and may open pathways for AVX2
   SIMD optimization in the future.
+- FastNoiseLite comparisons are now in-repository and reproducible. Comparison
+  mechanism goes through tasty-bench.
 
 ### Changed
 

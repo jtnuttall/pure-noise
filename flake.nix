@@ -32,6 +32,8 @@
         ];
       };
 
+      llvmTools = with pkgs.llvmPackages_19; [llvm clang-unwrapped];
+
       project = pkgs.haskell-nix.cabalProject' {
         src = ./.;
         compiler-nix-name = "ghc9122";
@@ -54,39 +56,40 @@
             tasty-discover = "latest";
             hlint = "latest";
           };
-          buildInputs = with pkgs; [
-            llvmPackages_19.llvm
-            qsv
-            bc
-            cmake
-            gcc
-            pkg-config
-            SDL2
-            glew
-            libx11
-            ast-grep
-            git
-            gawk
-            fd
-            tree-sitter
-            shellcheck
-            bat
-            coreutils
-            jq
-            diffutils
-            dyff
-            xq
-            dasel
-            xmlstarlet
-            ripgrep
-            odiff
-            (python3.withPackages (python-packages: [
-              python-packages.pandas
-              python-packages.scipy
-              python-packages.numpy
-            ]))
-            typos
-          ];
+          buildInputs =
+            llvmTools
+            ++ (with pkgs; [
+              qsv
+              bc
+              cmake
+              gcc
+              pkg-config
+              SDL2
+              glew
+              libx11
+              ast-grep
+              git
+              gawk
+              fd
+              tree-sitter
+              shellcheck
+              bat
+              coreutils
+              jq
+              diffutils
+              dyff
+              xq
+              dasel
+              xmlstarlet
+              ripgrep
+              odiff
+              (python3.withPackages (python-packages: [
+                python-packages.pandas
+                python-packages.scipy
+                python-packages.numpy
+              ]))
+              typos
+            ]);
         };
       };
 

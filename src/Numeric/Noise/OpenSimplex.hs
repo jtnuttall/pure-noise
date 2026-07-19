@@ -79,11 +79,6 @@ noise3 :: (RealFrac a) => Noise3 a
 noise3 = mkNoise3 noise3Base
 {-# INLINE noise3 #-}
 
--- | 3D OpenSimplex2, ported from FNL's @SingleOpenSimplex2@ (two offset
--- rotated cube grids), including the mandatory rotation FNL applies in
--- @TransformNoiseCoordinate3D@. Keep the expression shapes: FP reassociation
--- changes outputs (pinned by the golden tests). Close to FNL but not
--- bit-exact; scripts/fnl-diff measures the ulp envelope.
 noise3Base :: forall a. (RealFrac a) => Seed -> a -> a -> a -> a
 noise3Base seed0 xo yo zo =
   let !(x, y, z) = rotate3 xo yo zo

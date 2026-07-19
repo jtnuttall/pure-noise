@@ -90,6 +90,9 @@ tests:
       - text
       - typed-process
 
+
+# NOTE: Benchmarks want +mfma & +mavx in your cabal.project if your host arch
+# supports such.
 benchmarks:
   pure-noise-bench:
     main: Bench.hs
@@ -100,6 +103,15 @@ benchmarks:
       - '"-with-rtsopts=-N -A32m -T"'
       - -O2
       - -fsimpl-tick-factor=1000
+      # Nix requires us to be kinda explcit about the chain we want
+      - -fllvm
+      - -pgmlo opt
+      - -pgmlc llc
+      - -pgmlas clang
+      - -optc-O3
+      - -optlo-O3
+      - -mavx
+      - -mfma
     dependencies:
       - pure-noise
       - deepseq
@@ -107,7 +119,46 @@ benchmarks:
       - random
       - tasty
       - tasty-bench
-      - vector <= 0.14
+      - vector >=0.12 && <0.14
+
+  pure-noise-fnl-bench:
+    main: FnlBench.hs
+    source-dirs: bench/fnl-compare
+    include-dirs: bench/fnl-compare/cbits
+    cxx-sources: bench/fnl-compare/fnl_bench_shim.cpp
+    cxx-options:
+      - -O3
+      - -std=c++14
+      - -march=native
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      # Single-threaded, large nursery should keep GC jitter low
+      - '"-with-rtsopts=-A64m -T"'
+      - -O2
+      - -fsimpl-tick-factor=1000
+      # Nix requires us to be kinda explcit about the chain we want
+      - -fllvm
+      - -pgmlo opt
+      - -pgmlc llc
+      - -pgmlas clang
+      - -optc-O3
+      - -optlo-O3
+      - -mavx
+      - -mfma
+    dependencies:
+      - pure-noise
+      - mtl >=2.1 && < 2.4
+      - splitmix ^>=0.1
+      - tasty
+      - tasty-bench >= 0.4 && < 0.6
+      - vector >=0.12 && <0.14
+    when:
+      - condition: os(darwin)
+        then:
+          extra-libraries: c++
+        else:
+          extra-libraries: stdc++
 
 flags:
   optimize:

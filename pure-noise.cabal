@@ -134,7 +134,7 @@ benchmark pure-noise-bench
       Paths_pure_noise
   hs-source-dirs:
       bench
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts "-with-rtsopts=-N -A32m -T" -O2 -fsimpl-tick-factor=1000
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts "-with-rtsopts=-N -A32m -T" -O2 -fsimpl-tick-factor=1000 -fllvm -pgmlo opt -pgmlc llc -pgmlas clang -optc-O3 -optlo-O3 -mavx -mfma
   build-depends:
       base >=4.16 && <5
     , deepseq
@@ -144,5 +144,37 @@ benchmark pure-noise-bench
     , random
     , tasty
     , tasty-bench
-    , vector <=0.14
+    , vector >=0.12 && <0.14
   default-language: GHC2021
+
+benchmark pure-noise-fnl-bench
+  type: exitcode-stdio-1.0
+  main-is: FnlBench.hs
+  other-modules:
+      Paths_pure_noise
+  autogen-modules:
+      Paths_pure_noise
+  hs-source-dirs:
+      bench/fnl-compare
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts "-with-rtsopts=-A64m -T" -O2 -fsimpl-tick-factor=1000 -fllvm -pgmlo opt -pgmlc llc -pgmlas clang -optc-O3 -optlo-O3 -mavx -mfma
+  cxx-options: -O3 -std=c++14 -march=native
+  include-dirs:
+      bench/fnl-compare/cbits
+  cxx-sources:
+      bench/fnl-compare/fnl_bench_shim.cpp
+  build-depends:
+      base >=4.16 && <5
+    , mtl >=2.1 && <2.4
+    , primitive >=0.8 && <0.10
+    , pure-noise
+    , splitmix ==0.1.*
+    , tasty
+    , tasty-bench >=0.4 && <0.6
+    , vector >=0.12 && <0.14
+  default-language: GHC2021
+  if os(darwin)
+    extra-libraries:
+        c++
+  else
+    extra-libraries:
+        stdc++
