@@ -3,7 +3,7 @@ import Data.Massiv.Array qualified as MA
 import Data.Typeable
 import Data.Vector.Unboxed qualified as U
 import Numeric.Noise
-import System.Random.Stateful
+import System.Random.Stateful (StatefulGen, UniformRange, newAtomicGenM, newStdGen, uniformRM)
 
 main :: IO ()
 main = do
@@ -27,16 +27,17 @@ main = do
         "3D"
         ( baseline3 sz
             <> benchPerlin3 octaves sz
+            <> benchOpenSimplex3 octaves sz
+            <> benchSuperSimplex3 octaves sz
             <> benchValue3 octaves sz
             <> benchValueCubic3 octaves sz
+            <> benchCellular3 sz
         )
     , bgroup
         "2D massiv"
         ( benchMassivBase2 massivW massivH
             <> benchMassivFractal2 octaves massivW massivH
         )
-    , bgroup "FNL compare 2D" benchFnlCompare2D
-    , bgroup "FNL compare 3D" benchFnlCompare3D
     ]
 
 label :: (Typeable a) => String -> Int -> Proxy a -> String
@@ -242,66 +243,21 @@ benchCellular2 _ sz =
       ]
   ]
 
--- | Create environment for FNL-style 2D benchmarks with integer-aligned coordinates
--- Mimics FastNoiseLite's benchmark methodology exactly:
--- for(y = 0; y < gridSize; y++)
---   for(x = 0; x < gridSize; x++)
---     noise(float(x), float(y))
-createEnvFnl2 :: Int -> IO (Seed, U.Vector (Float, Float))
-createEnvFnl2 gridSize = do
-  g <- newAtomicGenM =<< newStdGen
-  seed <- uniformRM (minBound, maxBound) g
-  let v = U.generate (gridSize * gridSize) $ \i ->
-        let x = fromIntegral (i `mod` gridSize) :: Float
-            y = fromIntegral (i `div` gridSize) :: Float
-         in (x, y)
-  pure (seed, v)
-{-# INLINE createEnvFnl2 #-}
-
--- | Benchmark for FNL comparison (integer coordinates, Float only)
--- Uses foldl' to avoid vector materialization overhead, matching FNL's DoNotOptimize approach
--- Sums results to prevent DCE while keeping overhead minimal
-benchFnlCompare2
-  :: String
-  -> Int
-  -> Noise2 Float
-  -> Benchmark
-benchFnlCompare2 lbl gridSize f =
-  env (createEnvFnl2 gridSize) $ \ ~(seed, v) ->
-    bench (lbl <> ": Float (FNL grid) x" <> show (gridSize * gridSize)) $
-      nf (\vec -> U.foldl' (\acc (x, y) -> acc + (noise2At f seed) x y) 0 vec) v
-{-# INLINE benchFnlCompare2 #-}
-
--- | FNL-style 2D benchmarks: 512x512 grid with integer coordinates
-benchFnlCompare2D :: [Benchmark]
-benchFnlCompare2D =
-  let gridSize = 512
-   in [ bgroup
-          "FNL compare"
-          [ benchFnlCompare2 "value2" gridSize value2
-          , benchFnlCompare2 "perlin2" gridSize perlin2
-          , benchFnlCompare2 "openSimplex2" gridSize openSimplex2
-          , benchFnlCompare2 "superSimplex2" gridSize superSimplex2
-          , benchFnlCompare2 "valueCubic2" gridSize valueCubic2
-          , benchFnlCompare2
-              "cellular2 (Distance)"
-              gridSize
-              (cellular2 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance})
-          ]
-      ]
-
+-- offsets are drawn per element (like createEnv2) and the strides are
+-- independent per axis; the previous version drew one offset triple and
+-- collapsed the index math to ~4 distinct points
 createEnv3 :: (U.Unbox a, UniformRange a, RealFrac a) => Int -> IO (Seed, U.Vector (a, a, a))
 createEnv3 sz = do
   g <- newAtomicGenM =<< newStdGen
   seed <- uniformRM (minBound, maxBound) g
-  offsetX <- uniformRM (0.00001, 0.99999) g
-  offsetY <- uniformRM (0.00001, 0.99999) g
-  offsetZ <- uniformRM (0.00001, 0.99999) g
+  let d = ceiling (fromIntegral sz ** (1 / 3) :: Double)
   !ixs <- U.generateM sz $ \i -> do
-    let d = sz `div` 3
-        !x = fromIntegral $ i `div` d `mod` d
-        !y = fromIntegral $ i `div` (d * d)
-        !z = fromIntegral $ i `div` d
+    offsetX <- uniformRM (0.00001, 0.99999) g
+    offsetY <- uniformRM (0.00001, 0.99999) g
+    offsetZ <- uniformRM (0.00001, 0.99999) g
+    let !x = fromIntegral (i `mod` d)
+        !y = fromIntegral ((i `div` d) `mod` d)
+        !z = fromIntegral (i `div` (d * d))
     pure (x + offsetX, y + offsetY, z + offsetZ)
   pure (seed, ixs)
 {-# INLINE createEnv3 #-}
@@ -345,6 +301,51 @@ benchPerlin3 octaves sz =
       ]
   ]
 
+benchOpenSimplex3 :: Int -> Int -> [Benchmark]
+benchOpenSimplex3 octaves sz =
+  [ bgroup
+      "openSimplex3"
+      [ benchMany3 @Float "" sz openSimplex3
+      , benchMany3 @Double "" sz openSimplex3
+      , benchMany3 @Float "fractal" sz (fractal3 defaultFractalConfig{octaves} openSimplex3)
+      , benchMany3 @Double "fractal" sz (fractal3 defaultFractalConfig{octaves} openSimplex3)
+      ]
+  ]
+
+benchSuperSimplex3 :: Int -> Int -> [Benchmark]
+benchSuperSimplex3 octaves sz =
+  [ bgroup
+      "superSimplex3"
+      [ benchMany3 @Float "" sz superSimplex3
+      , benchMany3 @Double "" sz superSimplex3
+      , benchMany3 @Float "fractal" sz (fractal3 defaultFractalConfig{octaves} superSimplex3)
+      , benchMany3 @Double "fractal" sz (fractal3 defaultFractalConfig{octaves} superSimplex3)
+      ]
+  ]
+
+benchCellular3 :: Int -> [Benchmark]
+benchCellular3 sz =
+  [ bgroup
+      "cellular3"
+      [ benchMany3 @Float
+          "DistEuclidean CellValue"
+          sz
+          (cellular3 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = CellValue})
+      , benchMany3 @Float
+          "DistEuclidean Distance2Add"
+          sz
+          (cellular3 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance2Add})
+      , benchMany3 @Double
+          "DistEuclidean CellValue"
+          sz
+          (cellular3 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = CellValue})
+      , benchMany3 @Double
+          "DistEuclidean Distance2Add"
+          sz
+          (cellular3 defaultCellularConfig{cellularDistanceFn = DistEuclidean, cellularResult = Distance2Add})
+      ]
+  ]
+
 benchValue3 :: Int -> Int -> [Benchmark]
 benchValue3 octaves sz =
   [ bgroup
@@ -378,51 +379,6 @@ benchValueCubic3 octaves sz =
       , benchMany3 @Double "pingPong" sz (pingPong3 defaultFractalConfig{octaves} defaultPingPongStrength valueCubic3)
       ]
   ]
-
--- | Create environment for FNL-style 3D benchmarks with integer-aligned coordinates
--- Mimics FastNoiseLite's benchmark methodology exactly:
--- for(z = 0; z < gridSize; z++)
---   for(y = 0; y < gridSize; y++)
---     for(x = 0; x < gridSize; x++)
---       noise(float(x), float(y), float(z))
-createEnvFnl3 :: Int -> IO (Seed, U.Vector (Float, Float, Float))
-createEnvFnl3 gridSize = do
-  g <- newAtomicGenM =<< newStdGen
-  seed <- uniformRM (minBound, maxBound) g
-  let gridSq = gridSize * gridSize
-      v = U.generate (gridSize * gridSize * gridSize) $ \i ->
-        let x = fromIntegral (i `mod` gridSize) :: Float
-            y = fromIntegral ((i `div` gridSize) `mod` gridSize) :: Float
-            z = fromIntegral (i `div` gridSq) :: Float
-         in (x, y, z)
-  pure (seed, v)
-{-# INLINE createEnvFnl3 #-}
-
--- | Benchmark for FNL 3D comparison (integer coordinates, Float only)
--- Uses foldl' to avoid vector materialization overhead, matching FNL's DoNotOptimize approach
--- Sums results to prevent DCE while keeping overhead minimal
-benchFnlCompare3
-  :: String
-  -> Int
-  -> Noise3 Float
-  -> Benchmark
-benchFnlCompare3 lbl gridSize f =
-  env (createEnvFnl3 gridSize) $ \ ~(seed, v) ->
-    bench (lbl <> ": Float (FNL grid) x" <> show (gridSize * gridSize * gridSize)) $
-      nf (\vec -> U.foldl' (\acc (x, y, z) -> acc + noise3At f seed x y z) 0 vec) v
-{-# INLINE benchFnlCompare3 #-}
-
--- | FNL-style 3D benchmarks: 64x64x64 grid with integer coordinates
-benchFnlCompare3D :: [Benchmark]
-benchFnlCompare3D =
-  let gridSize = 64
-   in [ bgroup
-          "FNL compare"
-          [ benchFnlCompare3 "value3" gridSize value3
-          , benchFnlCompare3 "perlin3" gridSize perlin3
-          , benchFnlCompare3 "valueCubic3" gridSize valueCubic3
-          ]
-      ]
 
 benchMassiv2
   :: forall a

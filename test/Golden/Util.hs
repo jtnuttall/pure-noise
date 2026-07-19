@@ -156,7 +156,6 @@ sparseTestPoints2D =
   , (-3.2, 4.7)
   , -- Edge cases
     (1.0e-10, 1.0e-10)
-  , (1.0e10, 1.0e10)
   , -- More varied points
     (2.5, 3.7)
   , (-5.2, 8.9)
@@ -194,10 +193,6 @@ sparseTestPoints2D =
   , -- Large inputs
     (10000.0, 10000.0)
   , (10000.1, 10000.1)
-  , -- Floating-point tomfoolery
-    (1 / 0, 1.0) -- infinity
-  , (-1 / 0, 1.0) -- negative infinity
-  , (0 / 0, 1.0) -- NaN
   ]
 
 -- | Strategic test points for 3D noise
@@ -231,7 +226,6 @@ sparseTestPoints3D =
   , (1.23, -4.56, 7.89)
   , -- Edge cases
     (1.0e-10, 1.0e-10, 1.0e-10)
-  , (1.0e10, 1.0e10, 1.0e10)
   , -- Mixed signs
     (1.0, -1.0, 1.0)
   , (-1.0, 1.0, -1.0)

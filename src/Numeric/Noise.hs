@@ -12,8 +12,8 @@
 -- type aliases for 2D and 3D noise. These can be composed algebraically
 -- with minimal performance overhead.
 --
--- Noise values are generally clamped to @[-1, 1]@, though some functions may
--- occasionally produce values slightly outside this range.
+-- Noise values are generally clamped to @[-1, 1]@, although some noise
+-- functions may occasionally produce values slightly outside this range.
 --
 -- == Basic Usage
 --
@@ -61,15 +61,28 @@
 -- scaledAndLayered :: Noise.Noise2 Float
 -- scaledAndLayered =
 --  Noise.warp (\\(x, y) -> (x * 2, y * 2)) Noise.perlin2
---    + fmap (logBase 2) Noise.perlin2
+--    + fmap (* 0.5) Noise.perlin2
 -- @
 --
 -- Layer independent noise with 'reseed' or 'next2':
 --
 -- @
 -- layered :: Noise.Noise2 Float
--- layered = Noise.perlin2 + Noise.next2 Noise.perlin2 \/ 2
+-- layered = (Noise.perlin2 + Noise.next2 Noise.perlin2) \/ 2
 -- @
+--
+-- == Coordinate domain
+--
+-- Coordinates are supported on the Int32 lattice range (@|x| < 2^31@; in
+-- practice 'Float' precision runs out well before that).
+--
+-- The OpenSimplex2\/2S family first rotates coordinates into its lattice domain,
+-- which shrinks its usable range by the rotation factor — up to ~1.73x, so roughly
+-- @|x| < 1.2e9@.
+--
+-- Outside those domains, or for non-finite inputs, results are unspecified.
+--
+-- This behavior mirrors FastNoiseLite, but may change in a future major version.
 module Numeric.Noise (
   -- * Noise
 
@@ -102,12 +115,15 @@ module Numeric.Noise (
 
   -- ** OpenSimplex
   openSimplex2,
+  openSimplex3,
 
   -- ** OpenSimplex2S
   superSimplex2,
+  superSimplex3,
 
   -- ** Cellular
   cellular2,
+  cellular3,
 
   -- *** Configuration
   CellularConfig (..),
@@ -127,9 +143,10 @@ module Numeric.Noise (
 
   -- * Noise alteration
 
-  --  ** Altering values
+  -- ** Altering values
   remap,
-  --  ** Altering parameters
+
+  -- ** Altering parameters
   warp,
   reseed,
   next2,
@@ -149,8 +166,8 @@ module Numeric.Noise (
   -- | Fractal noise combines multiple octaves at different frequencies and
   -- amplitudes to create natural-looking, multi-scale patterns.
   --
-  -- For custom fractal implementations using modifier functions, see
-  -- "Numeric.Noise.Fractal".
+  -- For custom fractal implementations using per-octave modifier functions,
+  -- see "Numeric.Noise.Fractal".
 
   -- ** Fractal Brownian Motion (FBM)
   fractal2,
@@ -169,6 +186,18 @@ module Numeric.Noise (
   defaultFractalConfig,
   PingPongStrength (..),
   defaultPingPongStrength,
+
+  -- * Custom kernels
+
+  --
+
+  -- | Lift a plain @seed -> coordinates -> value@ function into a composable
+  -- 'Noise' value — the inverses of the accessors above.
+  --
+  -- You may use these to construct custom kernels.
+  mkNoise1,
+  mkNoise2,
+  mkNoise3,
 
   -- * Math utilities
   clamp,
@@ -199,17 +228,34 @@ cellular2 :: (RealFrac a, Floating a) => CellularConfig a -> Noise2 a
 cellular2 = Cellular.noise2
 {-# INLINE cellular2 #-}
 
+-- | 3D Cellular (Worley) noise. See 'cellular2'.
+cellular3 :: (RealFrac a, Floating a) => CellularConfig a -> Noise3 a
+cellular3 = Cellular.noise3
+{-# INLINE cellular3 #-}
+
 -- | 2D OpenSimplex noise. Smooth gradient noise similar to Perlin but without
 -- directional artifacts.
 openSimplex2 :: (RealFrac a) => Noise2 a
 openSimplex2 = OpenSimplex.noise2
 {-# INLINE openSimplex2 #-}
 
+-- | 3D OpenSimplex noise (FastNoiseLite's OpenSimplex2, two offset rotated
+-- cube grids), including its default coordinate rotation.
+openSimplex3 :: (RealFrac a) => Noise3 a
+openSimplex3 = OpenSimplex.noise3
+{-# INLINE openSimplex3 #-}
+
 -- | 2D SuperSimplex noise. Improved OpenSimplex variant with better visual
 -- characteristics.
 superSimplex2 :: (RealFrac a) => Noise2 a
 superSimplex2 = SuperSimplex.noise2
 {-# INLINE superSimplex2 #-}
+
+-- | 3D SuperSimplex noise (FastNoiseLite's OpenSimplex2S, two offset rotated
+-- cube grids), including its default coordinate rotation.
+superSimplex3 :: (RealFrac a) => Noise3 a
+superSimplex3 = SuperSimplex.noise3
+{-# INLINE superSimplex3 #-}
 
 -- | 2D Perlin noise. Classic gradient noise algorithm.
 perlin2 :: (RealFrac a) => Noise2 a

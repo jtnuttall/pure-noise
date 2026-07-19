@@ -35,10 +35,8 @@ executables:
     ghc-options:
       - -threaded
       - -rtsopts
-      - -with-rtsopts=-N +RTS -A32m --nonmoving-gc -RTS
+      - '"-with-rtsopts=-N -A32m"'
       - -O2
-      - -optc-O3
-      - -fllvm
     dependencies:
       - dear-imgui
       - lens

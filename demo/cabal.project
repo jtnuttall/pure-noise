@@ -1,0 +1,9 @@
+-- Builds the demo against the in-repo pure-noise (never Hackage's), with
+-- the dear-imgui backends the demo uses. Replaces the deleted demo/stack.yaml.
+packages:
+  .
+  ..
+
+constraints:
+  dear-imgui >=2.3.0,
+  dear-imgui +opengl3 +sdl

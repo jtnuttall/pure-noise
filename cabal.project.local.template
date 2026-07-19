@@ -1,0 +1,6 @@
+-- You can copy this verbatim. Tune flags to your native arch.
+--
+-- mfma should be fine for both modern ARM and x86_64
+-- mavx should be fine for modern x86_64
+package pure-noise
+  flags: +optimize +mfma +mavx

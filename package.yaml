@@ -1,32 +1,34 @@
 name: pure-noise
-version: 0.2.1.1
+version: 0.2.2.0
 github: "jtnuttall/pure-noise"
 license: BSD-3-Clause
 author: "Jeremy Nuttall"
 maintainer: "jeremy@jeremy-nuttall.com"
-copyright: "2024 Jeremy Nuttall"
+copyright: "2026 Jeremy Nuttall"
+
+tested-with:
+  - GHC == 9.6.7
+  - GHC == 9.8.4
+  - GHC == 9.12.2
 
 extra-source-files:
   - README.md
+  - LICENSE
+  - LICENSE_FastNoiseLite
+  # Required so pure-noise-fnl-bench builds from the sdist
+  - bench/fnl-compare/cbits/FastNoiseLite.h
 
 extra-doc-files:
   - CHANGELOG.md
 
-synopsis: High-performance composable noise generation (Perlin, Simplex, Cellular)
+synopsis: Performant, modern noise generation (Perlin, OpenSimplex2, Cellular)
 category: Math, Numeric, Noise
 
 description: |
-  A high-performance noise generation library ported from FastNoiseLite.
-  Provides N-dimensional noise functions (Perlin, OpenSimplex, SuperSimplex,
-  Value, Cellular) that can be composed using Num or Fractional methods with
-  minimal performance overhead. Noise values are generally clamped to [-1, 1].
-  Benefits significantly from LLVM backend compilation (~50-80% performance improvement).
+  Fast, modern noise generation In pure Haskell with an algebraic interface.
+  Provides Perlin, OpenSimplex2, OpenSimplex2S, Value, and Cellular noise variants.
 
 language: GHC2021
-tested-with:
-  - GHC == 9.6.7
-  - GHC == 9.8.4
-  - GHC == 9.10.2
 
 dependencies:
   - base >= 4.16 && < 5
@@ -54,6 +56,20 @@ library:
     - Numeric.Noise.SuperSimplex
     - Numeric.Noise.Value
     - Numeric.Noise.ValueCubic
+  when:
+    - condition: flag(optimize)
+      ghc-options:
+        - -O2
+    - condition: flag(mfma)
+      ghc-options:
+        - -mfma
+      cpp-options:
+        - -DHAS_FMA
+    - condition: flag(mavx)
+      ghc-options:
+        - -mavx
+      cpp-options:
+        - -DHAS_AVX
 
 tests:
   pure-noise-test:
@@ -74,13 +90,17 @@ tests:
       - JuicyPixels >= 3.3 && < 3.4
       - massiv >= 1.0 && < 2.0
       - tasty
-      - tasty-discover
       - tasty-hunit
       - tasty-quickcheck
       - tasty-golden
       - text
       - typed-process
+    build-tools:
+      - tasty-discover
 
+# NOTE: Benchmarks want +mfma & +mavx in your cabal.project if your host arch
+# supports such.
+# Published numbers additionally require +llvm-bench; see bench/README.md.
 benchmarks:
   pure-noise-bench:
     main: Bench.hs
@@ -88,10 +108,22 @@ benchmarks:
     ghc-options:
       - -threaded
       - -rtsopts
-      - -with-rtsopts=-N +RTS -A32m --nonmoving-gc -T -RTS
+      - '"-with-rtsopts=-N -A32m -T"'
       - -O2
-      - -optc-O3
       - -fsimpl-tick-factor=1000
+    when:
+      - condition: flag(llvm-bench)
+        ghc-options:
+          # Nix requires us to be explicit about the toolchain. Pinned -pgm* also avoids picking up a
+          # mismatched system LLVM.
+          - -fllvm
+          - -pgmlo opt
+          - -pgmlc llc
+          - -pgmlas clang # GHC >= 9.10
+          - -mavx
+          - -mfma # GHC >= 9.8
+          # FP contraction happens in llc; this is where the FMA speedup
+          - -optlc-fp-contract=fast
     dependencies:
       - pure-noise
       - deepseq
@@ -99,4 +131,86 @@ benchmarks:
       - random
       - tasty
       - tasty-bench
-      - vector <= 0.14
+      - vector >=0.12 && <0.14
+
+  pure-noise-fnl-bench:
+    main: FnlBench.hs
+    source-dirs: bench/fnl-compare
+    include-dirs: bench/fnl-compare/cbits
+    cxx-sources: bench/fnl-compare/fnl_bench_shim.cpp
+    # Best-effort build FNL the way an ordinary Linux user's -O3 -march=native build behaves.
+    # Explicit flags instead of -march=native because nix's cc wrapper strips -march=native
+    # (NIX_ENFORCE_NO_NATIVE=1) and injects -fno-strict-overflow:
+    cxx-options:
+      - -O3
+      - -std=c++14
+      - -ffp-contract=fast
+      - -fstrict-overflow
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      # Single-threaded, large nursery should keep GC jitter low
+      - '"-with-rtsopts=-A64m -T"'
+      - -O2
+      - -fsimpl-tick-factor=1000
+    dependencies:
+      - pure-noise
+      - mtl >=2.1 && < 2.4
+      - splitmix ^>=0.1
+      - tasty
+      - tasty-bench >= 0.4 && < 0.6
+      - vector >=0.12 && <0.14
+    when:
+      - condition: flag(llvm-bench)
+        ghc-options:
+          # See pure-noise-bench for rationale.
+          - -fllvm
+          - -pgmlo opt
+          - -pgmlc llc
+          - -pgmlas clang
+          - -mavx
+          - -mfma
+          - -optlc-fp-contract=fast
+      - condition: arch(x86_64)
+        cxx-options:
+          # Roughly what -march=native selects on 2015+ x86 (AVX2+FMA) without
+          # being build-machine-dependent.
+          - -march=x86-64-v3
+      - condition: os(darwin)
+        then:
+          extra-libraries: c++
+        else:
+          extra-libraries: stdc++
+
+flags:
+  optimize:
+    description: |
+      Turns on -O2 for pure-noise. Since the library is pretty small, this shouldn't be
+      too much trouble, but you can disable this flag if it's slowing your builds too
+      much.
+
+      Rationale:
+      - -O1 leaves ~3x on the table for tight noise loops in downstream code.
+      - -O2 seems to produce higher-quality unfoldings, which in turn causes pure-noise's
+      kernels to inline and optimize more reliably at call sites.
+    default: true
+    manual: true
+  mfma:
+    description: Compile with native fused-multiply-add instructions
+    manual: true
+    default: false
+  mavx:
+    description: Compile with AVX instructions
+    manual: true
+    default: false
+  llvm-bench:
+    description: |
+      Build the benchmark suites via GHC's LLVM backend with a pinned toolchain
+      (-fllvm, -pgmlo opt, -pgmlc llc, -pgmlas clang) plus -mavx -mfma and fast
+      FP contraction in llc (-optlc-fp-contract=fast). Requires opt/llc/clang
+      on PATH (LLVM <= 19 for GHC 9.12) and GHC >= 9.10 (for -pgmlas). Off by
+      default so `cabal build --enable-benchmarks` works on machines and CI
+      runners without LLVM. Published benchmark numbers are collected with this
+      flag on; see bench/README.md.
+    default: false
+    manual: true

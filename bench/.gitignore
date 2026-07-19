@@ -1,10 +1,9 @@
 results/*
-!results/current-asm.csv
-!results/current-asm-vps.csv
-!results/current-llvm.csv
-!results/current-llvm-vps.csv
 !results/collect-bench.sh
 !results/vps.py
-!results/format-noisebench.py
-!results/fastnoiselite.csv
-!results/fastnoiselite-vps.csv
+!results/current.csv
+!results/current-vps.csv
+!results/current.meta
+!results/current-fnl.csv
+!results/current-fnl-vps.csv
+!results/current-fnl.meta

@@ -1,0 +1,17 @@
+date-utc: 2026-07-19T09:58:07+00:00
+uname: Linux jeremy-laptop 6.18.37 #1-NixOS SMP PREEMPT_DYNAMIC Sat Jun 27 10:06:50 UTC 2026 x86_64 GNU/Linux
+cpu-model: 13th Gen Intel(R) Core(TM) i7-1370P
+governor-cpu0: performance
+governor-cpu4: performance
+intel-no-turbo: 1
+ac-online-AC: 1
+ac-online-ucsi-source-psy-USBC000:001: 0
+ac-online-ucsi-source-psy-USBC000:002: 1
+run-pre: taskset -c 4
+cabal-flags: --flags=+llvm-bench
+bench-args: --csv=bench/results/2026-07-19T09:58+00:00-fnl.csv --svg=bench/results/2026-07-19T09:58+00:00-fnl.svg --timeout 100 --stdev 1 --time-mode wall 
+ghc: The Glorious Glasgow Haskell Compilation System, version 9.12.2
+g++: g++ (GCC) 15.2.0
+opt: LLVM version 19.1.7
+cabal: cabal-install version 3.16.1.0 
+status: completed 2026-07-19T09:59:39+00:00

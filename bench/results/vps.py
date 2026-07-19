@@ -9,8 +9,9 @@ import sys
 try:
   from tabulate import tabulate
 except ImportError:
-  def tabulate(vs, headers):
-    rs = [headers]
+  def tabulate(vs, headers, **_kwargs):
+    rs = ['| ' + ' | '.join(map(str, headers)) + ' |']
+    rs.append('|' + '|'.join(' --- ' for _ in headers) + '|')
     for row in vs:
       rs.append('| ' + ' | '.join(map(str, row)) + ' |')
     return '\n'.join(rs)

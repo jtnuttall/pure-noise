@@ -141,13 +141,6 @@
     },
     {
         "coordinates": [
-            10000000000,
-            10000000000
-        ],
-        "expected": 3.7836233904430773e111
-    },
-    {
-        "coordinates": [
             2.5,
             3.7
         ],
@@ -355,26 +348,5 @@
             10000.1
         ],
         "expected": 6.536658747534095e-2
-    },
-    {
-        "coordinates": [
-            "+inf",
-            1
-        ],
-        "expected": null
-    },
-    {
-        "coordinates": [
-            "-inf",
-            1
-        ],
-        "expected": null
-    },
-    {
-        "coordinates": [
-            null,
-            1
-        ],
-        "expected": null
     }
 ]

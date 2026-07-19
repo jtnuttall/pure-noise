@@ -14,7 +14,7 @@ permissions:
   contents: read
 
 env:
-  CACHE_BUST_VERSION: v0
+  CACHE_BUST_VERSION: v1
 
 jobs:
   lint:
@@ -22,60 +22,71 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Run fourmolu
-        uses: haskell-actions/run-fourmolu@v9
+        uses: haskell-actions/run-fourmolu@v13
         with:
-          version: 0.15.0.0
+          version: 0.20.0.0
 
   build:
     needs: lint
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        resolver:
-          - lts-24.11
-          - lts-23.24
-          - lts-22.44
+        ghc:
+          - "9.6.7"
+          - "9.8.4"
+          - "9.12.2"
 
-    name: Stackage ${{matrix.resolver}}
+    name: GHC ${{matrix.ghc}}
     steps:
       - uses: actions/checkout@v5
 
       - name: Setup Haskell environment
+        id: setup-haskell
         uses: haskell-actions/setup@v2
         with:
-          enable-stack: true
-          stack-no-global: true
-          ghc-version: ""
-          cabal-version: ""
+          ghc-version: ${{ matrix.ghc }}
+          cabal-version: "3.12.1.0"
 
       # Golden tests rely on odiff
       - name: Setup Node.js for odiff
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Install odiff
-        run: npm i -g odiff-bin
+        run: npm i -g odiff-bin@4.3.8
 
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: |
-            ~/.stack
-            .stack-work
-          key: ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-${{ hashFiles('stack.yaml') }}-${{ hashFiles('package.yaml') }}
+            ${{ steps.setup-haskell.outputs.cabal-store }}
+            dist-newstyle
+          key: ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-ghc-${{ matrix.ghc }}-${{ hashFiles('pure-noise.cabal', 'package.yaml') }}
           restore-keys: |
-            ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-${{ matrix.resolver }}-
+            ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-ghc-${{ matrix.ghc }}-
 
       - name: Install and build dependencies
-        run: stack build --resolver ${{ matrix.resolver }} --test --bench --only-dependencies
+        run: cabal build all --enable-tests --enable-benchmarks --only-dependencies
 
       - name: Run Tests
-        run: stack test --resolver ${{ matrix.resolver }}
+        run: cabal test all
 
       - name: Build Haddock
-        run: stack haddock --resolver ${{ matrix.resolver }} --no-haddock-deps
+        run: cabal haddock
 
       # Just verify that the benchmark builds to avoid wasting CI minutes
       - name: Build benchmarks
-        run: stack bench --resolver ${{ matrix.resolver }} --fast --no-run-benchmarks
+        run: cabal build all --enable-benchmarks
+
+      # Smoke-build the LLVM-gated benchmark configuration on the newest GHC only. Checks
+      # buildability without wasting too many CI minutes.
+      - name: Install LLVM 19 (llvm-bench smoke build)
+        if: matrix.ghc == '9.12.2'
+        uses: KyleMayes/install-llvm-action@v2
+        with:
+          version: "19"
+
+      - name: Build benchmarks (+llvm-bench)
+        if: matrix.ghc == '9.12.2'
+        run: cabal build all --enable-benchmarks --flags=+llvm-bench

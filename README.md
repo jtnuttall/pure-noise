@@ -9,8 +9,9 @@ Performant, modern noise generation for Haskell with a minimal dependency footpr
   `Fractional`, `Monad`, etc).
 - **Complex effects** like domain warping and multi-octave fractals with clean,
   type-safe composition.
-- **84-95% of C++ FastNoiseLite performance** through aggressive optimization and
-  LLVM compilation.
+- **Competitive with C++**: roughly 70-100% of FastNoiseLite's single-threaded
+  random-access throughput under the LLVM backend. And 2D cellular noise runs
+  ahead of C++, measured against an optimized FNL build.
 
 **For detailed FastNoiseLite comparison, methodology, and reproducibility instructions,
 see the [benchmark README](https://github.com/jtnuttall/pure-noise/blob/main/bench/README.md).**
@@ -24,13 +25,33 @@ are subject to change and may change between minor versions.
 - This project grew from a port of the excellent
   [FastNoiseLite](https://github.com/Auburn/FastNoiseLite) library. The library
   structure has been tuned to perform well in Haskell and fit well with Haskell
-  semantics, but the core noise implementations are the same.
+  semantics, but the core noise share their origin with FNL.
 - All credit for the original design, algorithms, and implementation goes to its
   creator **[Jordan Peck (@Auburn)](https://github.com/Auburn)**. I'm grateful for
   their work and the opportunity to learn from it.
 - The original FastNoiseLite code, from which the core algorithms in this library
   were originally ported, is (C) 2020 Jordan Peck and is licensed under the MIT
   license, a copy of which is included in this repository.
+
+## FastNoiseLite compatibility
+
+pure-noise shares its lineage with FNL, but it isn't intended as a 1:1 port —
+kernels are restructured for GHC, and some families intentionally diverge.
+Where outputs stand today:
+
+| family                                   | output vs FNL                                 |
+| ---------------------------------------- | --------------------------------------------- |
+| `perlin2/3`, `cellular2/3`               | bit-exact                                     |
+| `openSimplex2/3`, `superSimplex2/3`      | within a few ULP                              |
+| `value2/3`, `valueCubic2/3`              | diverges (hash finalization)                  |
+| `fractal2/3`, `ridged2/3`, `pingPong2/3` | diverges (octave normalization and weighting) |
+| `billow2/3`                              | no FNL counterpart                            |
+
+> [!IMPORTANT]
+>
+> The `value`, `valueCubic`, and fractal families will align with FNL in 0.3,
+> which changes their output for a given seed. Pin `pure-noise < 0.3` if you
+> depend on seed-stable output from them.
 
 ## Usage
 
@@ -136,47 +157,99 @@ See the [demo app](demo/) for an interactive version with adjustable parameters.
 
 ## Performance notes
 
-- In single-threaded scenarios with LLVM enabled, this library achieves **84-95%
-  of C++ FastNoiseLite performance**.
-- This library benefits considerably from compilation with the LLVM backend
-  (`-fllvm`). Benchmarks suggest a ~50-80% difference depending on the kind of noise.
+- In single-threaded scenarios with LLVM enabled, this library reaches
+  **roughly 70-100% of C++ FastNoiseLite throughput at random access, with 2D
+  cellular noise ~7% faster than C++**. Grid-coherent workloads measure lower
+  for the simplex family. These numbers are measured against an optimized
+  FNL build (AVX2+FMA, FP contraction on).
+- This library performs significantly better under the LLVM backend
+  (`-fllvm`); the native code generator is not recommended where generation
+  speed is a real concern.
+- See the [benchmark README](https://github.com/jtnuttall/pure-noise/blob/main/bench/README.md)
+  for per-algorithm, per-workload results and methodology.
+
+### Recommended build flags
+
+#### Native optimization flags for the library
+
+For the library itself, copy `cabal.project.local.template` into your project
+(`+optimize` is on by default; `+mfma +mavx` are safe on modern x86-64).
+
+For bulk generation, prefer parallel evaluation via `massiv`.
+
+#### Fused multiply add
+
+For the fastest downstream executables, compile the modules that _call_ the
+noise functions (the kernels inline into your code) with:
+
+```
+-fllvm -mavx -mfma -optlc-fp-contract=fast
+```
+
+> [!WARNING]
+>
+> 1. Results differ from a build without fma fusion by a few ULP.
+> 2. Fusion decisions may vary across LLVM versions.
+>    Skip this flag if you need bit-identical output across builds/toolchains.
+> 3. You must use `-fllvm` to use this flag. It has no effect on the native
+>    code generator.
+
+`-optlc-fp-contract=fast` lets LLVM fuse multiply-add chains into FMA
+instructions, an optimization modern C++ compilers apply by default. This
+gives a ~5-15% improvement on these kernels in testing.
 
 ### Parallel noise generation
 
 This library integrates well with [massiv](https://hackage.haskell.org/package/massiv)
-for parallel computation. Parallel performance can reach 10-15x single-threaded
-performance.
+for parallel computation. Parallel evaluation reaches roughly 6-9x
+single-threaded throughput on a 14-core machine in pinned-clock measurements.
 
-**This is the recommended approach for generating large noise textures or datasets.**
+> [!IMPORTANT]
+>
+> Massiv integration is the recommended approach for generating large noise
+> textures or datasets.
 
 ### Benchmarks
 
 #### Results
 
-Measured by values / second generated by the noise functions. These results come
-from a benchmark with `-fllvm` enabled.
+Measured by values / second generated by the noise functions, in the
+`llvm-bench` configuration (LLVM backend + FP contraction), on an i7-1370P
+**pinned at 1.9 GHz** for measurement stability —
 
-There's inevitably some noise in the measurements because all of the results are
-forced into an unboxed vector.
+Absolute figures scale with CPU clock. The FastNoiseLite ratios are intended
+to be clock-invariant.
+
+There's inevitably some noise in the measurements because the results are forced
+into an unboxed vector.
+
+> [!NOTE]
+>
+> These numbers are lower than the initial release because they were re-run on a
+> slower processor. Order-of-magnitude/comparative difference remains reasonably
+> stable. See the benchmark README for details.
 
 ##### 2D
 
 | name          | Float (values/sec) | Double (values/sec) |
 | ------------- | ------------------ | ------------------- |
-| value2        | 173_511_654        | 189_119_731         |
-| perlin2       | 154_674_464        | 161_114_532         |
-| openSimplex2  | 74_747_031         | 74_332_345          |
-| valueCubic2   | 61_415_544         | 62_481_313          |
-| superSimplex2 | 51_295_369         | 50_383_577          |
-| cellular2     | 34_996_382         | 32_652_899          |
+| value2        | 64_407_126         | 68_260_653          |
+| perlin2       | 61_301_663         | 65_143_707          |
+| openSimplex2  | 25_982_291         | 27_045_472          |
+| valueCubic2   | 22_743_642         | 23_403_842          |
+| superSimplex2 | 17_167_069         | 17_762_669          |
+| cellular2     | 16_025_950         | 16_007_044          |
 
 ##### 3D
 
-| name        | Float (values/sec) | Double (values/sec) |
-| ----------- | ------------------ | ------------------- |
-| value3      | 90_805_572         | 93_188_363          |
-| perlin3     | 74_080_032         | 82_477_882          |
-| valueCubic3 | 18_765_912         | 18_284_749          |
+| name          | Float (values/sec) | Double (values/sec) |
+| ------------- | ------------------ | ------------------- |
+| value3        | 34_673_623         | 35_929_146          |
+| perlin3       | 29_325_590         | 30_432_482          |
+| openSimplex3  | 10_975_857         | 10_922_644          |
+| superSimplex3 | 9_232_128          | 9_166_843           |
+| valueCubic3   | 7_453_365          | 7_278_612           |
+| cellular3     | 5_238_497          | 5_061_911           |
 
 ## Examples
 

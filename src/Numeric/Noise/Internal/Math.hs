@@ -12,6 +12,7 @@ module Numeric.Noise.Internal.Math (
   hermiteInterp,
   quinticInterp,
   clamp,
+  fastRound,
   primeX,
   primeY,
   primeZ,
@@ -20,6 +21,7 @@ module Numeric.Noise.Internal.Math (
   infinity,
   g2,
   sqrt3,
+  rotate3,
   valCoord2,
   valCoord3,
   gradCoord2,
@@ -28,6 +30,7 @@ module Numeric.Noise.Internal.Math (
 ) where
 
 import Data.Bits
+import Data.Bool (bool)
 import Data.Int
 import Data.Primitive.PrimArray
 import Data.Word
@@ -37,6 +40,10 @@ import Data.Word
 -- Using the same 'Seed' value will produce the same noise pattern,
 -- allowing for reproducible results. Different seed values produce
 -- different, independent noise patterns.
+--
+-- Only the low 32 bits participate in hashing (matching FastNoiseLite's
+-- @int@ seed): seeds that differ only in their upper 32 bits generate
+-- identical noise.
 type Seed = Word64
 
 -- | Internal hash value type used in noise calculations.
@@ -79,7 +86,7 @@ lerp v0 v1 t = v0 + t * (v1 - v0)
     lerp a b (t * u)
   #-}
 
--- | cubic interpolation
+-- | Cubic interpolation through four control points.
 cubicInterp :: (Num a) => a -> a -> a -> a -> a -> a
 cubicInterp a !b c d !t =
   let !c' = c - a
@@ -110,7 +117,7 @@ cubicInterp a !b c d !t =
     0.125 * (-a + 5 * b + 5 * c - d)
   #-}
 
--- | hermite interpolation
+-- | Hermite interpolation curve (smoothstep).
 hermiteInterp :: (Num a) => a -> a
 hermiteInterp t = t * t * (3 - 2 * t)
 {-# INLINE [1] hermiteInterp #-}
@@ -122,7 +129,7 @@ hermiteInterp t = t * t * (3 - 2 * t)
 "hermiteInterp/Double/1" hermiteInterp (1 :: Double) = 1
   #-}
 
--- | quintic interpolation
+-- | Quintic interpolation curve (smootherstep).
 quinticInterp :: (Num a) => a -> a
 quinticInterp t = t * t * t * (t * (t * 6 - 15) + 10)
 {-# INLINE [1] quinticInterp #-}
@@ -158,6 +165,15 @@ clamp
 clamp l u v = min (max v l) u
 {-# INLINE clamp #-}
 
+-- | Round half away from zero, matching FastNoiseLite's @FastRound@.
+--
+-- 'round' rounds half to even and, more importantly, GHC lowers it to an
+-- @rintFloat@ FFI call that dominates hot loops; 'truncate' compiles to an
+-- inline @float2Int#@.
+fastRound :: (RealFrac a) => a -> Hash
+fastRound v = truncate (v + bool (-0.5) 0.5 (v >= 0))
+{-# INLINE fastRound #-}
+
 primeX, primeY, primeZ :: Hash
 primeX = 501125321
 {-# INLINE primeX #-}
@@ -189,6 +205,13 @@ g2 = (3 - sqrt3) / 6
 sqrt3 :: (Fractional a) => a
 sqrt3 = 1.7320508075688772935274463415059
 {-# INLINE sqrt3 #-}
+
+-- | Rotation for OpenSimplex2\/2S
+rotate3 :: (Fractional a) => a -> a -> a -> (a, a, a)
+rotate3 xo yo zo =
+  let !r = (xo + yo + zo) * (2 / 3)
+   in (r - xo, r - yo, r - zo)
+{-# INLINE rotate3 #-}
 
 valCoord2 :: (RealFrac a) => Seed -> Hash -> Hash -> a
 valCoord2 seed xPrimed yPrimed =

@@ -231,10 +231,10 @@ tick = do
   currentDt <- getMonotonicTimeSec
   deltaTime
     %= ( \DeltaTime{..} ->
-          DeltaTime
-            { previousMono = currentMono
-            , currentMono = currentDt
-            }
+           DeltaTime
+             { previousMono = currentMono
+             , currentMono = currentDt
+             }
        )
 
 newtype AppT m a = AppT (ReaderT (IORef AppState) m a)

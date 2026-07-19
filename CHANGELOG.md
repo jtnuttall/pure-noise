@@ -8,6 +8,55 @@ and this project adheres to the
 
 ## Unreleased
 
+## 0.2.2.0 2026-07-19
+
+This is the final release of the 0.2.2.0 line.
+
+### Added
+
+- Exports for `mkNoise1`, `mkNoise2`, and `mkNoise3`, in case library users
+  wish to hoist custom kernels.
+- FastNoiseLite comparisons are now in-repository and reproducible. Comparison
+  mechanism goes through tasty-bench.
+- The sdist now includes `bench/fnl-compare/cbits/FastNoiseLite.h`, so the
+  FNL comparison benchmark can build from a Hackage tarball.
+- 3D counterparts for the simplex and cellular families: `openSimplex3`,
+  `superSimplex3`, and `cellular3`.
+- Flag `optimize`, with default `true`, which bumps the library's optimization level
+  to `-O2` by default. Refer to the flag's documentation for rationale.
+- Flag `mfma`, which will set `-mfma` for GHC, and may open pathways to
+  fused-multiply-add optimizations
+- Flag `mavx`, which will set `-mavx` for GHC, and may open pathways for AVX2
+  SIMD optimization in the future.
+- Flag `llvm-bench` (manual, default off) gating all LLVM-specific benchmark
+  options (`-fllvm`, pinned `opt`/`llc`/`clang`, `-mavx`, `-mfma`,
+  `-optlc-fp-contract=fast`).
+- Benchmark runs now write a `.meta` provenance sidecar (toolchain versions,
+  CPU governor/turbo state, AC power state, pinning) next to each CSV.
+
+### Changed
+
+- `pure-noise` now builds at `-O2` by default.
+- Project now uses haskell.nix instead of Stack.
+- Various updates to documentation, to improve quality
+- Performance documentation and results tables re-collected on the 0.2.2.0
+  toolchain (README.md and bench/README.md).
+- `tested-with: GHC == 9.6.7, 9.8.4, 9.12.2`.
+
+### Fixed
+
+- Replace `round`-based rounding with a truncating `fastRound`. This replaces an
+  `rintFloat` call in the core lowering with a `float2Int` call, which improves
+  performance in hot loops.
+  - This changes `cellular2` output at half-integer coordinates: cell selection
+    now rounds half away from zero, matching FastNoiseLite's `FastRound`, rather
+    than half to even. Numerically observable but visually imperceptible.
+- Match FastNoiseLite's evaluation order in `openSimplex2`'s middle-corner
+  contribution. Output changes by a few ULP.
+- Fix an issue with the 3D benchmark harness where degenerate index math
+  collapsed the sample set to ~4 distinct points, providing a poor signal on
+  real-world performance.
+
 ## 0.2.1.1 2025-10-31
 
 ### Changed
