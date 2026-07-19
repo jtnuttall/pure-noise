@@ -10,6 +10,7 @@ and this project adheres to the
 
 ### Added
 
+- Exports for `mkNoise`, `mkNoise2`, and `mkNoise3`, in the case library users wish to hoist custom kernels.
 - Flag `optimize`, with default `true`, which bumps the library's optimization level
   to `-O2` by default. Refer to the flag's documentation for rationale.
 - Flag `mfma`, which will set `-mfma` for GHC, and may open pathways to
@@ -21,6 +22,12 @@ and this project adheres to the
 
 - `pure-noise` now builds at `-O2` by default.
 - Project now uses haskell.nix instead of Stack.
+- Various updates to documentation, to improve qualty
+
+### Fixed
+
+- Replace `round`-based rounding with a truncating `fastRound`. This replaces an `rintFloat` call with a `float2Int` call, which improves performance in hot loops.
+  - Be aware that this creates a numerically observable but imperceptible change in the noise functions.
 
 ## 0.2.1.1 2025-10-31
 
