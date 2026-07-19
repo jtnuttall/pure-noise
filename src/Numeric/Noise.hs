@@ -145,6 +145,7 @@ module Numeric.Noise (
 
   -- ** Altering values
   remap,
+
   -- ** Altering parameters
   warp,
   reseed,
