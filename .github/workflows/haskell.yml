@@ -51,10 +51,10 @@ jobs:
       - name: Setup Node.js for odiff
         uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "24"
 
       - name: Install odiff
-        run: npm i -g odiff-bin
+        run: npm i -g odiff-bin@4.3.8
 
       - name: Cache dependencies
         uses: actions/cache@v4
