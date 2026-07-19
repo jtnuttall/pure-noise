@@ -82,7 +82,7 @@
 --
 -- Outside those domains, or for non-finite inputs, results are unspecified.
 --
--- This behavior mirrors FastNoiseLite, but may change in a futor major version.
+-- This behavior mirrors FastNoiseLite, but may change in a future major version.
 module Numeric.Noise (
   -- * Noise
 

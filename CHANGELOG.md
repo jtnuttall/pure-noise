@@ -14,7 +14,7 @@ This is the final release of the 0.2.2.0 line.
 
 ### Added
 
-- Exports for `mkNoise`, `mkNoise2`, and `mkNoise3`, in the case library users
+- Exports for `mkNoise1`, `mkNoise2`, and `mkNoise3`, in case library users
   wish to hoist custom kernels.
 - FastNoiseLite comparisons are now in-repository and reproducible. Comparison
   mechanism goes through tasty-bench.
@@ -48,10 +48,14 @@ This is the final release of the 0.2.2.0 line.
 - Replace `round`-based rounding with a truncating `fastRound`. This replaces an
   `rintFloat` call in the core lowering with a `float2Int` call, which improves
   performance in hot loops.
-  - Be aware that this creates a numerically observable but imperceptible change
-    in the noise functions.
-- Fix an issue with the 3D benchmark harness where the benchmark was inadvertently
-  testing on integer coordinates, providing a poor signal on real-world performance.
+  - This changes `cellular2` output at half-integer coordinates: cell selection
+    now rounds half away from zero, matching FastNoiseLite's `FastRound`, rather
+    than half to even. Numerically observable but visually imperceptible.
+- Match FastNoiseLite's evaluation order in `openSimplex2`'s middle-corner
+  contribution. Output changes by a few ULP.
+- Fix an issue with the 3D benchmark harness where degenerate index math
+  collapsed the sample set to ~4 distinct points, providing a poor signal on
+  real-world performance.
 
 ## 0.2.1.1 2025-10-31
 

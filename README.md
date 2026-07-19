@@ -25,13 +25,33 @@ are subject to change and may change between minor versions.
 - This project grew from a port of the excellent
   [FastNoiseLite](https://github.com/Auburn/FastNoiseLite) library. The library
   structure has been tuned to perform well in Haskell and fit well with Haskell
-  semantics, but the core noise implementations are the same.
+  semantics, but the core noise share their origin with FNL.
 - All credit for the original design, algorithms, and implementation goes to its
   creator **[Jordan Peck (@Auburn)](https://github.com/Auburn)**. I'm grateful for
   their work and the opportunity to learn from it.
 - The original FastNoiseLite code, from which the core algorithms in this library
   were originally ported, is (C) 2020 Jordan Peck and is licensed under the MIT
   license, a copy of which is included in this repository.
+
+## FastNoiseLite compatibility
+
+pure-noise shares its lineage with FNL, but it isn't intended as a 1:1 port —
+kernels are restructured for GHC, and some families intentionally diverge.
+Where outputs stand today:
+
+| family                                   | output vs FNL                                 |
+| ---------------------------------------- | --------------------------------------------- |
+| `perlin2/3`, `cellular2/3`               | bit-exact                                     |
+| `openSimplex2/3`, `superSimplex2/3`      | within a few ULP                              |
+| `value2/3`, `valueCubic2/3`              | diverges (hash finalization)                  |
+| `fractal2/3`, `ridged2/3`, `pingPong2/3` | diverges (octave normalization and weighting) |
+| `billow2/3`                              | no FNL counterpart                            |
+
+> [!IMPORTANT]
+>
+> The `value`, `valueCubic`, and fractal families will align with FNL in 0.3,
+> which changes their output for a given seed. Pin `pure-noise < 0.3` if you
+> depend on seed-stable output from them.
 
 ## Usage
 
@@ -184,8 +204,10 @@ This library integrates well with [massiv](https://hackage.haskell.org/package/m
 for parallel computation. Parallel evaluation reaches roughly 6-9x
 single-threaded throughput on a 14-core machine in pinned-clock measurements.
 
-> [!IMPORTANT] Massiv integration is the recommended approach for generating
-> large noise textures or datasets.
+> [!IMPORTANT]
+>
+> Massiv integration is the recommended approach for generating large noise
+> textures or datasets.
 
 ### Benchmarks
 
@@ -201,7 +223,9 @@ to be clock-invariant.
 There's inevitably some noise in the measurements because the results are forced
 into an unboxed vector.
 
-> [!NOTE] These numbers are lower than the initial release because they were re-run on a
+> [!NOTE]
+>
+> These numbers are lower than the initial release because they were re-run on a
 > slower processor. Order-of-magnitude/comparative difference remains reasonably
 > stable. See the benchmark README for details.
 
