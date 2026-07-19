@@ -72,6 +72,9 @@ data CellularDistanceFn
 --
 -- These options allow for different visual effects by returning different
 -- properties of the cell structure.
+--
+-- Distance-based results are not confined to @[-1, 1]@ under every metric —
+-- 'DistManhattan' and 'DistHybrid' can exceed 1, matching FastNoiseLite.
 data CellularResult
   = -- | Return the hash value of the nearest cell point.
     -- Creates discrete regions with constant values.
@@ -248,7 +251,7 @@ lookupRandVec2d = realToFrac . indexPrimArray randVecs2dd . fromIntegral
 randVecs2df :: PrimArray Float
 randVecs2df = mapPrimArray realToFrac randVecs2dd
 
--- >>> sizeofPrimArray randVecs2d == 512
+-- >>> sizeofPrimArray randVecs2dd == 512
 -- True
 {- ORMOLU_DISABLE -}
 randVecs2dd :: PrimArray Double

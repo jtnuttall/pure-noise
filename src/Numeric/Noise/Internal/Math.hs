@@ -86,7 +86,7 @@ lerp v0 v1 t = v0 + t * (v1 - v0)
     lerp a b (t * u)
   #-}
 
--- | cubic interpolation
+-- | Cubic interpolation through four control points.
 cubicInterp :: (Num a) => a -> a -> a -> a -> a -> a
 cubicInterp a !b c d !t =
   let !c' = c - a
@@ -117,7 +117,7 @@ cubicInterp a !b c d !t =
     0.125 * (-a + 5 * b + 5 * c - d)
   #-}
 
--- | hermite interpolation
+-- | Hermite interpolation curve (smoothstep).
 hermiteInterp :: (Num a) => a -> a
 hermiteInterp t = t * t * (3 - 2 * t)
 {-# INLINE [1] hermiteInterp #-}
@@ -129,7 +129,7 @@ hermiteInterp t = t * t * (3 - 2 * t)
 "hermiteInterp/Double/1" hermiteInterp (1 :: Double) = 1
   #-}
 
--- | quintic interpolation
+-- | Quintic interpolation curve (smootherstep).
 quinticInterp :: (Num a) => a -> a
 quinticInterp t = t * t * t * (t * (t * 6 - 15) + 10)
 {-# INLINE [1] quinticInterp #-}

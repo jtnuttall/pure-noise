@@ -47,11 +47,13 @@ import Numeric.Noise.Internal.Math as Math (
 -- |  'Noise' represents a function from a 'Seed' and coordinates @p@ to a noise
 -- value @v@.
 --
--- For convenience, dimension-specific type aliases are provided:
+-- For convenience, dimension-specific type aliases are provided: 'Noise1',
+-- 'Noise2', and 'Noise3', plus primed variants that separate the coordinate
+-- and value types.
 --
 -- Use 'warp' to transform coordinates and 'remap' (or 'fmap') to transform values.
 --
--- To evaluate noise functions, use 'noise1At', 'noise2At', or 'noise3At'
+-- To evaluate noise functions, use 'noise1At', 'noise2At', or 'noise3At'.
 --
 -- NB: 'Noise' is a lawful 'Profunctor' where 'lmap' = warp and 'rmap' = remap.
 -- There are some useful implications to this, but pure-noise is committed to
@@ -141,7 +143,10 @@ instance (Floating a) => Floating (Noise p a) where
   acosh = fmap acosh
   atanh = fmap atanh
 
+-- | 1D noise: a single coordinate of type @p@ producing values of type @v@.
 type Noise1' p v = Noise p v
+
+-- | 1D noise with a single type for coordinates and values.
 type Noise1 v = Noise1' v v
 
 -- | Build a 1D noise function from a plain @seed -> coordinate -> value@
@@ -151,13 +156,16 @@ mkNoise1 = Noise
 {-# INLINE mkNoise1 #-}
 
 -- | Evaluate a 1D noise function at the given coordinates with the given seed.
--- Currently, you must use a slicing function like 'sliceX' to reduce
+-- Currently, you must use a slicing function like 'sliceX2' to reduce
 -- higher-dimensional noise into 1D noise.
 noise1At :: Noise1 a -> Seed -> a -> a
 noise1At = unNoise
 {-# INLINE noise1At #-}
 
+-- | 2D noise: a pair of coordinates of type @p@ producing values of type @v@.
 type Noise2' p v = Noise (p, p) v
+
+-- | 2D noise with a single type for coordinates and values.
 type Noise2 v = Noise2' v v
 
 -- | Build a 2D noise function from a plain @seed -> x -> y -> value@
@@ -179,7 +187,10 @@ noise2At
 noise2At (Noise f) seed x y = f seed (x, y)
 {-# INLINE noise2At #-}
 
+-- | 3D noise: a triple of coordinates of type @p@ producing values of type @v@.
 type Noise3' p v = Noise (p, p, p) v
+
+-- | 3D noise with a single type for coordinates and values.
 type Noise3 v = Noise3' v v
 
 -- | Build a 3D noise function from a plain @seed -> x -> y -> z -> value@
@@ -223,7 +234,7 @@ remap = fmap
 -- This allows you to scale, rotate, or otherwise modify coordinates before
 -- they're passed to the noise function:
 --
--- NB: This is 'contramap'
+-- NB: This is 'Data.Functor.Contravariant.contramap'
 --
 -- === __Examples__
 --
@@ -356,7 +367,7 @@ sliceZ3 :: p -> Noise3' p v -> Noise2' p v
 sliceZ3 z = warp (\(x, y) -> (x, y, z))
 {-# INLINE sliceZ3 #-}
 
--- | Increment the seed for a 2D noise function. See 'reseed'
+-- | Increment the seed for a 2D noise function. See 'reseed'.
 next2 :: Noise2 a -> Noise2 a
 next2 = reseed (+ 1)
 {-# INLINE next2 #-}
@@ -371,14 +382,12 @@ const2 :: a -> Noise2 a
 const2 = pure
 {-# INLINE const2 #-}
 
--- | Increment the seed for a 3D noise function. See 'reseed'
+-- | Increment the seed for a 3D noise function. See 'reseed'.
 next3 :: Noise3 a -> Noise3 a
 next3 = reseed (+ 1)
 {-# INLINE next3 #-}
 
--- | A noise function that produces the same value everywhere. Alias of 'pure'
---
--- Used to provide the 'Num' instance.
+-- | A noise function that produces the same value everywhere. Alias of 'pure'.
 const3 :: a -> Noise3 a
 const3 = pure
 {-# INLINE const3 #-}

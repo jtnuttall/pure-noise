@@ -44,7 +44,8 @@ import Numeric.Noise.Internal
 data FractalConfig a = FractalConfig
   { octaves :: Int
   -- ^ Number of noise layers to combine. More octaves create more detail
-  -- but are more expensive to compute. Must be \( >= 1 \).
+  -- but are more expensive to compute. Fewer than 1 octave produces
+  -- constant 0.
   , lacunarity :: a
   -- ^ Frequency multiplier between octaves. Each octave's frequency is
   -- the previous octave's frequency multiplied by lacunarity.
@@ -54,9 +55,12 @@ data FractalConfig a = FractalConfig
   -- Values \( < 1 \) create smoother noise, values \( > 1 \) create rougher noise.
   , weightedStrength :: a
   -- ^ Controls how much each octave's amplitude is influenced by the
-  -- previous octave's value. At 0, octaves have independent amplitudes.
-  -- At 1, lower-valued areas in previous octaves reduce the amplitude
-  -- of subsequent octaves. Range: \( [0, 1] \).
+  -- previous octave's value. At 0 (the default), octaves have independent
+  -- amplitudes. Range: \( [0, 1] \).
+  --
+  -- The weighting currently tracks the amplitude-scaled octave value, which
+  -- diverges from FastNoiseLite — values near 1 can misbehave (e.g. inverted
+  -- ridged octaves). It will align with FNL in 0.3.
   }
   deriving (Generic, Read, Show, Eq)
 
@@ -118,6 +122,8 @@ ridged2 config = mkNoise2 . fractal2With ridgedNoiseMod (ridgedAmpMod config) co
 -- Ping-pong creates a wave-like pattern by folding the noise values back
 -- and forth within a range, creating a distinctive undulating appearance.
 -- The strength parameter controls the intensity of the ping-pong effect.
+--
+-- Output spans @[0, 1]@; it will align with FNL's @[-1, 1]@ in 0.3.
 --
 -- @
 -- waves :: Noise2 Float

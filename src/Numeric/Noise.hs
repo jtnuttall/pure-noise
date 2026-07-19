@@ -12,8 +12,8 @@
 -- type aliases for 2D and 3D noise. These can be composed algebraically
 -- with minimal performance overhead.
 --
--- Noise values are generally clamped to @[-1, 1]@. See [Safe noise range] below
--- for more detail.
+-- Noise values are generally clamped to @[-1, 1]@, although some noise
+-- functions may occasionally produce values slightly outside this range.
 --
 -- == Basic Usage
 --
@@ -71,7 +71,7 @@
 -- layered = (Noise.perlin2 + Noise.next2 Noise.perlin2) \/ 2
 -- @
 --
--- == Safe noise range
+-- == Coordinate domain
 --
 -- Coordinates are supported on the Int32 lattice range (@|x| < 2^31@; in
 -- practice 'Float' precision runs out well before that).
@@ -143,9 +143,9 @@ module Numeric.Noise (
 
   -- * Noise alteration
 
-  --  ** Altering values
+  -- ** Altering values
   remap,
-  --  ** Altering parameters
+  -- ** Altering parameters
   warp,
   reseed,
   next2,
@@ -165,8 +165,8 @@ module Numeric.Noise (
   -- | Fractal noise combines multiple octaves at different frequencies and
   -- amplitudes to create natural-looking, multi-scale patterns.
   --
-  -- For custom fractal implementations using per-octave step functions, see
-  -- "Numeric.Noise.Fractal".
+  -- For custom fractal implementations using per-octave modifier functions,
+  -- see "Numeric.Noise.Fractal".
 
   -- ** Fractal Brownian Motion (FBM)
   fractal2,
