@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Run fourmolu
-        uses: haskell-actions/run-fourmolu@v12
+        uses: haskell-actions/run-fourmolu@v13
         with:
           version: 0.20.0.0
 
