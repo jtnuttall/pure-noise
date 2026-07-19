@@ -1,9 +1,9 @@
 results/*
-!results/current-asm.csv
-!results/current-asm-vps.csv
-!results/current-llvm.csv
-!results/current-llvm-vps.csv
-!results/current-fnl.csv
-!results/current-fnl-llvm.csv
 !results/collect-bench.sh
 !results/vps.py
+!results/current.csv
+!results/current-vps.csv
+!results/current.meta
+!results/current-fnl.csv
+!results/current-fnl-vps.csv
+!results/current-fnl.meta
