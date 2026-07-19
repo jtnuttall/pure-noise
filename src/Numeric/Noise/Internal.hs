@@ -144,6 +144,8 @@ instance (Floating a) => Floating (Noise p a) where
 type Noise1' p v = Noise p v
 type Noise1 v = Noise1' v v
 
+-- | Build a 1D noise function from a plain @seed -> coordinate -> value@
+-- function. Inverse of 'noise1At'.
 mkNoise1 :: (Seed -> p -> v) -> Noise1' p v
 mkNoise1 = Noise
 {-# INLINE mkNoise1 #-}
@@ -158,6 +160,8 @@ noise1At = unNoise
 type Noise2' p v = Noise (p, p) v
 type Noise2 v = Noise2' v v
 
+-- | Build a 2D noise function from a plain @seed -> x -> y -> value@
+-- function. Inverse of 'noise2At'.
 mkNoise2 :: (Seed -> p -> p -> v) -> Noise2' p v
 mkNoise2 f = Noise (\s (x, y) -> f s x y)
 {-# INLINE mkNoise2 #-}
@@ -178,6 +182,8 @@ noise2At (Noise f) seed x y = f seed (x, y)
 type Noise3' p v = Noise (p, p, p) v
 type Noise3 v = Noise3' v v
 
+-- | Build a 3D noise function from a plain @seed -> x -> y -> z -> value@
+-- function. Inverse of 'noise3At'.
 mkNoise3 :: (Seed -> p -> p -> p -> v) -> Noise3' p v
 mkNoise3 f = Noise (\s (x, y, z) -> f s x y z)
 {-# INLINE mkNoise3 #-}

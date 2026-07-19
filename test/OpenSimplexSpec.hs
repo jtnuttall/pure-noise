@@ -12,6 +12,8 @@ test_golden_opensimplex =
     "OpenSimplex Golden Tests"
     [ testGroup "2D Grid Tests" openSimplex2DGridTests
     , testGroup "2D Sparse Tests" openSimplex2DSparseTests
+    , testGroup "3D Grid Tests" openSimplex3DGridTests
+    , testGroup "3D Sparse Tests" openSimplex3DSparseTests
     ]
 
 openSimplex2DGridTests :: [TestTree]
@@ -19,3 +21,9 @@ openSimplex2DGridTests = golden2DImageTests "opensimplex" defaultSeeds openSimpl
 
 openSimplex2DSparseTests :: [TestTree]
 openSimplex2DSparseTests = golden2DSparseTests "opensimplex" defaultSeeds openSimplex2
+
+openSimplex3DGridTests :: [TestTree]
+openSimplex3DGridTests = golden3DImageTests "opensimplex" defaultSeeds openSimplex3
+
+openSimplex3DSparseTests :: [TestTree]
+openSimplex3DSparseTests = golden3DSparseTests "opensimplex" defaultSeeds openSimplex3

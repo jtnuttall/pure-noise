@@ -95,6 +95,7 @@ test-suite pure-noise-test
       OpenSimplexSpec
       PerlinSpec
       SuperSimplexSpec
+      TotalitySpec
       ValueCubicSpec
       ValueSpec
       Paths_pure_noise
