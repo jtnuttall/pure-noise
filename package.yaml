@@ -97,9 +97,8 @@ tests:
       - text
       - typed-process
 
-
 # NOTE: Benchmarks want +mfma & +mavx in your cabal.project if your host arch
-# supports such. 
+# supports such.
 # Published numbers additionally require +llvm-bench; see bench/README.md.
 benchmarks:
   pure-noise-bench:
@@ -138,8 +137,8 @@ benchmarks:
     source-dirs: bench/fnl-compare
     include-dirs: bench/fnl-compare/cbits
     cxx-sources: bench/fnl-compare/fnl_bench_shim.cpp
-    # Best-effort build FNL the way an ordinary Linux user's -O3 -march=native build behaves. 
-    # Explicit flags instead of -march=native because nix's cc wrapper strips -march=native 
+    # Best-effort build FNL the way an ordinary Linux user's -O3 -march=native build behaves.
+    # Explicit flags instead of -march=native because nix's cc wrapper strips -march=native
     # (NIX_ENFORCE_NO_NATIVE=1) and injects -fno-strict-overflow:
     cxx-options:
       - -O3

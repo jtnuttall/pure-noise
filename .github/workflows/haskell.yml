@@ -25,8 +25,8 @@ jobs:
         uses: haskell-actions/run-fourmolu@v12
         with:
           version: 0.20.0.0
-        pattern: |
-          {src,test,bench}/**/*.hs
+          pattern: |
+            {src,test,bench}/**/*.hs
 
   build:
     needs: lint

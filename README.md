@@ -159,7 +159,7 @@ For bulk generation, prefer parallel evaluation via `massiv`.
 
 #### Fused multiply add
 
-For the fastest downstream executables, compile the modules that *call* the
+For the fastest downstream executables, compile the modules that _call_ the
 noise functions (the kernels inline into your code) with:
 
 ```
@@ -170,9 +170,9 @@ noise functions (the kernels inline into your code) with:
 >
 > 1. Results differ from a build without fma fusion by a few ULP.
 > 2. Fusion decisions may vary across LLVM versions.
-> Skip this flag if you need bit-identical output across builds/toolchains.
+>    Skip this flag if you need bit-identical output across builds/toolchains.
 > 3. You must use `-fllvm` to use this flag. It has no effect on the native
-> code generator.
+>    code generator.
 
 `-optlc-fp-contract=fast` lets LLVM fuse multiply-add chains into FMA
 instructions, an optimization modern C++ compilers apply by default. This

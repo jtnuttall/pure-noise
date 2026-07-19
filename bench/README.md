@@ -55,10 +55,10 @@ Notes:
 - `grid` = integer lattice
 - `freq 0.01` - integer lattice scaled by frequency `0.01`, which is FNL's
 - Branch-free algorithms (value, perlin, cellular) don't exhibit performance
-variants against different input domain variances.
+  variants against different input domain variances.
 - Simplex spread appears to be branch predictability. C++ FNL gains up to 2x
-on non-random inputs where pure-noise's more branchless lowering is stable even
-against random samples.
+  on non-random inputs where pure-noise's more branchless lowering is stable even
+  against random samples.
 
 ### Single-thread values/sec (`pure-noise-bench`)
 
