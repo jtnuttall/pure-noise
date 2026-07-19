@@ -120,6 +120,8 @@ test-suite pure-noise-test
   hs-source-dirs:
       test
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -threaded -rtsopts -with-rtsopts=-N
+  build-tool-depends:
+      tasty-discover:tasty-discover
   build-depends:
       JuicyPixels ==3.3.*
     , aeson >=2.0 && <2.3
@@ -132,7 +134,6 @@ test-suite pure-noise-test
     , primitive >=0.8 && <0.10
     , pure-noise
     , tasty
-    , tasty-discover
     , tasty-golden
     , tasty-hunit
     , tasty-quickcheck
