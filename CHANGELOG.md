@@ -12,20 +12,32 @@ and this project adheres to the
 
 - Exports for `mkNoise`, `mkNoise2`, and `mkNoise3`, in the case library users
   wish to hoist custom kernels.
+- FastNoiseLite comparisons are now in-repository and reproducible. Comparison
+  mechanism goes through tasty-bench.
+- The sdist now includes `bench/fnl-compare/cbits/FastNoiseLite.h`, so the
+  FNL comparison benchmark can build from a Hackage tarball.
+- 3D counterparts for the simplex and cellular families: `openSimplex3`,
+  `superSimplex3`, and `cellular3`.
 - Flag `optimize`, with default `true`, which bumps the library's optimization level
   to `-O2` by default. Refer to the flag's documentation for rationale.
 - Flag `mfma`, which will set `-mfma` for GHC, and may open pathways to
   fused-multiply-add optimizations
 - Flag `mavx`, which will set `-mavx` for GHC, and may open pathways for AVX2
   SIMD optimization in the future.
-- FastNoiseLite comparisons are now in-repository and reproducible. Comparison
-  mechanism goes through tasty-bench.
+- Flag `llvm-bench` (manual, default off) gating all LLVM-specific benchmark
+  options (`-fllvm`, pinned `opt`/`llc`/`clang`, `-mavx`, `-mfma`,
+  `-optlc-fp-contract=fast`).
+- Benchmark runs now write a `.meta` provenance sidecar (toolchain versions,
+  CPU governor/turbo state, AC power state, pinning) next to each CSV.
 
 ### Changed
 
 - `pure-noise` now builds at `-O2` by default.
 - Project now uses haskell.nix instead of Stack.
-- Various updates to documentation, to improve qualty
+- Various updates to documentation, to improve quality
+- Performance documentation and results tables re-collected on the 0.2.2.0
+  toolchain (README.md and bench/README.md).
+- `tested-with: GHC == 9.6.7, 9.8.4, 9.12.2`.
 
 ### Fixed
 
@@ -34,7 +46,7 @@ and this project adheres to the
   performance in hot loops.
   - Be aware that this creates a numerically observable but imperceptible change
     in the noise functions.
-- Fix an issue with the 3D benchmark harness where the behcmark was inadvertently
+- Fix an issue with the 3D benchmark harness where the benchmark was inadvertently
   testing on integer coordinates, providing a poor signal on real-world performance.
 
 ## 0.2.1.1 2025-10-31

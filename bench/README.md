@@ -4,39 +4,103 @@
 
 These benchmarks measure single-threaded and parallel noise generation
 performance for `pure-noise`, a pure Haskell noise library compiled with
-the LLVM backend.
+the LLVM backend, against an optimized build of C++ FastNoiseLite (AVX2+FMA
+w/ FP contraction).
 
-This pure Haskell implementation appears to be order-of-magnitude equivalent
-with C++. For random access, `pure-noise` appears to attain **80-105% of C++
-performance**.
+At random access, `pure-noise` attains **roughly 70-100% of C++ throughput
+depending on the algorithm. 2D cellular noise runs ~7% _faster_ than C++**,
+largely a consequence of `pure-noise`'s implementation of cellular
+configuration, which allows the configuration to optimize away in hot loops.
 
-That's right, **some algorithms, written in pure Haskell, actually appear to
-perform _better_ than C++ FNL at this point.** I mostly credit the GHC and
-LLVM teams for this, since the main improvements I've made since I released
-the original results were a simple `fastRound` implementation and some new
-cabal optimization flags. My CPU's ring also isn't melting this time (I hope),
-which may help, too :)
+Grid-coherent access patterns measure lower for the simplex family.
+
+Published numbers are collected with the `llvm-bench` cabal flag
+(`--flags=+llvm-bench`).
 
 If any passers-by notice errata in these documents or ways I could improve the
 accuracy of the benchmarks, please don't hesitate to open an issue!
 
-[[NOTE: @Jeremy update these numbers when the full bench is in.]]
-[[NOTE: The above paragraphs refer to provisional NEW results that were not on
-the melting ring.]]
+## Results (0.2.2.0, in-repo suite)
 
-> **TODO — re-collect every number in this file with `pure-noise-fnl-bench`.**
-> All results below predate the cellular `fastRound` fix and the FastNoiseLite
-> parity work, and the 2026-07 audit could not reproduce the fixed "84-95%"
-> band on a newer toolchain (see the audit snapshot below: several algorithms
-> sit at genuine parity, and cellular — the audit's outlier — roughly doubled
-> its grid throughput with the fix, so current code should measure
-> significantly better than the snapshot). Once re-collected under controlled
-> conditions (`taskset -c <core> ./bench/results/collect-bench.sh fnl`,
-> turbo off / pinned clocks, quiesced machine), refresh: this headline, the
-> comparison and vps tables below, and the performance claims in the root
-> README.
+Collected 2026-07-19 on an i7-1370P (Raptor Cove P-cores) **pinned at 1.9 GHz**
+(governor `performance`, turbo disabled) with GHC 9.12.2 / LLVM 19 / g++ 15.2.
 
-## Results (historical, external NoiseBenchmarking tool, LLVM 15)
+The FNL comparison suite was pinned to one P-core for the comparison suite.
+
+`% of FNL` ratios are intended to be clock-invariant; the absolute values/sec
+figures scale with CPU clock, so expect proportionally higher throughput at
+normal boost clocks and on more powerful hardware.
+
+Full provenance in the `.meta` sidecars next to the tracked baselines.
+
+### FastNoiseLite comparison (percent of FNL throughput; higher is better)
+
+| algorithm        | grid | freq 0.01 | random |
+| :--------------- | ---: | --------: | -----: |
+| value 2D         |  77% |       77% |    77% |
+| valueCubic 2D    |  81% |       81% |    81% |
+| perlin 2D        |  88% |       88% |    88% |
+| openSimplex2 2D  |  66% |       81% |    96% |
+| superSimplex2 2D |  81% |       80% |    88% |
+| cellular 2D      | 107% |      107% |   107% |
+| value 3D         |  80% |       80% |    80% |
+| valueCubic 3D    |  98% |       98% |    97% |
+| perlin 3D        |  71% |       71% |    71% |
+| openSimplex2 3D  |  86% |       77% |    78% |
+| superSimplex2 3D |  95% |       86% |    68% |
+| cellular 3D      |  90% |       90% |    90% |
+
+Notes:
+
+- `grid` = integer lattice
+- `freq 0.01` - integer lattice scaled by frequency `0.01`, which is FNL's
+- Branch-free algorithms (value, perlin, cellular) don't exhibit performance
+variants against different input domain variances.
+- Simplex spread appears to be branch predictability. C++ FNL gains up to 2x
+on non-random inputs where pure-noise's more branchless lowering is stable even
+against random samples.
+
+### Single-thread values/sec (`pure-noise-bench`)
+
+Cellular rows use `DistEuclidean`/`CellValue`.
+
+#### 2D
+
+| name          | Float (values/sec) | Double (values/sec) |
+| :------------ | -----------------: | ------------------: |
+| value2        |         64_407_126 |          68_260_653 |
+| perlin2       |         61_301_663 |          65_143_707 |
+| openSimplex2  |         25_982_291 |          27_045_472 |
+| valueCubic2   |         22_743_642 |          23_403_842 |
+| superSimplex2 |         17_167_069 |          17_762_669 |
+| cellular2     |         16_025_950 |          16_007_044 |
+
+#### 3D
+
+| name          | Float (values/sec) | Double (values/sec) |
+| :------------ | -----------------: | ------------------: |
+| value3        |         34_673_623 |          35_929_146 |
+| perlin3       |         29_325_590 |          30_432_482 |
+| openSimplex3  |         10_975_857 |          10_922_644 |
+| superSimplex3 |          9_232_128 |           9_166_843 |
+| valueCubic3   |          7_453_365 |           7_278_612 |
+| cellular3     |          5_238_497 |           5_061_911 |
+
+### 2D parallel (`massiv`, 14 cores, pinned clocks)
+
+Roughly **6-9x single-threaded throughput** on this machine; this is the
+recommended path for bulk generation.
+
+| name          | Float (values/sec) | Double (values/sec) |
+| :------------ | -----------------: | ------------------: |
+| value2        |        598_416_348 |         545_903_275 |
+| perlin2       |        379_679_233 |         380_193_693 |
+| openSimplex2  |        326_741_089 |         259_019_987 |
+| valueCubic2   |        251_478_340 |         255_116_760 |
+| superSimplex2 |        202_899_146 |         206_180_841 |
+| cellular2     |        191_360_566 |         188_456_991 |
+
+## Historical results (external NoiseBenchmarking tool, LLVM 15, i9-13900K)
 
 The tables below are the original published comparison, collected before the
 in-repo suite existed.
@@ -68,41 +132,6 @@ This is the intended path for high-performance, large-scale noise generation wit
 For example, the parallel `massiv` 2D Perlin benchmark achieves **~1.73 billion values/sec**, over 9x the
 single-threaded FNL result and 11x the single-threaded pure-noise result.
 
-## Detailed `pure-noise` Results (LLVM)
-
-Measured by values per second (vps) generated by the noise functions. These results are from benchmarks
-run with the `-fllvm` backend.
-
-### 2D (Single-Thread)
-
-| name          | Float (vps) | Double (vps) |
-| :------------ | :---------- | :----------- |
-| value2        | 173_511_654 | 189_119_731  |
-| perlin2       | 154_674_464 | 161_114_532  |
-| openSimplex2  | 74_747_031  | 74_332_345   |
-| valueCubic2   | 61_415_544  | 62_481_313   |
-| superSimplex2 | 51_295_369  | 50_383_577   |
-| cellular2     | 34_996_382  | 32_652_899   |
-
-### 3D (Single-Thread)
-
-| name        | Float (vps) | Double (vps) |
-| :---------- | :---------- | :----------- |
-| value3      | 90_805_572  | 93_188_363   |
-| perlin3     | 74_080_032  | 82_477_882   |
-| valueCubic3 | 18_765_912  | 18_284_749   |
-
-### 2D Parallel (`massiv`)
-
-| name          | Float (vps)   | Double (vps)  |
-| :------------ | :------------ | :------------ |
-| value2        | 2_349_788_931 | 2_174_853_762 |
-| perlin2       | 1_733_510_111 | 1_456_539_691 |
-| openSimplex2  | 1_126_706_858 | 985_365_752   |
-| valueCubic2   | 1_100_260_007 | 1_038_308_851 |
-| superSimplex2 | 819_495_064   | 792_605_815   |
-| cellular2     | 608_799_300   | 585_049_209   |
-
 ## Methodology & Reproducibility
 
 ### Measurement Approach
@@ -128,9 +157,9 @@ most purposes.
 ```sh
 nix develop
 # All of these emit CSV for ease-of-evaluation
-./bench/results/collect-bench.sh 
+./bench/results/collect-bench.sh
 ./bench/results/collect-bench.sh fnl # Shortcut for fnl comparisons
-cabal bench pure-noise-fnl-bench --benchmark-options='-p /perlin/ --stdev 2'
+cabal bench pure-noise-fnl-bench --flags=+llvm-bench --benchmark-options='-p /perlin/ --stdev 2'
 ```
 
 For serious comparisons, follow the brief guide in [FastNoiseLite Comparison]
@@ -163,6 +192,67 @@ custom infrastructure for results comparison is gone.
 Cross-language comparison is built into the repo for reproducibility as of
 `0.2.2.0`.
 
+Published numbers are collected with the `llvm-bench` cabal flag on (LLVM
+backend + `-optlc-fp-contract=fast` for the Haskell side); the collection
+script passes it automatically.
+
+#### C++ compiler flags
+
+The shim builds with explicit flags rather than `-O3 -march=native`:
+
+```
+-O3 -std=c++14 -ffp-contract=fast -fstrict-overflow    (+ -march=x86-64-v3 on x86_64)
+```
+
+The goal is to measure FNL the way an ordinary Linux user's `-O3 -march=native`
+build actually behaves, in a way that survives this repo's nix toolchain:
+
+- nix's cc wrapper **strips `-march=native`** (`NIX_ENFORCE_NO_NATIVE=1`), which
+  `-march=x86-64-v3` (AVX2+FMA, roughly what `native` selects on 2015+ x86)
+  passes through Nix untouched.
+- `-ffp-contract=fast` makes FP contraction explicit. It is the compiler
+  default for gcc, clang, and MSVC in practice, and measured here it appears
+  to be the _entirety_ of the speedup `-march=native` delivers on FMA-heavy
+  kernels (perlin, cellular).
+- nix hardening also injects `-fno-strict-overflow`. FNL's prime-multiplied
+  hash coordinates overflow `int` by design. That is undefined behavior in
+  C++ (g++ 15 warns at `FastNoiseLite.h:1658/1691/1724`), and gcc's
+  UB-licensed loop optimizations are worth ~10-24% on cellular. Explicit
+  `-fstrict-overflow` comes after the wrapper's injected flag and restores
+  vanilla gcc behavior.
+
+#### Manual matched-semantics comparison
+
+These C++ flags grant the C++ library two licenses Haskell doesn't grant by
+default: FP contraction and signed-overflow UB.
+
+To compare pure codegen with those licenses revoked on the C++ side, temporarily
+edit the `pure-noise-fnl-bench` `cxx-options` in `package.yaml` to end with
+`-fwrapv -ffp-contract=off` and run `hpack` before rebuilding.
+
+#### Measurement provenance
+
+Every collection writes a `.meta` sidecar next to the CSV recording
+toolchain versions, CPU model, governor, turbo state, AC power state, and
+pinning. To promote a run to the tracked baseline:
+
+```sh
+cp bench/results/<stamp>-fnl.csv  bench/results/current-fnl.csv
+cp bench/results/<stamp>-fnl.meta bench/results/current-fnl.meta
+python3 bench/results/vps.py bench/results/current-fnl.csv
+```
+
+(and likewise without `-fnl` for the standard suite).
+
+#### Backend note (NCG vs LLVM)
+
+On the reference machine (i7-1370P, Raptor Cove P-core pinned at 1.9 GHz),
+the native code generator measures ~2.85x slower than the LLVM backend on
+`perlin2`, \~2.6-3.6x on `cellular2`, and \~1.4x on `openSimplex2`.
+
+Ratios here and above are properties of this toolchain and microarchitecture,
+with ~±1-2% run-to-run uncertainty under pinned clocks.
+
 ### System preparation
 
 Make sure your system is quiet. Close all browsers an graphical applications,
@@ -185,9 +275,9 @@ echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo
 You'll want to pin to a single core. Be sure this is a P-core, not an E-core.
 
 ```bash
-cabal build bench:pure-noise-fnl-bench
+cabal build bench:pure-noise-fnl-bench --flags=+llvm-bench
  # pinning to core 4, usually a P-core, unlikely to be a dumping ground for OS interrupts etc.
-cabal exec -- taskset -c 4 pure-noise-fnl-bench
+cabal exec -- taskset -c 4 "$(cabal list-bin pure-noise-fnl-bench --flags=+llvm-bench)"
 ```
 
 ### Restoring system performance settings
