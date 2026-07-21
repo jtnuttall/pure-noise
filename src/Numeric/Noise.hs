@@ -32,7 +32,7 @@
 --
 -- >>> fractal = fractal2 defaultFractalConfig perlin2
 -- >>> noise2At fractal seed 55 (-2.23)
--- 0.15842278596749287
+-- 0.15904649772327042
 --
 -- == Advanced Features
 --
@@ -149,7 +149,7 @@ module Numeric.Noise (
   -- | Fractal noise combines multiple octaves at different frequencies and
   -- amplitudes to create natural-looking, multi-scale patterns.
   --
-  -- For custom fractal implementations using per-octave modifier functions,
+  -- For custom fractal implementations using per-octave step functions,
   -- see "Numeric.Noise.Fractal".
 
   -- ** Fractal Brownian Motion (FBM)

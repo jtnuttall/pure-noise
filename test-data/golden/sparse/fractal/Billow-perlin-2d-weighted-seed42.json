@@ -4,349 +4,349 @@
             0,
             0
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             1,
             1
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             0,
             1
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             1,
             0
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             -1,
             -1
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             -1,
             0
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             0,
             -1
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             -1,
             1
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             1,
             -1
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             0.5,
             0.5
         ],
-        "expected": -0.718615442292752
+        "expected": -0.5430907249850233
     },
     {
         "coordinates": [
             0.25,
             0.75
         ],
-        "expected": -0.6555655191345198
+        "expected": -0.48764292233820705
     },
     {
         "coordinates": [
             0.75,
             0.25
         ],
-        "expected": -0.6356057391588998
+        "expected": -0.21222201254204284
     },
     {
         "coordinates": [
             0.1,
             0.9
         ],
-        "expected": -0.6456887447162775
+        "expected": -0.492115654992645
     },
     {
         "coordinates": [
             0.9,
             0.1
         ],
-        "expected": -0.6577820103959993
+        "expected": -0.45877936320291535
     },
     {
         "coordinates": [
             10,
             10
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             100,
             100
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             -10,
             -10
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             5.5,
             7.3
         ],
-        "expected": -0.5232276744397761
+        "expected": -0.3966904818576839
     },
     {
         "coordinates": [
             -3.2,
             4.7
         ],
-        "expected": -0.3742967614896042
+        "expected": -0.4150764541745687
     },
     {
         "coordinates": [
             1.0e-10,
             1.0e-10
         ],
-        "expected": -0.9999999990481748
+        "expected": -0.6718749997671818
     },
     {
         "coordinates": [
             2.5,
             3.7
         ],
-        "expected": -0.4338106455098381
+        "expected": -0.17288284090175707
     },
     {
         "coordinates": [
             -5.2,
             8.9
         ],
-        "expected": -0.36399408799763894
+        "expected": -0.5420926100169697
     },
     {
         "coordinates": [
             12.34,
             -56.78
         ],
-        "expected": -0.653025784936186
+        "expected": -0.11433131199451411
     },
     {
         "coordinates": [
             0.123,
             0.456
         ],
-        "expected": -0.4608070154005737
+        "expected": -5.516882110899815e-2
     },
     {
         "coordinates": [
             0.789,
             0.321
         ],
-        "expected": -0.5745136846865908
+        "expected": -0.13734367691623048
     },
     {
         "coordinates": [
             -0.5,
             -0.5
         ],
-        "expected": -0.718615442292752
+        "expected": -0.5430907249850233
     },
     {
         "coordinates": [
             0.5,
             -0.5
         ],
-        "expected": -0.9200075304816684
+        "expected": -7.12377029294007e-2
     },
     {
         "coordinates": [
             -0.5,
             0.5
         ],
-        "expected": -0.9200075304816684
+        "expected": -7.12377029294007e-2
     },
     {
         "coordinates": [
             2,
             3
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             5,
             7
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             11,
             13
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             17,
             19
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             23,
             29
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             31,
             37
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             41,
             43
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             47,
             53
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             2,
             2
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             3,
             3
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             -2,
             -2
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             2,
             -2
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             -2,
             2
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             0.999999,
             0.999999
         ],
-        "expected": -0.9999934389482893
+        "expected": -0.6718736183540199
     },
     {
         "coordinates": [
             1.0e-6,
             1.0e-6
         ],
-        "expected": -0.9999904817466873
+        "expected": -0.6718726718089204
     },
     {
         "coordinates": [
             0.999999999,
             0.999999999
         ],
-        "expected": -0.9999999934389481
+        "expected": -0.6718749986183548
     },
     {
         "coordinates": [
             1.000000001,
             1.000000001
         ],
-        "expected": -0.9999999934389479
+        "expected": -0.6718749986183569
     },
     {
         "coordinates": [
             256,
             256
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             1024,
             1024.1
         ],
-        "expected": -0.6951570977783841
+        "expected": -0.48253242410627656
     },
     {
         "coordinates": [
             65536.5,
             65536.5
         ],
-        "expected": -0.7814565090530143
+        "expected": -0.2523920905874816
     },
     {
         "coordinates": [
             10000,
             10000
         ],
-        "expected": -1
+        "expected": -0.6718749999999999
     },
     {
         "coordinates": [
             10000.1,
             10000.1
         ],
-        "expected": -0.8395519093718684
+        "expected": -0.4866995062455577
     }
 ]

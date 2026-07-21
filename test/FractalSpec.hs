@@ -14,6 +14,8 @@ test_golden_fractal =
     , testGroup "2D Sparse Tests" fractal2DSparseTests
     , testGroup "3D Grid Tests" fractal3DGridTests
     , testGroup "3D Sparse Tests" fractal3DSparseTests
+    , testGroup "2D Weighted Sparse Tests" fractal2DWeightedSparseTests
+    , testGroup "3D Weighted Sparse Tests" fractal3DWeightedSparseTests
     ]
 
 -- Fractal types to test
@@ -66,3 +68,46 @@ fractal3DSparseTests =
   , seed <- cellularSeeds
   , let variant = show fractalType ++ "-perlin-3d-seed" ++ show seed
   ]
+
+weightedFractalConfig :: FractalConfig Double
+weightedFractalConfig = defaultFractalConfig{weightedStrength = 0.5}
+
+applyWeighted2D :: FractalType -> Noise2 Double -> Noise2 Double
+applyWeighted2D FBM = fractal2 weightedFractalConfig
+applyWeighted2D Billow = billow2 weightedFractalConfig
+applyWeighted2D Ridged = ridged2 weightedFractalConfig
+applyWeighted2D PingPong = pingPong2 weightedFractalConfig defaultPingPongStrength
+
+applyWeighted3D :: FractalType -> Noise3 Double -> Noise3 Double
+applyWeighted3D FBM = fractal3 weightedFractalConfig
+applyWeighted3D Billow = billow3 weightedFractalConfig
+applyWeighted3D Ridged = ridged3 weightedFractalConfig
+applyWeighted3D PingPong = pingPong3 weightedFractalConfig defaultPingPongStrength
+
+fractal2DWeightedSparseTests :: [TestTree]
+fractal2DWeightedSparseTests =
+  [ goldenSparseTest2D "fractal" variant (applyWeighted2D fractalType perlin2) seed
+  | fractalType <- [minBound .. maxBound]
+  , seed <- cellularSeeds
+  , let variant = show fractalType ++ "-perlin-2d-weighted-seed" ++ show seed
+  ]
+    ++ [ goldenSparseTest2D
+           "fractal"
+           "FBM-perlin-scaled-2d-weighted-seed42"
+           (fractal2 weightedFractalConfig (perlin2 * 2))
+           42
+       ]
+
+fractal3DWeightedSparseTests :: [TestTree]
+fractal3DWeightedSparseTests =
+  [ goldenSparseTest3D "fractal" variant (applyWeighted3D fractalType perlin3) seed
+  | fractalType <- [minBound .. maxBound]
+  , seed <- cellularSeeds
+  , let variant = show fractalType ++ "-perlin-3d-weighted-seed" ++ show seed
+  ]
+    ++ [ goldenSparseTest3D
+           "fractal"
+           "FBM-perlin-scaled-3d-weighted-seed42"
+           (fractal3 weightedFractalConfig (perlin3 * 2))
+           42
+       ]

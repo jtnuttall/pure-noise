@@ -21,6 +21,11 @@ and this project adheres to the
   `2`/`2S` from OpenSimplex since it created collisions with the
   noise function naming scheme that seemed most ergonomic; I think this
   should neatly resolve remaining semantic ambiguity.
+- BREAKING - fractals are now configured using a step function that
+  returns an unboxed tuple. This replaces the (potentially boxed) higher-order
+  modifier function, and changes the vocabulary and performance characteristics
+  of fractals somewhat.
+  This fundamentally alters the appearance and value range of fractals.
 
 ### Fixed
 
@@ -28,6 +33,10 @@ and this project adheres to the
   implement the exact same coordinate function as FNL: It squares the hash and
   distributes the squared hash along the whole calculation.
   This fundamentally changes all values that these functions produce.
+- BREAKING - ping pong now matches FNL's implementation more exactly
+- BREAKING - fractals with a octaves ==1 now return the noise unchanged. ALL
+  fractals now produce one less iteration than before. This should prove less
+  surprising to users coming from other noise libraries like FNL.
 
 ## 0.2.2.0 2026-07-19
 
