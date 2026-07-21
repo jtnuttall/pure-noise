@@ -8,6 +8,10 @@ and this project adheres to the
 
 ## Unreleased
 
+### Changed
+
+- Improved documentation for flags, fixed some rendering quirks.
+
 ## 0.2.2.0 2026-07-19
 
 This is the final release of the 0.2.2.0 line.

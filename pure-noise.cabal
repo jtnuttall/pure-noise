@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           pure-noise
-version:        0.2.2.0
+version:        0.3.0.0
 synopsis:       Performant, modern noise generation (Perlin, OpenSimplex2, Cellular)
 description:    Fast, modern noise generation In pure Haskell with an algebraic interface.
                 Provides Perlin, OpenSimplex2, OpenSimplex2S, Value, and Cellular noise variants.
@@ -56,14 +56,9 @@ flag mfma
   default: False
 
 flag optimize
-  description: Turns on -O2 for pure-noise. Since the library is pretty small, this shouldn't be
-               too much trouble, but you can disable this flag if it's slowing your builds too
-               much.
-               .
-               Rationale:
-               - -O1 leaves ~3x on the table for tight noise loops in downstream code.
-               - -O2 seems to produce higher-quality unfoldings, which in turn causes pure-noise's
-               kernels to inline and optimize more reliably at call sites.
+  description: Turns on expensive optimizations for pure-noise. Since the library is pretty small,
+               this shouldn't be too much trouble, but you can disable this flag if it's slowing your
+               builds too much.
   manual: True
   default: True
 
@@ -91,7 +86,7 @@ library
     , primitive >=0.8 && <0.10
   default-language: GHC2021
   if flag(optimize)
-    ghc-options: -O2
+    ghc-options: -O2 -fspecialize-aggressively -fexpose-all-unfoldings -flate-specialise -flate-dmd-anal
   if flag(mfma)
     ghc-options: -mfma
     cpp-options: -DHAS_FMA
@@ -175,7 +170,7 @@ benchmark pure-noise-fnl-bench
       Paths_pure_noise
   hs-source-dirs:
       bench/fnl-compare
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts "-with-rtsopts=-A64m -T" -O2 -fsimpl-tick-factor=1000
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts "-with-rtsopts=-A64m -T" -O2 -fsimpl-tick-factor=1000 -fspecialize-aggressively -fexpose-all-unfoldings -flate-specialise -flate-dmd-anal
   cxx-options: -O3 -std=c++14 -ffp-contract=fast -fstrict-overflow
   include-dirs:
       bench/fnl-compare/cbits
