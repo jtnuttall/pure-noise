@@ -53,7 +53,7 @@ library:
     - Numeric.Noise.Fractal
     - Numeric.Noise.OpenSimplex
     - Numeric.Noise.Perlin
-    - Numeric.Noise.SuperSimplex
+    - Numeric.Noise.SmootherSimplex
     - Numeric.Noise.Value
     - Numeric.Noise.ValueCubic
   when:

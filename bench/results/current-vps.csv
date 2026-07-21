@@ -21,16 +21,16 @@ All.2D.openSimplex2.billow: Vector Float x1000000,1000000.0,0.257174529208,38884
 All.2D.openSimplex2.billow: Vector Double x1000000,1000000.0,0.267343805295,3740501
 All.2D.openSimplex2.pingPong: Vector Float x1000000,1000000.0,0.283931038809,3521981
 All.2D.openSimplex2.pingPong: Vector Double x1000000,1000000.0,0.292903516998,3414093
-All.2D.superSimplex2.Vector Float x1000000,1000000.0,0.058251058824,17167069
-All.2D.superSimplex2.Vector Double x1000000,1000000.0,0.056297844012,17762669
-All.2D.superSimplex2.fractal: Vector Float x1000000,1000000.0,0.347612743986,2876764
-All.2D.superSimplex2.fractal: Vector Double x1000000,1000000.0,0.407603502194,2453364
-All.2D.superSimplex2.ridged: Vector Float x1000000,1000000.0,0.354061688197,2824366
-All.2D.superSimplex2.ridged: Vector Double x1000000,1000000.0,0.409092703211,2444433
-All.2D.superSimplex2.billow: Vector Float x1000000,1000000.0,0.355308699794,2814454
-All.2D.superSimplex2.billow: Vector Double x1000000,1000000.0,0.415187411602,2408550
-All.2D.superSimplex2.pingPong: Vector Float x1000000,1000000.0,0.36990938421,2703364
-All.2D.superSimplex2.pingPong: Vector Double x1000000,1000000.0,0.425120259204,2352275
+All.2D.smootherSimplex2.Vector Float x1000000,1000000.0,0.058251058824,17167069
+All.2D.smootherSimplex2.Vector Double x1000000,1000000.0,0.056297844012,17762669
+All.2D.smootherSimplex2.fractal: Vector Float x1000000,1000000.0,0.347612743986,2876764
+All.2D.smootherSimplex2.fractal: Vector Double x1000000,1000000.0,0.407603502194,2453364
+All.2D.smootherSimplex2.ridged: Vector Float x1000000,1000000.0,0.354061688197,2824366
+All.2D.smootherSimplex2.ridged: Vector Double x1000000,1000000.0,0.409092703211,2444433
+All.2D.smootherSimplex2.billow: Vector Float x1000000,1000000.0,0.355308699794,2814454
+All.2D.smootherSimplex2.billow: Vector Double x1000000,1000000.0,0.415187411602,2408550
+All.2D.smootherSimplex2.pingPong: Vector Float x1000000,1000000.0,0.36990938421,2703364
+All.2D.smootherSimplex2.pingPong: Vector Double x1000000,1000000.0,0.425120259204,2352275
 All.2D.value2.Vector Float x1000000,1000000.0,0.015526232243,64407126
 All.2D.value2.Vector Double x1000000,1000000.0,0.014649727987,68260653
 All.2D.value2.fractal: Vector Float x1000000,1000000.0,0.1318949144,7581793
@@ -80,10 +80,10 @@ All.3D.openSimplex3.Vector Float x1000000,1000000.0,0.091109057148,10975857
 All.3D.openSimplex3.Vector Double x1000000,1000000.0,0.091552919699,10922644
 All.3D.openSimplex3.fractal: Vector Float x1000000,1000000.0,0.652410505816,1532777
 All.3D.openSimplex3.fractal: Vector Double x1000000,1000000.0,0.64953369399,1539566
-All.3D.superSimplex3.Vector Float x1000000,1000000.0,0.108317386502,9232128
-All.3D.superSimplex3.Vector Double x1000000,1000000.0,0.109088802399,9166843
-All.3D.superSimplex3.fractal: Vector Float x1000000,1000000.0,0.849456872005,1177222
-All.3D.superSimplex3.fractal: Vector Double x1000000,1000000.0,0.828404370604,1207139
+All.3D.smootherSimplex3.Vector Float x1000000,1000000.0,0.108317386502,9232128
+All.3D.smootherSimplex3.Vector Double x1000000,1000000.0,0.109088802399,9166843
+All.3D.smootherSimplex3.fractal: Vector Float x1000000,1000000.0,0.849456872005,1177222
+All.3D.smootherSimplex3.fractal: Vector Double x1000000,1000000.0,0.828404370604,1207139
 All.3D.value3.Vector Float x1000000,1000000.0,0.028840365961,34673623
 All.3D.value3.Vector Double x1000000,1000000.0,0.027832556174,35929146
 All.3D.value3.fractal: Vector Float x1000000,1000000.0,0.260812545009,3834171
@@ -112,8 +112,8 @@ All.2D massiv.massiv base2.perlin2: Float x1000000,1000000.0,0.002633802196,3796
 All.2D massiv.massiv base2.perlin2: Double x1000000,1000000.0,0.002630238262,380193693
 All.2D massiv.massiv base2.openSimplex2: Float x1000000,1000000.0,0.003060527226,326741089
 All.2D massiv.massiv base2.openSimplex2: Double x1000000,1000000.0,0.003860705918,259019987
-All.2D massiv.massiv base2.superSimplex2: Float x1000000,1000000.0,0.004928556951,202899146
-All.2D massiv.massiv base2.superSimplex2: Double x1000000,1000000.0,0.004850111162,206180841
+All.2D massiv.massiv base2.smootherSimplex2: Float x1000000,1000000.0,0.004928556951,202899146
+All.2D massiv.massiv base2.smootherSimplex2: Double x1000000,1000000.0,0.004850111162,206180841
 All.2D massiv.massiv base2.value2: Float x1000000,1000000.0,0.001671077339,598416348
 All.2D massiv.massiv base2.value2: Double x1000000,1000000.0,0.001831826342,545903275
 All.2D massiv.massiv base2.valueCubic2: Float x1000000,1000000.0,0.003976485596,251478340
@@ -126,5 +126,5 @@ All.2D massiv.massiv fractal2.value2 fractal: Float x1000000,1000000.0,0.0124230
 All.2D massiv.massiv fractal2.value2 fractal: Double x1000000,1000000.0,0.011958436453,83622972
 All.2D massiv.massiv fractal2.openSimplex2 fractal: Float x1000000,1000000.0,0.022723172155,44007940
 All.2D massiv.massiv fractal2.openSimplex2 fractal: Double x1000000,1000000.0,0.022756890537,43942734
-All.2D massiv.massiv fractal2.superSimplex2 fractal: Float x1000000,1000000.0,0.030491815699,32795685
-All.2D massiv.massiv fractal2.superSimplex2 fractal: Double x1000000,1000000.0,0.030161184074,33155197
+All.2D massiv.massiv fractal2.smootherSimplex2 fractal: Float x1000000,1000000.0,0.030491815699,32795685
+All.2D massiv.massiv fractal2.smootherSimplex2 fractal: Double x1000000,1000000.0,0.030161184074,33155197

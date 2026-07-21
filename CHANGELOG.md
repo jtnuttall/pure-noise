@@ -15,6 +15,12 @@ and this project adheres to the
 ### Changed
 
 - Improved documentation for flags, fixed some rendering quirks.
+- BREAKING - renamed `superSimplex` to `smootherSimplex`. Algorithm is
+  identical, but naming is clearer. `OpenSimplex2S` is the smoother
+  variant of `OpenSimplex2` noise. Originally decided to omit the
+  `2`/`2S` from OpenSimplex since it created collisions with the
+  noise function naming scheme that seemed most ergonomic; I think this
+  should neatly resolve remaining semantic ambiguity.
 
 ### Fixed
 

@@ -59,7 +59,7 @@ import Numeric.Noise.Internal.Math as Math (
 --
 -- @
 -- combined :: Noise (Float, Float) Float
--- combined = (perlin2 + superSimplex2) / 2
+-- combined = (perlin2 + smootherSimplex2) / 2
 -- @
 --
 -- === __Coordinate Transformation__
@@ -94,14 +94,14 @@ instance Applicative (Noise p) where
 --
 -- @
 -- do n1 <- perlin2
---    n2 <- superSimplex2
+--    n2 <- smootherSimplex2
 --    return (n1 + n2)
 -- @
 --
 -- is equivalent to:
 --
 -- @
--- perlin2 + superSimplex2
+-- perlin2 + smootherSimplex2
 -- @
 --
 -- This is useful for domain warping.
@@ -274,11 +274,11 @@ constant = pure
 -- @
 -- -- Multiply two noise functions
 -- multiplied :: Noise2 Float
--- multiplied = blend (*) perlin2 superSimplex2
+-- multiplied = blend (*) perlin2 smootherSimplex2
 --
 -- -- Custom blending based on values
 -- custom :: Noise2 Float
--- custom = blend (\\a b -> if a > 0 then a else b) perlin2 superSimplex2
+-- custom = blend (\\a b -> if a > 0 then a else b) perlin2 smootherSimplex2
 -- @
 blend :: (a -> b -> c) -> Noise p a -> Noise p b -> Noise p c
 blend = liftA2

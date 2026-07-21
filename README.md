@@ -42,7 +42,7 @@ Where outputs stand today:
 | family                                   | output vs FNL                                 |
 | ---------------------------------------- | --------------------------------------------- |
 | `perlin2/3`, `cellular2/3`               | bit-exact                                     |
-| `openSimplex2/3`, `superSimplex2/3`      | within a few ULP                              |
+| `openSimplex2/3`, `smootherSimplex2/3`   | within a few ULP                              |
 | `value2/3`, `valueCubic2/3`              | diverges (hash finalization)                  |
 | `fractal2/3`, `ridged2/3`, `pingPong2/3` | diverges (octave normalization and weighting) |
 | `billow2/3`                              | no FNL counterpart                            |
@@ -71,7 +71,7 @@ import Numeric.Noise qualified as Noise
 myNoise2 :: (RealFrac a) => Noise.Seed -> a -> a -> a
 myNoise2 =
   let fractalConfig = Noise.defaultFractalConfig
-      combined = (Noise.perlin2 + Noise.superSimplex2) / 2
+      combined = (Noise.perlin2 + Noise.smootherSimplex2) / 2
   in Noise.noise2At $ Noise.fractal2 fractalConfig combined
 ```
 
@@ -88,7 +88,7 @@ The `Monad` instance is useful to create noise that depends on other noise value
 complexNoise :: Noise.Noise2 Float
 complexNoise = do
   baseNoise <- Noise.perlin2
-  detailNoise <- Noise.next2 Noise.superSimplex2
+  detailNoise <- Noise.next2 Noise.smootherSimplex2
   -- Blend based on base noise: smooth areas get less detail
   pure $ baseNoise * 0.7 + detailNoise * (0.3 * (1 + baseNoise) / 2)
 ```
@@ -231,25 +231,25 @@ into an unboxed vector.
 
 ##### 2D
 
-| name          | Float (values/sec) | Double (values/sec) |
-| ------------- | ------------------ | ------------------- |
-| value2        | 64_407_126         | 68_260_653          |
-| perlin2       | 61_301_663         | 65_143_707          |
-| openSimplex2  | 25_982_291         | 27_045_472          |
-| valueCubic2   | 22_743_642         | 23_403_842          |
-| superSimplex2 | 17_167_069         | 17_762_669          |
-| cellular2     | 16_025_950         | 16_007_044          |
+| name             | Float (values/sec) | Double (values/sec) |
+| ---------------- | ------------------ | ------------------- |
+| value2           | 64_407_126         | 68_260_653          |
+| perlin2          | 61_301_663         | 65_143_707          |
+| openSimplex2     | 25_982_291         | 27_045_472          |
+| valueCubic2      | 22_743_642         | 23_403_842          |
+| smootherSimplex2 | 17_167_069         | 17_762_669          |
+| cellular2        | 16_025_950         | 16_007_044          |
 
 ##### 3D
 
-| name          | Float (values/sec) | Double (values/sec) |
-| ------------- | ------------------ | ------------------- |
-| value3        | 34_673_623         | 35_929_146          |
-| perlin3       | 29_325_590         | 30_432_482          |
-| openSimplex3  | 10_975_857         | 10_922_644          |
-| superSimplex3 | 9_232_128          | 9_166_843           |
-| valueCubic3   | 7_453_365          | 7_278_612           |
-| cellular3     | 5_238_497          | 5_061_911           |
+| name             | Float (values/sec) | Double (values/sec) |
+| ---------------- | ------------------ | ------------------- |
+| value3           | 34_673_623         | 35_929_146          |
+| perlin3          | 29_325_590         | 30_432_482          |
+| openSimplex3     | 10_975_857         | 10_922_644          |
+| smootherSimplex3 | 9_232_128          | 9_166_843           |
+| valueCubic3      | 7_453_365          | 7_278_612           |
+| cellular3        | 5_238_497          | 5_061_911           |
 
 ## Examples
 

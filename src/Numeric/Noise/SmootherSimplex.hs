@@ -5,9 +5,9 @@
 -- Stability: experimental
 --
 -- This module implements a variation of OpenSimplex2S noise derived from
--- FastNoiseLite, exported from "Numeric.Noise" as 'Numeric.Noise.superSimplex2'
--- and 'Numeric.Noise.superSimplex3'.
-module Numeric.Noise.SuperSimplex (
+-- FastNoiseLite, exported from "Numeric.Noise" as 'Numeric.Noise.smootherSimplex2'
+-- and 'Numeric.Noise.smootherSimplex3'.
+module Numeric.Noise.SmootherSimplex (
   -- * 2D Noise
   noise2,
   noise2Base,

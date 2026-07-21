@@ -24,7 +24,7 @@
 --
 --
 -- Compose multiple noise functions:
--- >>> combined = (perlin2 + superSimplex2) / 2
+-- >>> combined = (perlin2 + smootherSimplex2) / 2
 -- >>> noise2At combined seed (-5.7) (7.9)
 -- 0.36250273586425386
 --
@@ -101,8 +101,8 @@ module Numeric.Noise (
   openSimplex3,
 
   -- ** OpenSimplex2S
-  superSimplex2,
-  superSimplex3,
+  smootherSimplex2,
+  smootherSimplex3,
 
   -- ** Cellular
   cellular2,
@@ -198,7 +198,7 @@ import Numeric.Noise.Fractal
 import Numeric.Noise.Internal
 import Numeric.Noise.OpenSimplex qualified as OpenSimplex
 import Numeric.Noise.Perlin qualified as Perlin
-import Numeric.Noise.SuperSimplex qualified as SuperSimplex
+import Numeric.Noise.SmootherSimplex qualified as SmootherSimplex
 import Numeric.Noise.Value qualified as Value
 import Numeric.Noise.ValueCubic qualified as ValueCubic
 
@@ -231,17 +231,17 @@ openSimplex3 :: (RealFrac a) => Noise3 a
 openSimplex3 = OpenSimplex.noise3
 {-# INLINE openSimplex3 #-}
 
--- | 2D SuperSimplex noise. Improved OpenSimplex variant with better visual
+-- | 2D SmootherSimplex noise. Improved OpenSimplex variant with better visual
 -- characteristics.
-superSimplex2 :: (RealFrac a) => Noise2 a
-superSimplex2 = SuperSimplex.noise2
-{-# INLINE superSimplex2 #-}
+smootherSimplex2 :: (RealFrac a) => Noise2 a
+smootherSimplex2 = SmootherSimplex.noise2
+{-# INLINE smootherSimplex2 #-}
 
--- | 3D SuperSimplex noise (FastNoiseLite's OpenSimplex2S, two offset rotated
+-- | 3D SmootherSimplex noise (FastNoiseLite's OpenSimplex2S, two offset rotated
 -- cube grids), including its default coordinate rotation.
-superSimplex3 :: (RealFrac a) => Noise3 a
-superSimplex3 = SuperSimplex.noise3
-{-# INLINE superSimplex3 #-}
+smootherSimplex3 :: (RealFrac a) => Noise3 a
+smootherSimplex3 = SmootherSimplex.noise3
+{-# INLINE smootherSimplex3 #-}
 
 -- | 2D Perlin noise. Classic gradient noise algorithm.
 perlin2 :: (RealFrac a) => Noise2 a
