@@ -98,6 +98,15 @@ tests:
     build-tools:
       - tasty-discover
 
+  pure-noise-doctest:
+    main: Doctest.hs
+    source-dirs: doctest
+    ghc-options:
+      - -threaded
+    dependencies:
+      - pure-noise
+      - doctest-parallel ^>= 0.4
+
 # NOTE: Benchmarks want +mfma & +mavx in your cabal.project if your host arch
 # supports such.
 # Published numbers additionally require +llvm-bench; see bench/README.md.

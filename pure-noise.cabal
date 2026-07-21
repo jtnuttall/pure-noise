@@ -86,13 +86,30 @@ library
     , primitive >=0.8 && <0.10
   default-language: GHC2021
   if flag(optimize)
-    ghc-options: -O2 -fspecialize-aggressively -fexpose-all-unfoldings -flate-specialise -flate-dmd-anal
+    ghc-options: -O2
   if flag(mfma)
     ghc-options: -mfma
     cpp-options: -DHAS_FMA
   if flag(mavx)
     ghc-options: -mavx
     cpp-options: -DHAS_AVX
+
+test-suite pure-noise-doctest
+  type: exitcode-stdio-1.0
+  main-is: Doctest.hs
+  other-modules:
+      Paths_pure_noise
+  autogen-modules:
+      Paths_pure_noise
+  hs-source-dirs:
+      doctest
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded
+  build-depends:
+      base >=4.16 && <5
+    , doctest-parallel ==0.4.*
+    , primitive >=0.8 && <0.10
+    , pure-noise
+  default-language: GHC2021
 
 test-suite pure-noise-test
   type: exitcode-stdio-1.0

@@ -8,6 +8,10 @@ and this project adheres to the
 
 ## Unreleased
 
+### Added
+
+- `doctest-parallel` now gates examples.
+
 ### Changed
 
 - Improved documentation for flags, fixed some rendering quirks.
