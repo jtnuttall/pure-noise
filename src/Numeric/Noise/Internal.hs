@@ -47,17 +47,11 @@ import Numeric.Noise.Internal.Math as Math (
 -- |  'Noise' represents a function from a 'Seed' and coordinates @p@ to a noise
 -- value @v@.
 --
--- For convenience, dimension-specific type aliases are provided: 'Noise1',
--- 'Noise2', and 'Noise3', plus primed variants that separate the coordinate
--- and value types.
+-- For convenience, dimension-specific type aliases are provided.
 --
 -- Use 'warp' to transform coordinates and 'remap' (or 'fmap') to transform values.
 --
--- To evaluate noise functions, use 'noise1At', 'noise2At', or 'noise3At'.
---
--- NB: 'Noise' is a lawful 'Profunctor' where 'lmap' = warp and 'rmap' = remap.
--- There are some useful implications to this, but pure-noise is committed to
--- a minimal dependency footprint and so will not provide this instance itself.
+-- To evaluate noise functions, use 'noise1At', 'noise2At', or 'noise3At'
 --
 -- === __Algebraic composition__
 --
@@ -77,14 +71,13 @@ import Numeric.Noise.Internal.Math as Math (
 -- scaled :: Noise2 Float
 -- scaled = warp (\\(x, y) -> (x * 2, y * 2)) perlin2
 -- @
-newtype Noise p v = Noise {unNoise :: Seed -> p -> v}
-
--- NOTE: Noise p v is isomorphic to Reader (Seed, p), so it has trivial
--- instances of Monad and Category, Arrow, ArrowChoice, ArrowApply, etc.
 --
--- I've decided not to include Category et al. as instances for now
--- because I can't come up with a use-case that is not sufficiently
--- covered by the monad instance.
+-- === Noise optics and category composition
+--
+-- A trivial 'Profunctor' instance where 'lmap' = 'warp' and 'rmap' = 'remap'
+-- can be defined for `Noise`, which produces some kind of nice capabilities for
+-- abstract composition and optics.
+newtype Noise p v = Noise {unNoise :: Seed -> p -> v}
 
 -- | Noise admits 'Functor' on the value it produces
 instance Functor (Noise p) where
@@ -234,7 +227,7 @@ remap = fmap
 -- This allows you to scale, rotate, or otherwise modify coordinates before
 -- they're passed to the noise function:
 --
--- NB: This is 'Data.Functor.Contravariant.contramap'
+-- NB: This is 'contramap'
 --
 -- === __Examples__
 --
@@ -367,7 +360,7 @@ sliceZ3 :: p -> Noise3' p v -> Noise2' p v
 sliceZ3 z = warp (\(x, y) -> (x, y, z))
 {-# INLINE sliceZ3 #-}
 
--- | Increment the seed for a 2D noise function. See 'reseed'.
+-- | Increment the seed for a 2D noise function. See 'reseed'
 next2 :: Noise2 a -> Noise2 a
 next2 = reseed (+ 1)
 {-# INLINE next2 #-}
@@ -382,12 +375,14 @@ const2 :: a -> Noise2 a
 const2 = pure
 {-# INLINE const2 #-}
 
--- | Increment the seed for a 3D noise function. See 'reseed'.
+-- | Increment the seed for a 3D noise function. See 'reseed'
 next3 :: Noise3 a -> Noise3 a
 next3 = reseed (+ 1)
 {-# INLINE next3 #-}
 
--- | A noise function that produces the same value everywhere. Alias of 'pure'.
+-- | A noise function that produces the same value everywhere. Alias of 'pure'
+--
+-- Used to provide the 'Num' instance.
 const3 :: a -> Noise3 a
 const3 = pure
 {-# INLINE const3 #-}

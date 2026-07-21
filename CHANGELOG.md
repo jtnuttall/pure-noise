@@ -16,6 +16,13 @@ and this project adheres to the
 
 - Improved documentation for flags, fixed some rendering quirks.
 
+### Fixed
+
+- BREAKING - value and cubic value noise, in both 2D and 3D variants, now
+  implement the exact same coordinate function as FNL: It squares the hash and
+  distributes the squared hash along the whole calculation.
+  This fundamentally changes all values that these functions produce.
+
 ## 0.2.2.0 2026-07-19
 
 This is the final release of the 0.2.2.0 line.
