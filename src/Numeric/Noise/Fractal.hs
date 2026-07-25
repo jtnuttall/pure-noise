@@ -318,5 +318,5 @@ pingPongStep (PingPongStrength strength) wS raw =
 pingPong :: (RealFrac a) => a -> a
 pingPong t0 =
   let !t = t0 - fromIntegral @Int (truncate (t0 * 0.5) * 2)
-   in if t < 1 then t else 2 - t
+   in 1 - abs (t - 1)
 {-# INLINE pingPong #-}
