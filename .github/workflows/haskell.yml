@@ -71,13 +71,15 @@ jobs:
       - name: Install and build dependencies
         run: cabal build all --enable-tests --enable-benchmarks --only-dependencies
 
-      - name: Run Tests
-        run: cabal test all --enable-tests --write-ghc-environment-files=always
+      - name: Doctest
+        run: cabal test pure-noise-doctest --enable-tests --write-ghc-environment-files=always
+
+      - name: Unit test
+        run: cabal test pure-noise-test --enable-tests
 
       - name: Build Haddock
         run: cabal haddock
 
-      # Just verify that the benchmark builds to avoid wasting CI minutes
       - name: Build benchmarks
         run: cabal build all --enable-benchmarks
 
