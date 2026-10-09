@@ -74,9 +74,12 @@ aliases for 2D and 3D noise. Noise functions can be composed transparently using
 standard operators with minimal performance cost.
 
 Most noise functions produce values in `[-1, 1]`, give or take small
-floating-point excursions. The exception is cellular noise with the
-`DistManhattan` or `DistHybrid` distance functions, whose distances are
-unnormalized and can exceed 1 (up to ~2 in practice).
+floating-point excursions.
+
+The primary exception is cellular noise with the `DistManhattan` or `DistHybrid`
+distance functions. These values are unnormalized and can exceed 1 (up to ~2 in
+practice). This is how FastNoiseLite works, and will not change until the next
+major.
 
 ### Basic Example
 
