@@ -35,23 +35,23 @@ are subject to change and may change between minor versions.
 
 ## FastNoiseLite compatibility
 
-pure-noise shares its lineage with FNL, but it isn't intended as a 1:1 port —
-kernels are restructured for GHC, and some families intentionally diverge.
-Where outputs stand today:
+pure-noise began as a port of FastNoiseLite and shares its algorithmic
+lineage, but it isn't a 1:1 port. Version `0.3` targets FNL equivalence within a
+few ULP.
 
-| family                                   | output vs FNL                                 |
-| ---------------------------------------- | --------------------------------------------- |
-| `perlin2/3`, `cellular2/3`               | bit-exact                                     |
-| `openSimplex2/3`, `smootherSimplex2/3`   | within a few ULP                              |
-| `value2/3`, `valueCubic2/3`              | diverges (hash finalization)                  |
-| `fractal2/3`, `ridged2/3`, `pingPong2/3` | diverges (octave normalization and weighting) |
-| `billow2/3`                              | no FNL counterpart                            |
+### Notable differences to FNL
+
+#### Fractals
+
+- `pingPong` uses an algebraically equivalent equation for FNL's triangle wave,
+  but differs by a few ULP.
+- `billow` has no FNL equivalent.
 
 > [!IMPORTANT]
 >
-> The `value`, `valueCubic`, and fractal families will align with FNL in 0.3,
-> which changes their output for a given seed. Pin `pure-noise < 0.3` if you
-> depend on seed-stable output from them.
+> 0.3 changes the seed-to-output mapping of the `value`, `valueCubic`, and
+> fractal families relative to 0.2.x. Pin `pure-noise < 0.3` if you depend on
+> stable output from those functions.
 
 ## Usage
 
@@ -59,8 +59,10 @@ The library provides composable noise functions. `Noise2` and `Noise3` are type
 aliases for 2D and 3D noise. Noise functions can be composed transparently using
 standard operators with minimal performance cost.
 
-Noise values are generally clamped to `[-1, 1]`, although some noise functions
-may occasionally produce values slightly outside this range.
+Most noise functions produce values in `[-1, 1]`, give or take small
+floating-point excursions. The exception is cellular noise with the
+`DistManhattan` or `DistHybrid` distance functions, whose distances are
+unnormalized and can exceed 1 (up to ~2 in practice).
 
 ### Basic Example
 
