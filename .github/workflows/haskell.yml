@@ -72,7 +72,7 @@ jobs:
         run: cabal build all --enable-tests --enable-benchmarks --only-dependencies
 
       - name: Run Tests
-        run: cabal test all
+        run: cabal test all --enable-tests
 
       - name: Build Haddock
         run: cabal haddock
