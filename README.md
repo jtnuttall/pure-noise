@@ -20,6 +20,20 @@ The public interface for this library is unlikely to change much, although the
 implementations (`noiseBaseN` functions and anything in `Numeric.Noise.Internal`)
 are subject to change and may change between minor versions.
 
+## Important note on GHC 9.14
+
+GHC 9.14 includes a substantial rewrite of the specializer. With this came some
+regressions. Many of the ones I'm aware of are centered around newtype classes
+(i.e., classes with one function), but aren't totally isolated to them.
+
+As a result, using GHC 9.14 may **significantly alter your performance profile**.
+This may be a regression.  **I have not yet had the time to test GHC 9.14
+against this library's performance claims**, although CI tests that the library
+compiles at all against 9.14.
+
+If you run into issues on 9.14, opening an issue on this project's repository
+would help a great deal: <https://github.com/jtnuttall/pure-noise/issues>
+
 ## Acknowledgments
 
 - This project grew from a port of the excellent
