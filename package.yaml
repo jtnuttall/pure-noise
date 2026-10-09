@@ -1,5 +1,5 @@
 name: pure-noise
-version: 0.2.2.0
+version: 0.3.0.0
 github: "jtnuttall/pure-noise"
 license: BSD-3-Clause
 author: "Jeremy Nuttall"
@@ -9,7 +9,8 @@ copyright: "2026 Jeremy Nuttall"
 tested-with:
   - GHC == 9.6.7
   - GHC == 9.8.4
-  - GHC == 9.12.2
+  - GHC == 9.10.3
+  - GHC == 9.12.4
 
 extra-source-files:
   - README.md
@@ -53,7 +54,7 @@ library:
     - Numeric.Noise.Fractal
     - Numeric.Noise.OpenSimplex
     - Numeric.Noise.Perlin
-    - Numeric.Noise.SuperSimplex
+    - Numeric.Noise.SmootherSimplex
     - Numeric.Noise.Value
     - Numeric.Noise.ValueCubic
   when:
@@ -97,6 +98,15 @@ tests:
       - typed-process
     build-tools:
       - tasty-discover
+
+  pure-noise-doctest:
+    main: Doctest.hs
+    source-dirs: doctest
+    ghc-options:
+      - -threaded
+    dependencies:
+      - pure-noise
+      - doctest-parallel ^>= 0.4
 
 # NOTE: Benchmarks want +mfma & +mavx in your cabal.project if your host arch
 # supports such.
@@ -153,6 +163,10 @@ benchmarks:
       - '"-with-rtsopts=-A64m -T"'
       - -O2
       - -fsimpl-tick-factor=1000
+      - -fspecialize-aggressively
+      - -fexpose-all-unfoldings
+      - -flate-specialise
+      - -flate-dmd-anal
     dependencies:
       - pure-noise
       - mtl >=2.1 && < 2.4
@@ -185,14 +199,9 @@ benchmarks:
 flags:
   optimize:
     description: |
-      Turns on -O2 for pure-noise. Since the library is pretty small, this shouldn't be
-      too much trouble, but you can disable this flag if it's slowing your builds too
-      much.
-
-      Rationale:
-      - -O1 leaves ~3x on the table for tight noise loops in downstream code.
-      - -O2 seems to produce higher-quality unfoldings, which in turn causes pure-noise's
-      kernels to inline and optimize more reliably at call sites.
+      Turns on expensive optimizations for pure-noise. Since the library is pretty small,
+      this shouldn't be too much trouble, but you can disable this flag if it's slowing your
+      builds too much.
     default: true
     manual: true
   mfma:

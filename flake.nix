@@ -36,7 +36,7 @@
 
       project = pkgs.haskell-nix.cabalProject' {
         src = ./.;
-        compiler-nix-name = "ghc9122";
+        compiler-nix-name = "ghc9124";
         evalSystem = "x86_64-linux";
 
         modules = [

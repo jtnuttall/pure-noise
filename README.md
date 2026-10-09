@@ -20,6 +20,20 @@ The public interface for this library is unlikely to change much, although the
 implementations (`noiseBaseN` functions and anything in `Numeric.Noise.Internal`)
 are subject to change and may change between minor versions.
 
+## Important note on GHC 9.14
+
+GHC 9.14 includes a substantial rewrite of the specializer. With this came some
+regressions. Many of the ones I'm aware of are centered around newtype classes
+(i.e., classes with one function), but aren't totally isolated to them.
+
+As a result, using GHC 9.14 may **significantly alter your performance profile**.
+This may be a regression.  **I have not yet had the time to test GHC 9.14
+against this library's performance claims**, although CI tests that the library
+compiles at all against 9.14.
+
+If you run into issues on 9.14, opening an issue on this project's repository
+would help a great deal: <https://github.com/jtnuttall/pure-noise/issues>
+
 ## Acknowledgments
 
 - This project grew from a port of the excellent
@@ -35,23 +49,23 @@ are subject to change and may change between minor versions.
 
 ## FastNoiseLite compatibility
 
-pure-noise shares its lineage with FNL, but it isn't intended as a 1:1 port —
-kernels are restructured for GHC, and some families intentionally diverge.
-Where outputs stand today:
+pure-noise began as a port of FastNoiseLite and shares its algorithmic
+lineage, but it isn't a 1:1 port. Version `0.3` targets FNL equivalence within a
+few ULP.
 
-| family                                   | output vs FNL                                 |
-| ---------------------------------------- | --------------------------------------------- |
-| `perlin2/3`, `cellular2/3`               | bit-exact                                     |
-| `openSimplex2/3`, `superSimplex2/3`      | within a few ULP                              |
-| `value2/3`, `valueCubic2/3`              | diverges (hash finalization)                  |
-| `fractal2/3`, `ridged2/3`, `pingPong2/3` | diverges (octave normalization and weighting) |
-| `billow2/3`                              | no FNL counterpart                            |
+### Notable differences to FNL
+
+#### Fractals
+
+- `pingPong` uses an algebraically equivalent equation for FNL's triangle wave,
+  but differs by a few ULP.
+- `billow` has no FNL equivalent.
 
 > [!IMPORTANT]
 >
-> The `value`, `valueCubic`, and fractal families will align with FNL in 0.3,
-> which changes their output for a given seed. Pin `pure-noise < 0.3` if you
-> depend on seed-stable output from them.
+> 0.3 changes the seed-to-output mapping of the `value`, `valueCubic`, and
+> fractal families relative to 0.2.x. Pin `pure-noise < 0.3` if you depend on
+> stable output from those functions.
 
 ## Usage
 
@@ -59,8 +73,13 @@ The library provides composable noise functions. `Noise2` and `Noise3` are type
 aliases for 2D and 3D noise. Noise functions can be composed transparently using
 standard operators with minimal performance cost.
 
-Noise values are generally clamped to `[-1, 1]`, although some noise functions
-may occasionally produce values slightly outside this range.
+Most noise functions produce values in `[-1, 1]`, give or take small
+floating-point excursions.
+
+The primary exception is cellular noise with the `DistManhattan` or `DistHybrid`
+distance functions. These values are unnormalized and can exceed 1 (up to ~2 in
+practice). This is how FastNoiseLite works, and will not change until the next
+major.
 
 ### Basic Example
 
@@ -71,7 +90,7 @@ import Numeric.Noise qualified as Noise
 myNoise2 :: (RealFrac a) => Noise.Seed -> a -> a -> a
 myNoise2 =
   let fractalConfig = Noise.defaultFractalConfig
-      combined = (Noise.perlin2 + Noise.superSimplex2) / 2
+      combined = (Noise.perlin2 + Noise.smootherSimplex2) / 2
   in Noise.noise2At $ Noise.fractal2 fractalConfig combined
 ```
 
@@ -88,7 +107,7 @@ The `Monad` instance is useful to create noise that depends on other noise value
 complexNoise :: Noise.Noise2 Float
 complexNoise = do
   baseNoise <- Noise.perlin2
-  detailNoise <- Noise.next2 Noise.superSimplex2
+  detailNoise <- Noise.next2 Noise.smootherSimplex2
   -- Blend based on base noise: smooth areas get less detail
   pure $ baseNoise * 0.7 + detailNoise * (0.3 * (1 + baseNoise) / 2)
 ```
@@ -231,25 +250,25 @@ into an unboxed vector.
 
 ##### 2D
 
-| name          | Float (values/sec) | Double (values/sec) |
-| ------------- | ------------------ | ------------------- |
-| value2        | 64_407_126         | 68_260_653          |
-| perlin2       | 61_301_663         | 65_143_707          |
-| openSimplex2  | 25_982_291         | 27_045_472          |
-| valueCubic2   | 22_743_642         | 23_403_842          |
-| superSimplex2 | 17_167_069         | 17_762_669          |
-| cellular2     | 16_025_950         | 16_007_044          |
+| name             | Float (values/sec) | Double (values/sec) |
+| ---------------- | ------------------ | ------------------- |
+| value2           | 64_407_126         | 68_260_653          |
+| perlin2          | 61_301_663         | 65_143_707          |
+| openSimplex2     | 25_982_291         | 27_045_472          |
+| valueCubic2      | 22_743_642         | 23_403_842          |
+| smootherSimplex2 | 17_167_069         | 17_762_669          |
+| cellular2        | 16_025_950         | 16_007_044          |
 
 ##### 3D
 
-| name          | Float (values/sec) | Double (values/sec) |
-| ------------- | ------------------ | ------------------- |
-| value3        | 34_673_623         | 35_929_146          |
-| perlin3       | 29_325_590         | 30_432_482          |
-| openSimplex3  | 10_975_857         | 10_922_644          |
-| superSimplex3 | 9_232_128          | 9_166_843           |
-| valueCubic3   | 7_453_365          | 7_278_612           |
-| cellular3     | 5_238_497          | 5_061_911           |
+| name             | Float (values/sec) | Double (values/sec) |
+| ---------------- | ------------------ | ------------------- |
+| value3           | 34_673_623         | 35_929_146          |
+| perlin3          | 29_325_590         | 30_432_482          |
+| openSimplex3     | 10_975_857         | 10_922_644          |
+| smootherSimplex3 | 9_232_128          | 9_166_843           |
+| valueCubic3      | 7_453_365          | 7_278_612           |
+| cellular3        | 5_238_497          | 5_061_911           |
 
 ## Examples
 

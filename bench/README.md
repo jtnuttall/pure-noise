@@ -35,20 +35,20 @@ Full provenance in the `.meta` sidecars next to the tracked baselines.
 
 ### FastNoiseLite comparison (percent of FNL throughput; higher is better)
 
-| algorithm        | grid | freq 0.01 | random |
-| :--------------- | ---: | --------: | -----: |
-| value 2D         |  77% |       77% |    77% |
-| valueCubic 2D    |  81% |       81% |    81% |
-| perlin 2D        |  88% |       88% |    88% |
-| openSimplex2 2D  |  66% |       81% |    96% |
-| superSimplex2 2D |  81% |       80% |    88% |
-| cellular 2D      | 107% |      107% |   107% |
-| value 3D         |  80% |       80% |    80% |
-| valueCubic 3D    |  98% |       98% |    97% |
-| perlin 3D        |  71% |       71% |    71% |
-| openSimplex2 3D  |  86% |       77% |    78% |
-| superSimplex2 3D |  95% |       86% |    68% |
-| cellular 3D      |  90% |       90% |    90% |
+| algorithm           | grid | freq 0.01 | random |
+| :------------------ | ---: | --------: | -----: |
+| value 2D            |  77% |       77% |    77% |
+| valueCubic 2D       |  81% |       81% |    81% |
+| perlin 2D           |  88% |       88% |    88% |
+| openSimplex2 2D     |  66% |       81% |    96% |
+| smootherSimplex2 2D |  81% |       80% |    88% |
+| cellular 2D         | 107% |      107% |   107% |
+| value 3D            |  80% |       80% |    80% |
+| valueCubic 3D       |  98% |       98% |    97% |
+| perlin 3D           |  71% |       71% |    71% |
+| openSimplex2 3D     |  86% |       77% |    78% |
+| smootherSimplex2 3D |  95% |       86% |    68% |
+| cellular 3D         |  90% |       90% |    90% |
 
 Notes:
 
@@ -66,39 +66,39 @@ Cellular rows use `DistEuclidean`/`CellValue`.
 
 #### 2D
 
-| name          | Float (values/sec) | Double (values/sec) |
-| :------------ | -----------------: | ------------------: |
-| value2        |         64_407_126 |          68_260_653 |
-| perlin2       |         61_301_663 |          65_143_707 |
-| openSimplex2  |         25_982_291 |          27_045_472 |
-| valueCubic2   |         22_743_642 |          23_403_842 |
-| superSimplex2 |         17_167_069 |          17_762_669 |
-| cellular2     |         16_025_950 |          16_007_044 |
+| name             | Float (values/sec) | Double (values/sec) |
+| :--------------- | -----------------: | ------------------: |
+| value2           |         64_407_126 |          68_260_653 |
+| perlin2          |         61_301_663 |          65_143_707 |
+| openSimplex2     |         25_982_291 |          27_045_472 |
+| valueCubic2      |         22_743_642 |          23_403_842 |
+| smootherSimplex2 |         17_167_069 |          17_762_669 |
+| cellular2        |         16_025_950 |          16_007_044 |
 
 #### 3D
 
-| name          | Float (values/sec) | Double (values/sec) |
-| :------------ | -----------------: | ------------------: |
-| value3        |         34_673_623 |          35_929_146 |
-| perlin3       |         29_325_590 |          30_432_482 |
-| openSimplex3  |         10_975_857 |          10_922_644 |
-| superSimplex3 |          9_232_128 |           9_166_843 |
-| valueCubic3   |          7_453_365 |           7_278_612 |
-| cellular3     |          5_238_497 |           5_061_911 |
+| name             | Float (values/sec) | Double (values/sec) |
+| :--------------- | -----------------: | ------------------: |
+| value3           |         34_673_623 |          35_929_146 |
+| perlin3          |         29_325_590 |          30_432_482 |
+| openSimplex3     |         10_975_857 |          10_922_644 |
+| smootherSimplex3 |          9_232_128 |           9_166_843 |
+| valueCubic3      |          7_453_365 |           7_278_612 |
+| cellular3        |          5_238_497 |           5_061_911 |
 
 ### 2D parallel (`massiv`, 14 cores, pinned clocks)
 
 Roughly **6-9x single-threaded throughput** on this machine; this is the
 recommended path for bulk generation.
 
-| name          | Float (values/sec) | Double (values/sec) |
-| :------------ | -----------------: | ------------------: |
-| value2        |        598_416_348 |         545_903_275 |
-| perlin2       |        379_679_233 |         380_193_693 |
-| openSimplex2  |        326_741_089 |         259_019_987 |
-| valueCubic2   |        251_478_340 |         255_116_760 |
-| superSimplex2 |        202_899_146 |         206_180_841 |
-| cellular2     |        191_360_566 |         188_456_991 |
+| name             | Float (values/sec) | Double (values/sec) |
+| :--------------- | -----------------: | ------------------: |
+| value2           |        598_416_348 |         545_903_275 |
+| perlin2          |        379_679_233 |         380_193_693 |
+| openSimplex2     |        326_741_089 |         259_019_987 |
+| valueCubic2      |        251_478_340 |         255_116_760 |
+| smootherSimplex2 |        202_899_146 |         206_180_841 |
+| cellular2        |        191_360_566 |         188_456_991 |
 
 ## Historical results (external NoiseBenchmarking tool, LLVM 15, i9-13900K)
 
@@ -112,17 +112,17 @@ coordinate methodology. They are retained until final re-collection.
 
 **Direct comparison (integer-aligned grid, 512x512 for 2D, 64x64x64 for 3D):**
 
-| Noise Type          | pure-noise (Float) | FastNoiseLite | % of FNL |
-| :------------------ | :----------------- | :------------ | :------- |
-| **Cellular 2D**     | 68_186_004         | 71_874_200    | 94.9%    |
-| **SuperSimplex 2D** | 98_128_312         | 106_499_000   | 92.1%    |
-| **Perlin 3D**       | 79_949_212         | 90_821_200    | 88.0%    |
-| **OpenSimplex2 2D** | 116_801_665        | 133_444_000   | 87.5%    |
-| **Value 3D**        | 96_972_157         | 111_514_000   | 87.0%    |
-| **Perlin 2D**       | 158_245_846        | 182_558_000   | 86.7%    |
-| **ValueCubic 2D**   | 62_931_346         | 73_415_900    | 85.7%    |
-| **Value 2D**        | 178_258_969        | 211_971_000   | 84.1%    |
-| **ValueCubic 3D**   | 19_674_751         | 23_361_200    | 84.2%    |
+| Noise Type             | pure-noise (Float) | FastNoiseLite | % of FNL |
+| :--------------------- | :----------------- | :------------ | :------- |
+| **Cellular 2D**        | 68_186_004         | 71_874_200    | 94.9%    |
+| **SmootherSimplex 2D** | 98_128_312         | 106_499_000   | 92.1%    |
+| **Perlin 3D**          | 79_949_212         | 90_821_200    | 88.0%    |
+| **OpenSimplex2 2D**    | 116_801_665        | 133_444_000   | 87.5%    |
+| **Value 3D**           | 96_972_157         | 111_514_000   | 87.0%    |
+| **Perlin 2D**          | 158_245_846        | 182_558_000   | 86.7%    |
+| **ValueCubic 2D**      | 62_931_346         | 73_415_900    | 85.7%    |
+| **Value 2D**           | 178_258_969        | 211_971_000   | 84.1%    |
+| **ValueCubic 3D**      | 19_674_751         | 23_361_200    | 84.2%    |
 
 ### Parallel Performance
 

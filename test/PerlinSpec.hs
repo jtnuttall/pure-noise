@@ -15,13 +15,13 @@ prop_noise2_normalized x y =
 
 prop_noise2_addition_associative :: Rational -> Rational -> Bool
 prop_noise2_addition_associative x y =
-  noise2At ((noinline perlin2 + noinline superSimplex2) + noinline openSimplex2) seed x y
-    == noise2At (perlin2 + (noinline superSimplex2 + noinline openSimplex2)) seed x y
+  noise2At ((noinline perlin2 + noinline smootherSimplex2) + noinline openSimplex2) seed x y
+    == noise2At (perlin2 + (noinline smootherSimplex2 + noinline openSimplex2)) seed x y
 
 prop_noise2_addition_commutative :: Rational -> Rational -> Bool
 prop_noise2_addition_commutative x y =
-  noise2At (noinline perlin2 + noinline superSimplex2) seed x y
-    == noise2At (noinline superSimplex2 + noinline perlin2) seed x y
+  noise2At (noinline perlin2 + noinline smootherSimplex2) seed x y
+    == noise2At (noinline smootherSimplex2 + noinline perlin2) seed x y
 
 test_golden_perlin :: TestTree
 test_golden_perlin =

@@ -34,7 +34,9 @@ jobs:
         ghc:
           - "9.6.7"
           - "9.8.4"
-          - "9.12.2"
+          - "9.10.3"
+          - "9.12.4"
+          - "9.14.1"
 
     name: GHC ${{matrix.ghc}}
     steps:
@@ -69,13 +71,15 @@ jobs:
       - name: Install and build dependencies
         run: cabal build all --enable-tests --enable-benchmarks --only-dependencies
 
-      - name: Run Tests
-        run: cabal test all
+      - name: Doctest
+        run: cabal run pure-noise-doctest --enable-tests --write-ghc-environment-files=always
+
+      - name: Unit test
+        run: cabal test pure-noise-test --enable-tests
 
       - name: Build Haddock
         run: cabal haddock
 
-      # Just verify that the benchmark builds to avoid wasting CI minutes
       - name: Build benchmarks
         run: cabal build all --enable-benchmarks
 

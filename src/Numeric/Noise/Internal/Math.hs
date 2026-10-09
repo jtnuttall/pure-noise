@@ -216,14 +216,16 @@ rotate3 xo yo zo =
 valCoord2 :: (RealFrac a) => Seed -> Hash -> Hash -> a
 valCoord2 seed xPrimed yPrimed =
   let !hash = hash2 seed xPrimed yPrimed
-      !val = (hash * hash) `xor` (hash `shiftL` 19)
+      !h2 = hash * hash
+      !val = h2 `xor` (h2 `shiftL` 19)
    in fromIntegral val * recip (maxHash + 1)
 {-# INLINE valCoord2 #-}
 
 valCoord3 :: (RealFrac a) => Seed -> Hash -> Hash -> Hash -> a
 valCoord3 seed xPrimed yPrimed zPrimed =
   let !hash = hash3 seed xPrimed yPrimed zPrimed
-      !val = (hash * hash) `xor` (hash `shiftL` 19)
+      !h2 = hash * hash
+      !val = h2 `xor` (h2 `shiftL` 19)
    in fromIntegral val * recip (maxHash + 1)
 {-# INLINE valCoord3 #-}
 

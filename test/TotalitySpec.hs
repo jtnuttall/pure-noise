@@ -19,7 +19,7 @@ noises2 :: [(String, Noise2 Double)]
 noises2 =
   [ ("perlin2", perlin2)
   , ("openSimplex2", openSimplex2)
-  , ("superSimplex2", superSimplex2)
+  , ("smootherSimplex2", smootherSimplex2)
   , ("value2", value2)
   , ("valueCubic2", valueCubic2)
   , ("cellular2", cellular2 defaultCellularConfig)
@@ -30,7 +30,7 @@ noises3 :: [(String, Noise3 Double)]
 noises3 =
   [ ("perlin3", perlin3)
   , ("openSimplex3", openSimplex3)
-  , ("superSimplex3", superSimplex3)
+  , ("smootherSimplex3", smootherSimplex3)
   , ("value3", value3)
   , ("valueCubic3", valueCubic3)
   , ("cellular3", cellular3 defaultCellularConfig)

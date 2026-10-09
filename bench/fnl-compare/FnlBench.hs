@@ -41,7 +41,7 @@ benchmarks =
         , algo2 grid rand kOne kSmall "valueCubic" fnlValueCubic valueCubic2
         , algo2 grid rand kOne kSmall "perlin" fnlPerlin perlin2
         , algo2 grid rand kOne kSmall "openSimplex2" fnlOpenSimplex2 openSimplex2
-        , algo2 grid rand kOne kSmall "superSimplex2" fnlOpenSimplex2S superSimplex2
+        , algo2 grid rand kOne kSmall "smootherSimplex2" fnlOpenSimplex2S smootherSimplex2
         , algo2 grid rand kOne kSmall "cellular" fnlCellular (cellular2 benchCellularConfig)
         ]
   , env mkEnv3 $ \ ~(grid, rand, kOne, kSmall) ->
@@ -51,7 +51,7 @@ benchmarks =
         , algo3 grid rand kOne kSmall "valueCubic" fnlValueCubic valueCubic3
         , algo3 grid rand kOne kSmall "perlin" fnlPerlin perlin3
         , algo3 grid rand kOne kSmall "openSimplex2" fnlOpenSimplex2 openSimplex3
-        , algo3 grid rand kOne kSmall "superSimplex2" fnlOpenSimplex2S superSimplex3
+        , algo3 grid rand kOne kSmall "smootherSimplex2" fnlOpenSimplex2S smootherSimplex3
         , algo3 grid rand kOne kSmall "cellular" fnlCellular (cellular3 benchCellularConfig)
         ]
   ]

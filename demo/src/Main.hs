@@ -128,11 +128,11 @@ instance Show FractalType where
 data NoiseType
   = Perlin
   | OpenSimplex2
-  | SuperSimplex
+  | SmootherSimplex
   | Cellular
   | Value
   | ValueCubic
-  | PerlinPlusSuperSimplex
+  | PerlinPlusSmootherSimplex
   | ValuePlusOpenSimplex2
   | DomainWarped
   deriving (Eq, Ord, Enum, Bounded)
@@ -141,13 +141,13 @@ instance Show NoiseType where
   show = \case
     Perlin -> "Perlin"
     OpenSimplex2 -> "OpenSimplex2"
-    SuperSimplex -> "SuperSimplex (OpenSimplex2S)"
+    SmootherSimplex -> "SmootherSimplex (OpenSimplex2S)"
     Cellular -> "Cellular (Worley)"
     Value -> "Value"
     ValueCubic -> "Value Cubic"
-    PerlinPlusSuperSimplex -> "Perlin + SuperSimplex (see README)"
+    PerlinPlusSmootherSimplex -> "Perlin + SmootherSimplex (see README)"
     ValuePlusOpenSimplex2 -> "Value + OpenSimplex2"
-    DomainWarped -> "Domain Warped (Perlin\8594SuperSimplex)"
+    DomainWarped -> "Domain Warped (Perlin\8594SmootherSimplex)"
 
 data DeltaTime = DeltaTime
   { previousMono :: Double
@@ -283,11 +283,11 @@ noiseFrom config = clamp (fractal noise)
   noise = case config ^. noiseType of
     Perlin -> Noise.perlin2
     OpenSimplex2 -> Noise.openSimplex2
-    SuperSimplex -> Noise.superSimplex2
+    SmootherSimplex -> Noise.smootherSimplex2
     Cellular -> Noise.cellular2 (config ^. cellularConfig)
     Value -> Noise.value2
     ValueCubic -> Noise.valueCubic2
-    PerlinPlusSuperSimplex -> (Noise.superSimplex2 + Noise.perlin2) / 2
+    PerlinPlusSmootherSimplex -> (Noise.smootherSimplex2 + Noise.perlin2) / 2
     ValuePlusOpenSimplex2 -> (Noise.value2 + Noise.openSimplex2) / 2
     DomainWarped -> do
       let warpSliceZ = config ^. warpZ

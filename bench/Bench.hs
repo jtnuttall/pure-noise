@@ -28,7 +28,7 @@ main = do
         ( baseline3 sz
             <> benchPerlin3 octaves sz
             <> benchOpenSimplex3 octaves sz
-            <> benchSuperSimplex3 octaves sz
+            <> benchSmootherSimplex3 octaves sz
             <> benchValue3 octaves sz
             <> benchValueCubic3 octaves sz
             <> benchCellular3 sz
@@ -138,17 +138,17 @@ benchOpenSimplex2 octaves sz =
 benchOpenSimplexSmooth2 :: Int -> Int -> [Benchmark]
 benchOpenSimplexSmooth2 octaves sz =
   [ bgroup
-      "superSimplex2"
-      [ benchMany2 @Float "" sz superSimplex2
-      , benchMany2 @Double "" sz superSimplex2
-      , benchMany2 @Float "fractal" sz (fractal2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Double "fractal" sz (fractal2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Float "ridged" sz (ridged2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Double "ridged" sz (ridged2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Float "billow" sz (billow2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Double "billow" sz (billow2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMany2 @Float "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength superSimplex2)
-      , benchMany2 @Double "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength superSimplex2)
+      "smootherSimplex2"
+      [ benchMany2 @Float "" sz smootherSimplex2
+      , benchMany2 @Double "" sz smootherSimplex2
+      , benchMany2 @Float "fractal" sz (fractal2 defaultFractalConfig{octaves} smootherSimplex2)
+      , benchMany2 @Double "fractal" sz (fractal2 defaultFractalConfig{octaves} smootherSimplex2)
+      , benchMany2 @Float "ridged" sz (ridged2 defaultFractalConfig{octaves} smootherSimplex2)
+      , benchMany2 @Double "ridged" sz (ridged2 defaultFractalConfig{octaves} smootherSimplex2)
+      , benchMany2 @Float "billow" sz (billow2 defaultFractalConfig{octaves} smootherSimplex2)
+      , benchMany2 @Double "billow" sz (billow2 defaultFractalConfig{octaves} smootherSimplex2)
+      , benchMany2 @Float "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength smootherSimplex2)
+      , benchMany2 @Double "pingPong" sz (pingPong2 defaultFractalConfig{octaves} defaultPingPongStrength smootherSimplex2)
       ]
   ]
 
@@ -312,14 +312,14 @@ benchOpenSimplex3 octaves sz =
       ]
   ]
 
-benchSuperSimplex3 :: Int -> Int -> [Benchmark]
-benchSuperSimplex3 octaves sz =
+benchSmootherSimplex3 :: Int -> Int -> [Benchmark]
+benchSmootherSimplex3 octaves sz =
   [ bgroup
-      "superSimplex3"
-      [ benchMany3 @Float "" sz superSimplex3
-      , benchMany3 @Double "" sz superSimplex3
-      , benchMany3 @Float "fractal" sz (fractal3 defaultFractalConfig{octaves} superSimplex3)
-      , benchMany3 @Double "fractal" sz (fractal3 defaultFractalConfig{octaves} superSimplex3)
+      "smootherSimplex3"
+      [ benchMany3 @Float "" sz smootherSimplex3
+      , benchMany3 @Double "" sz smootherSimplex3
+      , benchMany3 @Float "fractal" sz (fractal3 defaultFractalConfig{octaves} smootherSimplex3)
+      , benchMany3 @Double "fractal" sz (fractal3 defaultFractalConfig{octaves} smootherSimplex3)
       ]
   ]
 
@@ -422,8 +422,8 @@ benchMassivBase2 !w !h =
       , benchMassiv2 @Double "perlin2" w h perlin2
       , benchMassiv2 @Float "openSimplex2" w h openSimplex2
       , benchMassiv2 @Double "openSimplex2" w h openSimplex2
-      , benchMassiv2 @Float "superSimplex2" w h superSimplex2
-      , benchMassiv2 @Double "superSimplex2" w h superSimplex2
+      , benchMassiv2 @Float "smootherSimplex2" w h smootherSimplex2
+      , benchMassiv2 @Double "smootherSimplex2" w h smootherSimplex2
       , benchMassiv2 @Float "value2" w h value2
       , benchMassiv2 @Double "value2" w h value2
       , benchMassiv2 @Float "valueCubic2" w h valueCubic2
@@ -451,7 +451,7 @@ benchMassivFractal2 octaves w h =
       , benchMassiv2 @Double "value2 fractal" w h (fractal2 defaultFractalConfig{octaves} value2)
       , benchMassiv2 @Float "openSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} openSimplex2)
       , benchMassiv2 @Double "openSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} openSimplex2)
-      , benchMassiv2 @Float "superSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} superSimplex2)
-      , benchMassiv2 @Double "superSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} superSimplex2)
+      , benchMassiv2 @Float "smootherSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} smootherSimplex2)
+      , benchMassiv2 @Double "smootherSimplex2 fractal" w h (fractal2 defaultFractalConfig{octaves} smootherSimplex2)
       ]
   ]

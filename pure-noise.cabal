@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           pure-noise
-version:        0.2.2.0
+version:        0.3.0.0
 synopsis:       Performant, modern noise generation (Perlin, OpenSimplex2, Cellular)
 description:    Fast, modern noise generation In pure Haskell with an algebraic interface.
                 Provides Perlin, OpenSimplex2, OpenSimplex2S, Value, and Cellular noise variants.
@@ -21,7 +21,8 @@ build-type:     Simple
 tested-with:
     GHC == 9.6.7
   , GHC == 9.8.4
-  , GHC == 9.12.2
+  , GHC == 9.10.3
+  , GHC == 9.12.4
 extra-source-files:
     README.md
     LICENSE
@@ -56,14 +57,9 @@ flag mfma
   default: False
 
 flag optimize
-  description: Turns on -O2 for pure-noise. Since the library is pretty small, this shouldn't be
-               too much trouble, but you can disable this flag if it's slowing your builds too
-               much.
-               .
-               Rationale:
-               - -O1 leaves ~3x on the table for tight noise loops in downstream code.
-               - -O2 seems to produce higher-quality unfoldings, which in turn causes pure-noise's
-               kernels to inline and optimize more reliably at call sites.
+  description: Turns on expensive optimizations for pure-noise. Since the library is pretty small,
+               this shouldn't be too much trouble, but you can disable this flag if it's slowing your
+               builds too much.
   manual: True
   default: True
 
@@ -74,7 +70,7 @@ library
       Numeric.Noise.Fractal
       Numeric.Noise.OpenSimplex
       Numeric.Noise.Perlin
-      Numeric.Noise.SuperSimplex
+      Numeric.Noise.SmootherSimplex
       Numeric.Noise.Value
       Numeric.Noise.ValueCubic
   other-modules:
@@ -99,6 +95,23 @@ library
     ghc-options: -mavx
     cpp-options: -DHAS_AVX
 
+test-suite pure-noise-doctest
+  type: exitcode-stdio-1.0
+  main-is: Doctest.hs
+  other-modules:
+      Paths_pure_noise
+  autogen-modules:
+      Paths_pure_noise
+  hs-source-dirs:
+      doctest
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded
+  build-depends:
+      base >=4.16 && <5
+    , doctest-parallel ==0.4.*
+    , primitive >=0.8 && <0.10
+    , pure-noise
+  default-language: GHC2021
+
 test-suite pure-noise-test
   type: exitcode-stdio-1.0
   main-is: Driver.hs
@@ -110,7 +123,7 @@ test-suite pure-noise-test
       Noise3Spec
       OpenSimplexSpec
       PerlinSpec
-      SuperSimplexSpec
+      SmootherSimplexSpec
       TotalitySpec
       ValueCubicSpec
       ValueSpec
@@ -175,7 +188,7 @@ benchmark pure-noise-fnl-bench
       Paths_pure_noise
   hs-source-dirs:
       bench/fnl-compare
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts "-with-rtsopts=-A64m -T" -O2 -fsimpl-tick-factor=1000
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts "-with-rtsopts=-A64m -T" -O2 -fsimpl-tick-factor=1000 -fspecialize-aggressively -fexpose-all-unfoldings -flate-specialise -flate-dmd-anal
   cxx-options: -O3 -std=c++14 -ffp-contract=fast -fstrict-overflow
   include-dirs:
       bench/fnl-compare/cbits

@@ -19,57 +19,40 @@
 --
 -- Generate 2D Perlin noise:
 --
--- @
--- import Numeric.Noise qualified as Noise
+-- >>> noise2At perlin2 seed 23.5 (-3.2)
+-- -0.5102728615076121
 --
--- myNoise :: Noise.Seed -> Float -> Float -> Float
--- myNoise = Noise.noise2At Noise.perlin2
--- @
 --
 -- Compose multiple noise functions:
---
--- @
--- combined :: (RealFrac a) => Noise.Noise2 a
--- combined = (Noise.perlin2 + Noise.superSimplex2) / 2
---
--- myNoise2 :: Noise.Seed -> Float -> Float -> Float
--- myNoise2 = Noise.noise2At combined
--- @
+-- >>> combined = (perlin2 + smootherSimplex2) / 2
+-- >>> noise2At combined seed (-5.7) (7.9)
+-- 0.36250273586425386
 --
 -- Apply fractal Brownian motion:
 --
--- @
--- fbm :: (RealFrac a) => Noise.Noise2 a
--- fbm = Noise.fractal2 Noise.defaultFractalConfig Noise.perlin2
--- @
+-- >>> fractal = fractal2 defaultFractalConfig perlin2
+-- >>> noise2At fractal seed 55 (-2.23)
+-- 0.15904649772327042
 --
 -- == Advanced Features
 --
 -- Generate 1D noise by slicing higher-dimensional noise:
 --
--- @
--- noise1d :: Noise.Noise1 Float
--- noise1d = Noise.sliceY2 0.5 Noise.perlin2
---
--- evaluate :: Float -> Float
--- evaluate = Noise.noise1At noise1d 0
--- @
+-- >>> sliced1d = sliceY2 0.5 perlin2
+-- >>> noise1At sliced1d seed 1.3
+-- 1.6628682379335485e-2
 --
 -- Transform coordinates with 'warp':
 --
--- @
--- scaledAndLayered :: Noise.Noise2 Float
--- scaledAndLayered =
---  Noise.warp (\\(x, y) -> (x * 2, y * 2)) Noise.perlin2
---    + fmap (* 0.5) Noise.perlin2
--- @
+-- >>> warped = warp (\(x, y) -> (x * 2, y * 2)) perlin2 + fmap (* 0.5) perlin2
+-- >>> noise2At warped seed 73.7 77.127
+-- -0.24590168263203727
 --
 -- Layer independent noise with 'reseed' or 'next2':
 --
--- @
--- layered :: Noise.Noise2 Float
--- layered = (Noise.perlin2 + Noise.next2 Noise.perlin2) \/ 2
--- @
+-- >>> layered = (perlin2 + next2 perlin2) / 2
+-- >>> noise2At layered seed 71 (-73.37)
+-- 1.8548715411324024e-2
 --
 -- == Coordinate domain
 --
@@ -118,8 +101,8 @@ module Numeric.Noise (
   openSimplex3,
 
   -- ** OpenSimplex2S
-  superSimplex2,
-  superSimplex3,
+  smootherSimplex2,
+  smootherSimplex3,
 
   -- ** Cellular
   cellular2,
@@ -166,7 +149,7 @@ module Numeric.Noise (
   -- | Fractal noise combines multiple octaves at different frequencies and
   -- amplitudes to create natural-looking, multi-scale patterns.
   --
-  -- For custom fractal implementations using per-octave modifier functions,
+  -- For custom fractal implementations using per-octave step functions,
   -- see "Numeric.Noise.Fractal".
 
   -- ** Fractal Brownian Motion (FBM)
@@ -215,9 +198,12 @@ import Numeric.Noise.Fractal
 import Numeric.Noise.Internal
 import Numeric.Noise.OpenSimplex qualified as OpenSimplex
 import Numeric.Noise.Perlin qualified as Perlin
-import Numeric.Noise.SuperSimplex qualified as SuperSimplex
+import Numeric.Noise.SmootherSimplex qualified as SmootherSimplex
 import Numeric.Noise.Value qualified as Value
 import Numeric.Noise.ValueCubic qualified as ValueCubic
+
+-- $setup
+-- >>> seed = 1234 :: Seed
 
 -- | 2D Cellular (Worley) noise. Configure with 'CellularConfig' to control
 -- distance functions and return values.
@@ -245,17 +231,17 @@ openSimplex3 :: (RealFrac a) => Noise3 a
 openSimplex3 = OpenSimplex.noise3
 {-# INLINE openSimplex3 #-}
 
--- | 2D SuperSimplex noise. Improved OpenSimplex variant with better visual
+-- | 2D SmootherSimplex noise. Improved OpenSimplex variant with better visual
 -- characteristics.
-superSimplex2 :: (RealFrac a) => Noise2 a
-superSimplex2 = SuperSimplex.noise2
-{-# INLINE superSimplex2 #-}
+smootherSimplex2 :: (RealFrac a) => Noise2 a
+smootherSimplex2 = SmootherSimplex.noise2
+{-# INLINE smootherSimplex2 #-}
 
--- | 3D SuperSimplex noise (FastNoiseLite's OpenSimplex2S, two offset rotated
+-- | 3D SmootherSimplex noise (FastNoiseLite's OpenSimplex2S, two offset rotated
 -- cube grids), including its default coordinate rotation.
-superSimplex3 :: (RealFrac a) => Noise3 a
-superSimplex3 = SuperSimplex.noise3
-{-# INLINE superSimplex3 #-}
+smootherSimplex3 :: (RealFrac a) => Noise3 a
+smootherSimplex3 = SmootherSimplex.noise3
+{-# INLINE smootherSimplex3 #-}
 
 -- | 2D Perlin noise. Classic gradient noise algorithm.
 perlin2 :: (RealFrac a) => Noise2 a
