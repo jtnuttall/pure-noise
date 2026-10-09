@@ -72,7 +72,7 @@ jobs:
         run: cabal build all --enable-tests --enable-benchmarks --only-dependencies
 
       - name: Doctest
-        run: cabal test pure-noise-doctest --enable-tests --write-ghc-environment-files=always
+        run: cabal run pure-noise-doctest --enable-tests --write-ghc-environment-files=always
 
       - name: Unit test
         run: cabal test pure-noise-test --enable-tests
