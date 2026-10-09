@@ -27,7 +27,7 @@ regressions. Many of the ones I'm aware of are centered around newtype classes
 (i.e., classes with one function), but aren't totally isolated to them.
 
 As a result, using GHC 9.14 may **significantly alter your performance profile**.
-This may be a regression.  **I have not yet had the time to test GHC 9.14
+This may be a regression. **I have not yet had the time to test GHC 9.14
 against this library's performance claims**, although CI tests that the library
 compiles at all against 9.14.
 

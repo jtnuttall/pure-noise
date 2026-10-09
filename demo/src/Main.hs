@@ -294,12 +294,12 @@ noiseFrom config = clamp (fractal noise)
           warpStr = config ^. warpStrength
           warpFreq = config ^. warpFrequency
           innerNoise =
-            Noise.warp (\(x, y, z) -> (x * warpFreq, y * warpFreq, z * warpFreq))
-              $ Noise.fractal3 Noise.defaultFractalConfig{Noise.octaves = 5} Noise.perlin3
+            Noise.warp (\(x, y, z) -> (x * warpFreq, y * warpFreq, z * warpFreq)) $
+              Noise.fractal3 Noise.defaultFractalConfig{Noise.octaves = 5} Noise.perlin3
       warpX <- Noise.sliceX3 warpSliceZ innerNoise
       warpY <- Noise.sliceY3 warpSliceZ innerNoise
-      Noise.warp (bimap (+ warpStr * warpX) (+ warpStr * warpY))
-        $ Noise.fractal2 Noise.defaultFractalConfig{Noise.octaves = 5} Noise.openSimplex2
+      Noise.warp (bimap (+ warpStr * warpX) (+ warpStr * warpY)) $
+        Noise.fractal2 Noise.defaultFractalConfig{Noise.octaves = 5} Noise.openSimplex2
 
   fractal
     | config ^. fractalEnabled =
@@ -340,8 +340,8 @@ renderNoise = do
     mImage <- bool (pure Nothing) (Just . createNoiseImage <$> get) =<< use dirty
     case mImage of
       Just image -> do
-        MAU.unsafeWithPtr image
-          $ glTexImage2D GL_TEXTURE_2D 0 (fromIntegral GL_LUMINANCE) w h 0 GL_LUMINANCE GL_FLOAT
+        MAU.unsafeWithPtr image $
+          glTexImage2D GL_TEXTURE_2D 0 (fromIntegral GL_LUMINANCE) w h 0 GL_LUMINANCE GL_FLOAT
         glActiveTexture GL_TEXTURE0
         noiseLoc <- use noiseTextureLocation
         glUniform1i noiseLoc 0
@@ -444,8 +444,8 @@ dragFloat d l speed minV maxV fmt = do
   v <- CFloat <$> use l
   with v \vPtr -> do
     changed <- withCString (T.unpack d) \dPtr ->
-      withCString (T.unpack fmt)
-        $ ImGuiRaw.dragFloat dPtr vPtr (CFloat speed) (CFloat minV) (CFloat maxV)
+      withCString (T.unpack fmt) $
+        ImGuiRaw.dragFloat dPtr vPtr (CFloat speed) (CFloat minV) (CFloat maxV)
     when changed do
       (CFloat v') <- liftIO (peek vPtr)
       l .= v'

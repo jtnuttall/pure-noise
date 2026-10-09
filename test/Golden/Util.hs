@@ -280,9 +280,9 @@ goldenVsImage name ref new act = askOption $ \sizeCutoff ->
  where
   throwIfDoesNotExist = do
     exists <- doesFileExist ref
-    unless exists $
-      ioError $
-        errnoToIOError "goldenVsFileDiff" eNOENT Nothing Nothing
+    unless exists
+      $ ioError
+      $ errnoToIOError "goldenVsFileDiff" eNOENT Nothing Nothing
   runDiff
     :: SizeCutoff
     -> IO (Maybe String)
@@ -303,7 +303,7 @@ goldenVsImage name ref new act = askOption $ \sizeCutoff ->
         procConf = PT.setStdin PT.closed proc
 
     (exitCode, out) <- PT.readProcessInterleaved procConf
-    return $ case exitCode of
+    pure $ case exitCode of
       ExitSuccess -> Nothing
       _ -> Just . LT.unpack . LT.decodeUtf8 . truncateLargeOutput sizeCutoff $ out
   truncateLargeOutput (SizeCutoff n) str =

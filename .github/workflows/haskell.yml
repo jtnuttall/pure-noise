@@ -68,29 +68,28 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-ghc-${{ matrix.ghc }}-
 
-      - name: Install and build dependencies
-        run: cabal build all --enable-tests --enable-benchmarks --only-dependencies
+      - parallel:
+          - name: Install and build
+            run: >
+              cabal build all
+                --enable-tests
+                --enable-benchmarks
+                --write-ghc-environment-files=always
 
-      - name: Doctest
-        run: cabal run pure-noise-doctest --enable-tests --write-ghc-environment-files=always
+          - name: Build Haddock
+            run: cabal haddock
 
-      - name: Unit test
-        run: cabal test pure-noise-test --enable-tests
+          - name: Doctest
+            run: cabal run pure-noise-doctest --enable-tests --write-ghc-environment-files=always
 
-      - name: Build Haddock
-        run: cabal haddock
+          - name: Unit test
+            run: cabal test pure-noise-test --enable-tests
 
-      - name: Build benchmarks
-        run: cabal build all --enable-benchmarks
-
-      # Smoke-build the LLVM-gated benchmark configuration on the newest GHC only. Checks
-      # buildability without wasting too many CI minutes.
-      - name: Install LLVM 19 (llvm-bench smoke build)
-        if: matrix.ghc == '9.12.2'
+      - name: Install LLVM 19
         uses: KyleMayes/install-llvm-action@v2
         with:
           version: "19"
 
       - name: Build benchmarks (+llvm-bench)
-        if: matrix.ghc == '9.12.2'
+        if: matrix.ghc == '9.12.2' || matrix.ghc == '9.14.1'
         run: cabal build all --enable-benchmarks --flags=+llvm-bench

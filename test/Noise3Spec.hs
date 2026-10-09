@@ -46,4 +46,4 @@ prop_multiplication_associative x y z =
 prop_1_is_multiplicative_identity :: Rational -> Rational -> Rational -> Rational -> Bool
 prop_1_is_multiplicative_identity v x y z =
   let n1 = const3 v
-   in noise3At (n1 * 1) seed x y z == v
+   in noise3At n1 seed x y z == v
