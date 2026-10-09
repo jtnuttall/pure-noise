@@ -105,7 +105,6 @@ test-suite pure-noise-doctest
   build-depends:
       base >=4.16 && <5
     , doctest-parallel ==0.4.*
-    , ghc
     , primitive >=0.8 && <0.10
     , pure-noise
   default-language: GHC2021

@@ -17,6 +17,8 @@
     forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
 
     mkOutputs = system: let
+      ghcVersion = "ghc9124";
+
       pkgs = import nixpkgs {
         inherit system;
         inherit (haskellNix) config;
@@ -31,18 +33,26 @@
           qsv
         ];
         build = with llvmPackages_19; [clang-unwrapped gcc llvm pkg-config];
-        check = [dprint lychee odiff shellcheck typos];
+        check = [dprint lychee shellcheck typos];
         examples = [SDL2 glew libx11];
       };
 
       project = pkgs.haskell-nix.cabalProject' {
         src = ./.;
-        compiler-nix-name = "ghc9124";
+        compiler-nix-name = ghcVersion;
 
-        modules = [
+        modules = with pkgs; [
           {
-            packages.pure-noise.components.benchmarks.pure-noise-bench.build-tools = tools.build;
-            packages.pure-noise.components.benchmarks.pure-noise-fnl-bench.build-tools = tools.build;
+            packages.pure-noise.components = {
+              benchmarks = {
+                pure-noise-bench.build-tools = tools.build;
+                pure-noise-fnl-bench.build-tools = tools.build;
+              };
+              tests = {
+                pure-noise-test.build-tools = [odiff];
+                pure-noise-doctest.doCheck = false;
+              };
+            };
           }
         ];
 
@@ -101,7 +111,7 @@
               nativeBuildInputs = [pkgs.shellcheck];
             } ''
               cd ${./.}
-              shellcheck **/*.sh
+              find . -type f -name "*.sh" -exec shellcheck {} +
               touch $out
             '';
 

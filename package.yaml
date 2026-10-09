@@ -106,8 +106,6 @@ tests:
     dependencies:
       - pure-noise
       - doctest-parallel ^>= 0.4
-      # doctest-parallel needs to call GHC as a library; haskell.nix needs to know
-      - ghc
 
 # NOTE: Benchmarks want +mfma & +mavx in your cabal.project if your host arch
 # supports such.
