@@ -33,7 +33,7 @@
           qsv
         ];
         build = with llvmPackages_19; [clang-unwrapped gcc llvm pkg-config];
-        check = [dprint lychee shellcheck typos];
+        check = [lychee oxfmt shellcheck typos];
         examples = [SDL2 glew libx11];
       };
 
@@ -115,11 +115,22 @@
               touch $out
             '';
 
-          dprint =
-            pkgs.runCommand "dprint-check" {
-              nativeBuildInputs = [pkgs.dprint];
+          oxfmt =
+            pkgs.runCommand "oxfmt-check" {
+              nativeBuildInputs = [pkgs.oxfmt];
             } ''
               cd ${./.}
+              oxfmt --check
+              touch $out
+            '';
+
+          doctest-parallel =
+            pkgs.runCommand "doctest-parallel" {
+            } ''
+              cd ${./.}
+              cabal run pure-noise-doctest \
+                --enable-tests \
+                --write-ghc-environment-files=always
               touch $out
             '';
         };
