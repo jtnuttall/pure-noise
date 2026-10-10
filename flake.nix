@@ -41,7 +41,7 @@
         src = ./.;
         compiler-nix-name = ghcVersion;
 
-        modules = with pkgs; [
+        modules = [
           {
             packages.pure-noise.components = {
               benchmarks = {
@@ -49,7 +49,7 @@
                 pure-noise-fnl-bench.build-tools = tools.build;
               };
               tests = {
-                pure-noise-test.build-tools = [odiff];
+                pure-noise-test.build-tools = [pkgs.odiff];
                 pure-noise-doctest.doCheck = false;
               };
             };
@@ -123,35 +123,23 @@
               oxfmt --check
               touch $out
             '';
-
-          doctest-parallel =
-            pkgs.runCommand "doctest-parallel" {
-            } ''
-              cd ${./.}
-              cabal run pure-noise-doctest \
-                --enable-tests \
-                --write-ghc-environment-files=always
-              touch $out
-            '';
         };
     };
-  in
-    {
-      packages = forAllSystems (sys: (mkOutputs sys).packages);
-      apps = forAllSystems (sys: (mkOutputs sys).apps);
-      devShells = forAllSystems (sys: (mkOutputs sys).devShells);
-      checks = forAllSystems (sys: (mkOutputs sys).checks);
-      formatter = forAllSystems (sys: (mkOutputs sys).formatter);
-    }
-    // {
-      nixConfig = {
-        extra-substituters = [
-          "https://cache.iog.io"
-        ];
-        extra-trusted-public-keys = [
-          "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
-        ];
-        allow-import-from-derivation = true;
-      };
-    };
+  in {
+    packages = forAllSystems (sys: (mkOutputs sys).packages);
+    apps = forAllSystems (sys: (mkOutputs sys).apps);
+    devShells = forAllSystems (sys: (mkOutputs sys).devShells);
+    checks = forAllSystems (sys: (mkOutputs sys).checks);
+    formatter = forAllSystems (sys: (mkOutputs sys).formatter);
+  };
+
+  nixConfig = {
+    extra-substituters = [
+      "https://cache.iog.io"
+    ];
+    extra-trusted-public-keys = [
+      "hydra.iohk.io:f/Ea+s+dFdN+3Y/G+FDgSq+a5NEWhJGzdjvKNGv0/EQ="
+    ];
+    allow-import-from-derivation = true;
+  };
 }
