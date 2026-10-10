@@ -26,8 +26,8 @@ jobs:
       - uses: actions/checkout@v5
       - uses: DeterminateSystems/nix-installer-action@main
       - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix flake check
       - parallel:
-          - run: nix flake check
           - name: doctest
             run: |
               nix develop '.#' --command \
