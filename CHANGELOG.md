@@ -8,6 +8,11 @@ and this project adheres to the
 
 ## Unreleased
 
+## 0.3.0.0 2026-10-09
+
+Major version bump. Multiple breaking changes in this release. Worth a sec to
+read over the changes here.
+
 ### Added
 
 - `doctest-parallel` now tests examples.
