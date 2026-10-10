@@ -36,7 +36,7 @@ jobs:
                   --write-ghc-environment-files=always
           - name: haddock
             run: |
-              nix develop '.#' --command
+              nix develop '.#' --command \
                 cabal haddock
           - name: Build benchmarks (+llvm-bench)
             run: |
@@ -91,6 +91,7 @@ jobs:
             ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-ghc-${{ matrix.ghc }}-
 
       - name: Install and build
+        shell: bash
         run: |
           cabal build all \
             --enable-tests \
