@@ -25,22 +25,26 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            accept-flake-config = true
       - uses: DeterminateSystems/magic-nix-cache-action@main
-      - run: nix flake check --accept-flake-config
+      - name: Fetch Hackage index
+        run: nix develop '.#' --command cabal update
+      - run: nix flake check
       - parallel:
           - name: doctest
             run: |
-              nix develop '.#' --accept-flake-config --command \
+              nix develop '.#' --command \
                 cabal run pure-noise-doctest \
-                  --enable-tests \
-                  --write-ghc-environment-files=always
+                  --enable-tests
           - name: haddock
             run: |
-              nix develop '.#' --accept-flake-config --command \
+              nix develop '.#' --command \
                 cabal haddock
           - name: Build benchmarks (+llvm-bench)
             run: |
-              nix develop '.#' --accept-flake-config --command \
+              nix develop '.#' --command \
                 cabal build all \
                   --enable-benchmarks \
                   --flags=+llvm-bench
