@@ -1,0 +1,10 @@
+- group: { name: future, enabled: true }
+
+# Errors and warnings
+
+- error: { name: Use explicit module export list }
+
+# Ignore
+
+- ignore: { name: Parenthesize unary negation }
+- ignore: { name: Eta reduce }

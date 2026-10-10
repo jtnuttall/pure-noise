@@ -36,13 +36,9 @@ source-repository head
   location: https://github.com/jtnuttall/pure-noise
 
 flag llvm-bench
-  description: Build the benchmark suites via GHC's LLVM backend with a pinned toolchain
-               (-fllvm, -pgmlo opt, -pgmlc llc, -pgmlas clang) plus -mavx -mfma and fast
-               FP contraction in llc (-optlc-fp-contract=fast). Requires opt/llc/clang
-               on PATH (LLVM <= 19 for GHC 9.12) and GHC >= 9.10 (for -pgmlas). Off by
-               default so `cabal build --enable-benchmarks` works on machines and CI
-               runners without LLVM. Published benchmark numbers are collected with this
-               flag on; see bench/README.md.
+  description: Build the benchmark suites via GHC's LLVM backend with heavy optimizations.
+               .
+               Published benchmark numbers are collected with this flag on; see bench/README.md.
   manual: True
   default: False
 
@@ -57,9 +53,10 @@ flag mfma
   default: False
 
 flag optimize
-  description: Turns on expensive optimizations for pure-noise. Since the library is pretty small,
-               this shouldn't be too much trouble, but you can disable this flag if it's slowing your
-               builds too much.
+  description: Turns on expensive optimizations for pure-noise.
+               .
+               Since the library is pretty small, this shouldn't be too much trouble, but you can
+               disable this flag if it's slowing your builds too much.
   manual: True
   default: True
 

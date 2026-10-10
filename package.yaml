@@ -16,7 +16,6 @@ extra-source-files:
   - README.md
   - LICENSE
   - LICENSE_FastNoiseLite
-  # Required so pure-noise-fnl-bench builds from the sdist
   - bench/fnl-compare/cbits/FastNoiseLite.h
 
 extra-doc-files:
@@ -177,7 +176,6 @@ benchmarks:
     when:
       - condition: flag(llvm-bench)
         ghc-options:
-          # See pure-noise-bench for rationale.
           - -fllvm
           - -pgmlo opt
           - -pgmlc llc
@@ -199,9 +197,10 @@ benchmarks:
 flags:
   optimize:
     description: |
-      Turns on expensive optimizations for pure-noise. Since the library is pretty small,
-      this shouldn't be too much trouble, but you can disable this flag if it's slowing your
-      builds too much.
+      Turns on expensive optimizations for pure-noise.
+
+      Since the library is pretty small, this shouldn't be too much trouble, but you can
+      disable this flag if it's slowing your builds too much.
     default: true
     manual: true
   mfma:
@@ -214,12 +213,8 @@ flags:
     default: false
   llvm-bench:
     description: |
-      Build the benchmark suites via GHC's LLVM backend with a pinned toolchain
-      (-fllvm, -pgmlo opt, -pgmlc llc, -pgmlas clang) plus -mavx -mfma and fast
-      FP contraction in llc (-optlc-fp-contract=fast). Requires opt/llc/clang
-      on PATH (LLVM <= 19 for GHC 9.12) and GHC >= 9.10 (for -pgmlas). Off by
-      default so `cabal build --enable-benchmarks` works on machines and CI
-      runners without LLVM. Published benchmark numbers are collected with this
-      flag on; see bench/README.md.
+      Build the benchmark suites via GHC's LLVM backend with heavy optimizations.
+
+      Published benchmark numbers are collected with this flag on; see bench/README.md.
     default: false
     manual: true

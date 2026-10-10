@@ -17,28 +17,50 @@ env:
   CACHE_BUST_VERSION: v1
 
 jobs:
-  lint:
+  check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v5
-      - name: Run fourmolu
-        uses: haskell-actions/run-fourmolu@v13
-        with:
-          version: 0.20.0.0
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - run: nix flake check --accept-flake-config
+      - parallel:
+          - name: doctest
+            run: |
+              nix develop '.#' --accept-flake-config --command \
+                cabal run pure-noise-doctest \
+                  --enable-tests \
+                  --write-ghc-environment-files=always
+          - name: haddock
+            run: |
+              nix develop '.#' --accept-flake-config --command \
+                cabal haddock
+          - name: Build benchmarks (+llvm-bench)
+            run: |
+              nix develop '.#' --accept-flake-config --command \
+                cabal build all \
+                  --enable-benchmarks \
+                  --flags=+llvm-bench
 
   build:
-    needs: lint
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
         ghc:
-          - "9.6.7"
           - "9.8.4"
           - "9.10.3"
           - "9.12.4"
           - "9.14.1"
 
-    name: GHC ${{matrix.ghc}}
+    runs-on: ${{matrix.os}}
+
+    name: GHC ${{matrix.ghc}} on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v5
 
@@ -49,11 +71,11 @@ jobs:
           ghc-version: ${{ matrix.ghc }}
           cabal-version: "3.12.1.0"
 
-      # Golden tests rely on odiff
+      # Golden tests
       - name: Setup Node.js for odiff
         uses: actions/setup-node@v4
         with:
-          node-version: "24"
+          node-version: "26"
 
       - name: Install odiff
         run: npm i -g odiff-bin@4.3.8
@@ -68,29 +90,9 @@ jobs:
           restore-keys: |
             ${{ env.CACHE_BUST_VERSION }}-${{ runner.os }}-ghc-${{ matrix.ghc }}-
 
-      - name: Install and build dependencies
-        run: cabal build all --enable-tests --enable-benchmarks --only-dependencies
-
-      - name: Doctest
-        run: cabal run pure-noise-doctest --enable-tests --write-ghc-environment-files=always
-
-      - name: Unit test
-        run: cabal test pure-noise-test --enable-tests
-
-      - name: Build Haddock
-        run: cabal haddock
-
-      - name: Build benchmarks
-        run: cabal build all --enable-benchmarks
-
-      # Smoke-build the LLVM-gated benchmark configuration on the newest GHC only. Checks
-      # buildability without wasting too many CI minutes.
-      - name: Install LLVM 19 (llvm-bench smoke build)
-        if: matrix.ghc == '9.12.2'
-        uses: KyleMayes/install-llvm-action@v2
-        with:
-          version: "19"
-
-      - name: Build benchmarks (+llvm-bench)
-        if: matrix.ghc == '9.12.2'
-        run: cabal build all --enable-benchmarks --flags=+llvm-bench
+      - name: Install and build
+        shell: bash
+        run: |
+          cabal build all \
+            --enable-tests \
+            --enable-benchmarks
